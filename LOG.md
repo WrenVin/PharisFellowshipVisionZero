@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-12 (night) — ELI5 doc added
+
+Created `ELI5.md` at Vincent's request: a plain-English, conversational story of the whole project — the big idea (reactive vs. proactive street safety, the Texas camera ban), and a step-by-step of the road-network build with no jargon. Now FOUR docs to keep current: README (facts), LOG (diary), CODEBOOK (dictionary), ELI5 (story).
+
+---
+
 ## 2026-06-12 (evening, cont.) — Frontage roads excluded; scope question resolved
 
 **Vincent's decision:** feeder/frontage roads are part of the highway facility — TxDOT right-of-way — and are excluded like the freeways they serve.
