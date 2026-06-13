@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Crashes on the dashboard
+
+Surfaced the per-segment crash counts in the Street Explorer (Vincent: finish the dashboard before modeling). `export_webmap_data.py` now exports the crash columns; `docs/index.html` gains a **Crashes** color-by group (severe/all/injury/fatal/ped-severe/bike-severe), a **Crash history** block in the click panel, a **severe-crash range filter**, and a CRIS row in the data-sources modal.
+
+New `count` color type for the zero-heavy crash data: 0 = neutral grey, 1+ on a red ramp. First used quantile breaks → collapsed (most streets have 1–2, hotspots didn't stand out); switched to a **log scale to the max** so the worst streets (Kirby Dr = 11 severe) render darkest. Verified in-browser: legend, filter, info panel, and the hotspot map all correct, no console errors. The severe-crash map reads as District C's High Injury Network — 93% grey, arterials (Westheimer/Richmond/Kirby/Montrose/Washington) glowing red.
+
+Dashboard now shows the full picture: design + context + crash outcome. Modeling (HIN reconstruction → NB → divergence) still to come.
+
+---
+
 ## 2026-06-13 — Crash Step 3: assign crashes to segments (buffer method)
 
 `src/assign_crashes.py`. Each crash → single nearest segment within **200 ft** (Dumbaugh/Rae/Wunneburger). Nearest-only (not all-within-buffer) so counts sum back to the crash total. Divided roads handled: also searched the `merged_away` halves and credited hits to the representative `seg_id` (no boulevard crashes orphaned). Adds per-segment counts to the enriched layer (idempotent): `n_crash`, `n_injury`, `n_severe`, `n_fatal`, `n_ped`, `n_bike`, `n_ped_severe`, `n_bike_severe`.

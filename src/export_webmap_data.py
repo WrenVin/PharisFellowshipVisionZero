@@ -27,6 +27,9 @@ COLS = {
     "median_hh_income": 0, "pct_poverty": 1, "pct_hispanic": 1,
     "pct_black_nh": 1, "pct_white_nh": 1, "pct_zero_car_hh": 1,
     "pop_density_sqmi": 0,
+    # crash outcomes (per segment, from CRIS)
+    "n_crash": 0, "n_injury": 0, "n_severe": 0, "n_fatal": 0,
+    "n_ped": 0, "n_bike": 0, "n_ped_severe": 0, "n_bike_severe": 0,
     "n_signals": 0, "oneway": None, "merged_dual": None, "length_ft": 0,
 }
 

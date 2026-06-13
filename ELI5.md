@@ -225,9 +225,16 @@ detail: **93% of street blocks have had zero severe crashes** — which is the
 whole reason the city's "wait for crashes" approach has blind spots, and why our
 design-based approach can help.
 
-The crash data is now fully prepared. Next: build the model that answers the big
-question — **which dangerous streets is the city's current crash-only method
-missing?** — and add crashes to the live map.
+The crash data is now **on the live map** too: you can color the streets by how
+many crashes (or severe crashes, or pedestrian crashes) each has had, filter to
+just the streets with a serious crash, and click any street to see its crash
+history. The picture is stark — most streets are grey (no severe crashes), and a
+handful of big roads light up red. That grey-vs-red map is basically the city's
+current "where crashes happened" view — and it's exactly what our design-based
+model will be compared against.
+
+Next: build the model that answers the big question — **which dangerous streets
+is the city's current crash-only method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

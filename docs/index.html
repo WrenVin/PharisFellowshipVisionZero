@@ -181,6 +181,7 @@
         <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations — readings span <b>2012–2026</b>; most recent per location used</td></tr>
         <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston — retrieved June&nbsp;2026</td></tr>
         <tr><td>Neighborhood demographics</td><td>U.S. Census ACS <b>2023</b> 5-year estimates (covering 2019–2023)</td></tr>
+        <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts — <b>2016–2024 + partial 2026</b> (2020 &amp; 2025 pending); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
         <tr><td>District boundary</td><td>City of Houston GIS — current council districts (post-2020 redistricting)</td></tr>
       </table>
       <p class="note">"No data" means a value isn't recorded in the source — not that the feature is
@@ -197,6 +198,8 @@
 // ---------- field metadata ----------
 const MISSING = '#d9dde2';
 const RAMP = ['#ffffb2','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#b10026'];
+const REDS = ['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'];
+const COUNTZERO = '#e7e9ec';  // segments with no recorded crash of this type
 const yesno = v => v===true?'Yes':v===false?'No':'—';
 const swLabel = {both:'Both sides',one_side:'One side',partial:'Partial',none:'None mapped'};
 
@@ -213,6 +216,14 @@ const FIELDS = {
   oneway:{label:'One-way',group:'Design',type:'cat',fmt:yesno,cats:{true:'#e15759',false:'#4e79a7'}},
   adt:{label:'Traffic volume',group:'Traffic',type:'num',unit:' veh/day',src:'adt_source'},
   op_speed_85_mph:{label:'Operating speed (85th pct)',group:'Traffic',type:'num',unit:' mph'},
+  n_severe:{label:'Severe crashes (K+A)',group:'Crashes',type:'count'},
+  n_crash:{label:'All crashes',group:'Crashes',type:'count'},
+  n_injury:{label:'Injury crashes',group:'Crashes',type:'count'},
+  n_fatal:{label:'Fatal crashes',group:'Crashes',type:'count'},
+  n_ped_severe:{label:'Severe pedestrian crashes',group:'Crashes',type:'count'},
+  n_bike_severe:{label:'Severe bicycle crashes',group:'Crashes',type:'count'},
+  n_ped:{label:'Pedestrian crashes',group:'Crashes',type:'count'},
+  n_bike:{label:'Bicycle crashes',group:'Crashes',type:'count'},
   sidewalk_presence:{label:'Sidewalks',group:'Pedestrian',type:'cat',fmt:v=>swLabel[v]||'—',cats:{
     'both':'#2ca02c','one_side':'#fdae61','partial':'#f46d43','none':'#d73027'}},
   landuse_dominant:{label:'Adjacent land use',group:'Land use',type:'cat',cats:{
@@ -238,6 +249,7 @@ const INFO_GROUPS = [
   ['Pedestrian',['sidewalk_presence']],
   ['Land use',['landuse_dominant','pct_commercial']],
   ['Neighborhood (block group)',['median_hh_income','pct_poverty','pct_hispanic','pct_black_nh','pct_white_nh','pct_zero_car_hh','pop_density_sqmi']],
+  ['Crash history (2016–2026)',['n_crash','n_injury','n_severe','n_fatal','n_ped_severe','n_bike_severe']],
 ];
 const srcLabel = {city:'city',osm:'OpenStreetMap',default_30_local:'TX default',
   default_30_unposted:'TX default (unposted)',measured:'measured',street_median:'corridor est.',
@@ -290,10 +302,24 @@ function quantileBreaks(field){
   const uniq=[...new Set(br)];
   breaksCache[field]=uniq; return uniq;
 }
+function countBreaks(field){
+  // log scale to the max: crash counts are very skewed (most 1-2, a few high),
+  // so quantile breaks collapse and hotspots wouldn't stand out. Log breaks
+  // spread the ramp so the worst streets get the darkest red.
+  const key='cnt_'+field; if(breaksCache[key]) return breaksCache[key];
+  const mx=maxOf(field), n=REDS.length, br=[];
+  for(let i=1;i<n;i++) br.push(Math.pow(Math.max(mx,2), i/n));
+  breaksCache[key]=br; return br;
+}
 function colorFor(p){
   const m=FIELDS[colorBy];
   if(m.type==='cat'){ const v=norm(colorBy,p); return (m.cats[v]!==undefined?m.cats[v]:MISSING); }
   const v=p[colorBy]; if(v==null) return MISSING;
+  if(m.type==='count'){
+    if(v<=0) return COUNTZERO;
+    const br=countBreaks(colorBy); let i=0; while(i<br.length && v>br[i]) i++;
+    return REDS[i];
+  }
   const br=quantileBreaks(colorBy); let i=0; while(i<br.length && v>br[i]) i++;
   return RAMP[i];
 }
@@ -301,7 +327,7 @@ function passFilters(p){
   if(filt.roadclass.size && !filt.roadclass.has(p.road_class)) return false;
   if(filt.sidewalk.size && !filt.sidewalk.has(p.sidewalk_presence)) return false;
   if(filt.landuse.size && !filt.landuse.has(norm('landuse_dominant',p))) return false;
-  for(const f of ['posted_speed_mph','lanes_final','adt']){
+  for(const f of ['posted_speed_mph','lanes_final','adt','n_severe']){
     const r=filt[f], v=p[f]; if(!r || v==null) continue;
     const [dmin,dmax]=DOMAIN[f];
     // a bound only filters when its handle has been moved off the slider end,
@@ -375,6 +401,12 @@ function drawLegend(){
     }
     h+='<div class="row"><span class="sw" style="background:'+MISSING+'"></span>No data</div>';
     el.innerHTML=h;
+  } else if(m.type==='count'){
+    const mx=maxOf(colorBy);
+    el.innerHTML='<div class="row"><span class="sw" style="background:'+COUNTZERO+'"></span>0 — none recorded</div>'
+      +'<div class="grad" style="background:linear-gradient(90deg,'+REDS.join(',')+')"></div>'
+      +'<div class="gradlab"><span>1</span><span>'+Math.round(mx)+'</span></div>'
+      +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2026 (2020/25 pending)</div>';
   } else {
     const br=quantileBreaks(colorBy);
     const fmt=v=> m.money?'$'+Math.round(v).toLocaleString():Math.round(v).toLocaleString()+(m.unit||'');
@@ -406,7 +438,7 @@ function buildControls(features){
 
   // numeric dual-range filters
   const numWrap=document.getElementById('f-numeric');
-  for(const f of ['posted_speed_mph','lanes_final','adt']){
+  for(const f of ['posted_speed_mph','lanes_final','adt','n_severe']){
     let lo=Infinity,hi=-Infinity;
     features.forEach(ft=>{const v=ft.properties[f]; if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);} });
     lo = (FLOOR[f]!==undefined) ? FLOOR[f] : Math.floor(lo);
@@ -470,7 +502,7 @@ function dualRange(field,label,lo,hi){
 function resetFilters(){
   filt.roadclass.clear(); filt.sidewalk.clear(); filt.landuse.clear();
   document.querySelectorAll('.chip input').forEach(c=>c.checked=false);
-  for(const f of ['posted_speed_mph','lanes_final','adt']){
+  for(const f of ['posted_speed_mph','lanes_final','adt','n_severe']){
     const mn=document.getElementById(f+'-min'), mx=document.getElementById(f+'-max');
     if(mn&&mx){ mn.value=mn.min; mx.value=mx.max; mn.dispatchEvent(new Event('input')); }
   }
