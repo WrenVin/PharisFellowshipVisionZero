@@ -24,6 +24,7 @@ src/
   clean_slivers.py             # drop turn-lane links, absorb median-crossing pieces
   arcgis_fetch.py              # reusable paged ArcGIS REST fetcher (city data pulls)
   conflate_speed.py            # join City of Houston posted speed limits
+  export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   make_map.py                  # interactive network map (legend + plain-English labels)
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
@@ -56,6 +57,7 @@ python3 -m venv .venv
 ```
 
 **Analysis dataset:** `data/processed/district_c_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
+**To inspect by hand:** `data/processed/district_c_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
 
 Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`** — keep it in sync with any schema change.
 
