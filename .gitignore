@@ -6,5 +6,8 @@ cache/
 # raw pulls are reproducible via src/pull_osm.py; keep repo light
 data/raw/*.graphml
 data/raw/district_c_edges_raw.gpkg
+# secrets — never commit API keys
+data/external/.census_api_key
+*.census_api_key
 # generated, ~11 MB, regenerate with src/make_map.py
 reports/network_map.html

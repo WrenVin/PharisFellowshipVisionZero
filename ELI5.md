@@ -158,12 +158,21 @@ which is fine, because the big streets are where the danger is. We were careful
 than guess. (Bonus: the same sensors also recorded how fast cars *actually*
 drive — not just the posted limit — which will matter a lot later.)
 
+**Also just done: neighborhood demographics.** We added, for each street, who
+lives in its neighborhood — income, poverty rate, racial makeup, and how many
+households don't own a car (from the U.S. Census). Two reasons this matters:
+fairness (are dangerous streets concentrated in poorer or less-white
+neighborhoods?), and accuracy (a neighborhood where lots of people don't own
+cars has more people walking, which changes the risk picture). One honest
+caveat we wrote down: the Census reports this by *neighborhood*, not by street,
+so every street in a neighborhood gets that neighborhood's numbers — it's
+background context, not a fact about one specific block.
+
 Still coming:
 1. **The crash data.** The detailed, location-stamped crash records live with
    the state (TxDOT) and need special government access — the council office is
    helping get District C's slice. This is the one piece we're waiting on.
-2. **A few more blanks.** Sidewalks, land use (homes vs. shops vs. industry),
-   and neighborhood demographics.
+2. **Two more blanks.** Sidewalks and land use (homes vs. shops vs. industry).
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

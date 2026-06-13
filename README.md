@@ -29,6 +29,7 @@ src/
   conflate_speed.py            # join City of Houston posted speed limits
   conflate_lanes_width_median.py # join city lane count, roadway width, median
   conflate_adt.py              # join traffic volume (ADT) + operating speed
+  conflate_demographics.py     # join Census ACS neighborhood demographics
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   make_map.py                  # interactive network map (legend + plain-English labels)
 reports/
@@ -60,6 +61,7 @@ python3 -m venv .venv
 .venv/bin/python src/conflate_speed.py           # join city posted speed limits
 .venv/bin/python src/conflate_lanes_width_median.py  # join lanes / width / median
 .venv/bin/python src/conflate_adt.py             # join traffic volume + operating speed
+.venv/bin/python src/conflate_demographics.py    # join ACS demographics (needs CENSUS_API_KEY)
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
 .venv/bin/python src/make_map.py                 # reports/network_map.html
 ```
@@ -79,7 +81,9 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Tier-3 conflation underway. Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), plus **operating speed** (the DAG mediator). Next: sidewalks, parcels (land use), ACS (demographics). Awaiting TxDOT CRIS crash extract via the council office.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Tier-3 conflation underway. Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), plus **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). Next: sidewalks, parcels (land use). Awaiting TxDOT CRIS crash extract via the council office.
+
+Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 
 ## Data sources
 
@@ -90,6 +94,7 @@ Road network built and cleaned: **7,381 segments / 638 centerline miles** (front
 | Posted speed limits | Houston Public Works (Traffic_gx) | done |
 | Lanes / width / median | Houston Public Works (Traffic_gx) | done |
 | Traffic volume (ADT) + operating speed | Houston Public Works (Traffic_gx) | done |
+| Demographics (income, poverty, race, vehicles) | Census ACS 2023 5-yr | done |
 | Crashes | TxDOT CRIS (district extract) | pending via council office |
 | Official HIN baseline (2018/2022) | COH GIS Transportation | located, not yet pulled |
 | Land use | City of Houston parcels | planned |

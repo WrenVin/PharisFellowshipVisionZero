@@ -4,6 +4,24 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Conflate neighborhood demographics (ACS)
+
+The DAG demographics confounder + equity-overlay basis. Source: Census ACS 2023 5-year at **block group**; geometry from TIGERweb (no key); attributes from the Census Data API. New `src/conflate_demographics.py`.
+
+**Census API now requires a free key** (used to be keyless) — Vincent signed up and provided one; stored in gitignored `data/external/.census_api_key` (added to `.gitignore`, verified ignored). Key never committed.
+
+**Attribution method:** each segment inherits the block group containing its midpoint (ecological — neighborhood value attached to streets, not a street-level measurement; documented). 100% of segments assigned; ~233 block groups span District C.
+
+**Two data gotchas hit + fixed:**
+1. Median income carried Census's `-666666666` "not available" sentinel → cleaned all negative counts/income to NaN.
+2. The detailed poverty (B17001) and vehicle (B08201) tables **return null at block-group level**. Verified, then swapped to the BG-published equivalents: poverty via **C17002** (below = ratio<0.50 + 0.50–0.99), vehicles via **B25044** (no-veh = owner + renter no-vehicle). Both 100% covered.
+
+**Result (District C block-group range):** median HH income $25k–$250k (median ~$147k — affluent inner-loop core), % below poverty 0–56 (median 5), % Hispanic 0–89 (median 16), % zero-car households 0–39 (median 2). Plausible for inner-loop Houston.
+
+Added median income + zero-car to map tooltip (labeled "Neighborhood"), full demographic set to CSV; 4 docs updated.
+
+---
+
 ## 2026-06-13 — Conflate traffic volume (ADT) + operating speed
 
 The exposure confounder. Source: Traffic_gx count **stations** (layers 4 major / 5 local) joined to count **readings** (table 22) by `LocationID = station GlobalID`. Added `fetch_table` to `arcgis_fetch.py` for the non-spatial table; new `src/conflate_adt.py`.

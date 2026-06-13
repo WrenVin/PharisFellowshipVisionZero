@@ -125,6 +125,22 @@ Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count rea
 
 > ADT is treated as total (both directions) at the count location. Most local streets have no station; we intentionally leave their ADT blank rather than class-impute, because imputing a confounder is a modeling choice to be made (and sensitivity-tested) explicitly.
 
+### Neighborhood demographics (Census ACS — confounder + equity overlay)
+
+Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 100% of segments assigned; District C spans ~233 block groups. See `reports/demographics_conflation_report.md`.
+
+| Variable | Type | Units | Description |
+|---|---|---|---|
+| `bg_geoid` | text | — | 12-digit Census block-group ID the segment falls in. |
+| `pop` | float | people | Block-group population. |
+| `pop_density_sqmi` | float | people/sq mi | Population density. |
+| `median_hh_income` | float | $ | Median household income (top-coded ~$250k; `-666666666` "not available" sentinels cleaned to blank). |
+| `pct_poverty` | float | % | Share below the poverty line (from C17002, the BG-available poverty table). |
+| `pct_white_nh`, `pct_black_nh`, `pct_hispanic` | float | % | Race/ethnicity shares (B03002). |
+| `pct_zero_car_hh` | float | % | Households with no vehicle (from B25044) — ties demographics to walking/transit exposure and the equity question. |
+
+> **Ecological attribution:** these are *neighborhood* values attached to every street in that neighborhood — appropriate as a DAG confounder and equity overlay, but NOT a street-level measurement; don't read a block-group figure as a property of one street. Block-group ACS estimates also carry non-trivial margins of error (especially median income). Substitutions made because the detailed poverty (B17001) and vehicle (B08201) tables are not published at block-group level: poverty via **C17002**, vehicles via **B25044**.
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |
