@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Street Explorer refinements: mobile, speed floor, data-vintage transparency
+
+Three asks from Vincent on the new app:
+1. **Mobile-friendly.** Panel becomes an off-canvas drawer below 760px with a "☰ Controls" toggle; info panel becomes a bottom sheet; count badge centers; Leaflet zoom control moved to bottom-right so it never collides with the toggle. Verified at 375px (preview).
+2. **Speed filter floor = 30.** Only 22 segments are below 30 mph (all OSM oddities: one 5, some 20/25) vs 5,973 at 30 — so the posted-speed slider now starts at 30, not the raw data min of 5. Implemented a domain-aware filter rule: a bound only excludes once its handle moves off the slider end, so those 22 sub-30 segments still show at the default floor (nothing silently hidden).
+3. **Data-vintage transparency.** Added an "ⓘ Data sources & dates" modal listing every source and its vintage: OSM (June 2026 snapshot), City Traffic_gx (June 2026), ADT readings 2012–2026, HCAD land use (June 2026), Census ACS 2023 5-yr (2019–2023), boundary (current districts). Plus the "no data ≠ absent" and "TX 30 mph default" caveats. Map-compiled date shown.
+
+UI-only (no data/schema change). Next: add school-zone data (Vincent's request).
+
+---
+
 ## 2026-06-13 — Interactive map rebuilt as a custom Leaflet app
 
 Vincent: the folium map was hard to use — thin lines hard to click, hover-only tooltip vanished, and only colorable by road type. He wanted full control, public-facing. Agreed to graduate from folium (static, baked styling) to a **custom Leaflet web-app** where all styling/filtering happens live in the browser.

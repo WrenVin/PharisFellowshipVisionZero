@@ -2,7 +2,7 @@
 
 A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
 
-**🗺️ Live interactive Street Explorer:** https://wrenvin.github.io/PharisFellowshipVisionZero/ — every District C street, with live controls: **color by any attribute**, **stacking filters** (e.g. 4+ lanes, ≥35 mph, no sidewalk → dangerous-by-design candidates), street search, and a click-to-pin info panel.
+**🗺️ Live interactive Street Explorer:** https://wrenvin.github.io/PharisFellowshipVisionZero/ — every District C street, with live controls: **color by any attribute**, **stacking filters** (e.g. 4+ lanes, ≥35 mph, no sidewalk → dangerous-by-design candidates), street search, and a click-to-pin info panel. Mobile-friendly; data sources + vintages disclosed in-app.
 
 ## Research question
 

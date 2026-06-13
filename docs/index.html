@@ -75,7 +75,34 @@
     align-items:center;justify-content:center;font-size:14px;color:var(--muted)}
   .foot{font-size:11px;color:var(--muted);padding:12px 16px;line-height:1.5}
   a{color:var(--accent)}
-  @media(max-width:720px){#panel{position:absolute;z-index:800;height:100%;box-shadow:var(--shadow)}}
+  .aboutbtn{display:inline-block;margin:2px 16px 10px;font-size:12px;color:var(--accent);
+    cursor:pointer;background:none;border:none;padding:0;text-decoration:underline}
+  /* panel toggle (mobile) */
+  #panel-toggle{position:absolute;top:10px;left:10px;z-index:900;display:none;align-items:center;gap:7px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;
+    box-shadow:var(--shadow);cursor:pointer;color:var(--ink)}
+  #panel-toggle .bars{font-size:15px;line-height:1}
+  /* modal */
+  #modal{position:fixed;inset:0;z-index:1000;background:rgba(16,24,40,.45);display:none;
+    align-items:center;justify-content:center;padding:16px}
+  #modal .box{background:#fff;border-radius:10px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;
+    box-shadow:0 12px 40px rgba(16,24,40,.3)}
+  #modal h2{font-size:16px;margin:0;padding:18px 20px 6px}
+  #modal .mclose{position:absolute;top:14px;right:18px;font-size:22px;border:none;background:none;cursor:pointer;color:var(--muted)}
+  #modal .mbody{padding:0 20px 20px;font-size:13px;color:var(--ink);line-height:1.55}
+  #modal table{width:100%;border-collapse:collapse;margin:8px 0}
+  #modal td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:top}
+  #modal td:first-child{font-weight:600;width:38%}
+  #modal .note{font-size:12px;color:var(--muted);margin-top:10px}
+  @media(max-width:760px){
+    #panel{position:absolute;top:0;left:0;z-index:850;height:100%;width:86%;max-width:340px;
+      transform:translateX(-100%);transition:transform .25s ease;box-shadow:0 0 24px rgba(16,24,40,.25)}
+    #app.panel-open #panel{transform:translateX(0)}
+    #panel-toggle{display:flex}
+    #app.panel-open #panel-toggle{left:auto;right:10px}
+    #info{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:46%}
+    #count{bottom:10px;left:50%;transform:translateX(-50%)}
+  }
 </style>
 </head>
 <body>
@@ -83,6 +110,7 @@
   <div id="panel">
     <h1>Vision Zero · District C</h1>
     <div class="sub">Every public street in Houston Council District C — color, filter, and click any street to inspect it.</div>
+    <button class="aboutbtn" id="about-open">ⓘ Data sources &amp; dates</button>
 
     <div class="section">
       <h2>Color streets by</h2>
@@ -131,10 +159,36 @@
   </div>
 
   <div id="mapwrap">
+    <button id="panel-toggle"><span class="bars">☰</span> Controls</button>
     <div id="map"></div>
     <div id="count"></div>
     <div id="info"></div>
     <div id="loading">Loading street network…</div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="box">
+    <button class="mclose" id="about-close">×</button>
+    <h2>Data sources &amp; dates</h2>
+    <div class="mbody">
+      <p>This map combines several public datasets of different vintages. Each street's
+      values carry a source tag in its info panel. Source detail and field definitions are in the
+      <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank">CODEBOOK</a>.</p>
+      <table>
+        <tr><td>Street network &amp; sidewalks</td><td>OpenStreetMap — retrieved June&nbsp;2026 (live snapshot)</td></tr>
+        <tr><td>Speed limits, lanes, width, median</td><td>City of Houston Public Works (Traffic_gx) — retrieved June&nbsp;2026</td></tr>
+        <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations — readings span <b>2012–2026</b>; most recent per location used</td></tr>
+        <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston — retrieved June&nbsp;2026</td></tr>
+        <tr><td>Neighborhood demographics</td><td>U.S. Census ACS <b>2023</b> 5-year estimates (covering 2019–2023)</td></tr>
+        <tr><td>District boundary</td><td>City of Houston GIS — current council districts (post-2020 redistricting)</td></tr>
+      </table>
+      <p class="note">"No data" means a value isn't recorded in the source — not that the feature is
+      necessarily absent on the ground (this matters most for sidewalks and posted speeds, which the
+      city records mainly on larger streets). Where the city hasn't posted a speed limit, Texas law
+      sets a default of 30&nbsp;mph, shown as "TX default".</p>
+      <p class="note">Map compiled June&nbsp;2026 · Pharis Fellowship, University of Houston.</p>
+    </div>
   </div>
 </div>
 
@@ -209,7 +263,8 @@ function fmtVal(field,p){
 
 // ---------- map ----------
 const renderer = L.canvas({tolerance:8, padding:0.5});
-const map = L.map('map',{renderer, preferCanvas:true, zoomControl:true}).setView([29.74,-95.42],12);
+const map = L.map('map',{renderer, preferCanvas:true, zoomControl:false}).setView([29.74,-95.42],12);
+L.control.zoom({position:'bottomright'}).addTo(map);  // clear of the mobile toggle + info panel
 const bases = {
   light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
   dark:L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
@@ -223,6 +278,8 @@ let colorBy='road_class', lineWidth=2.5, lineOpacity=0.9, selectedId=null;
 const breaksCache={};
 const filt = {roadclass:new Set(), sidewalk:new Set(), landuse:new Set(),
   posted_speed_mph:null, lanes_final:null, adt:null};
+const DOMAIN = {};                       // field -> [sliderMin, sliderMax]
+const FLOOR = {posted_speed_mph:30};     // slider floor overrides (Texas min posted speed)
 
 function quantileBreaks(field){
   if(breaksCache[field]) return breaksCache[field];
@@ -245,8 +302,12 @@ function passFilters(p){
   if(filt.sidewalk.size && !filt.sidewalk.has(p.sidewalk_presence)) return false;
   if(filt.landuse.size && !filt.landuse.has(norm('landuse_dominant',p))) return false;
   for(const f of ['posted_speed_mph','lanes_final','adt']){
-    const r=filt[f], v=p[f];
-    if(r && v!=null && (v<r[0]||v>r[1])) return false;
+    const r=filt[f], v=p[f]; if(!r || v==null) continue;
+    const [dmin,dmax]=DOMAIN[f];
+    // a bound only filters when its handle has been moved off the slider end,
+    // so values below a raised floor (e.g. 30 mph) still show at default
+    if(r[0]>dmin && v<r[0]) return false;
+    if(r[1]<dmax && v>r[1]) return false;
   }
   return true;
 }
@@ -348,8 +409,9 @@ function buildControls(features){
   for(const f of ['posted_speed_mph','lanes_final','adt']){
     let lo=Infinity,hi=-Infinity;
     features.forEach(ft=>{const v=ft.properties[f]; if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v);} });
-    lo=Math.floor(lo); hi=Math.ceil(hi);
-    filt[f]=[lo,hi];
+    lo = (FLOOR[f]!==undefined) ? FLOOR[f] : Math.floor(lo);
+    hi=Math.ceil(hi);
+    DOMAIN[f]=[lo,hi]; filt[f]=[lo,hi];
     numWrap.appendChild(dualRange(f, FIELDS[f].label, lo, hi));
   }
   document.getElementById('reset').onclick=resetFilters;
@@ -364,6 +426,16 @@ function buildControls(features){
   document.getElementById('basemap').onchange=e=>{
     map.removeLayer(curBase); curBase=bases[e.target.value].addTo(map); curBase.bringToBack();
   };
+
+  // about/data modal
+  const modal=document.getElementById('modal');
+  document.getElementById('about-open').onclick=()=>{modal.style.display='flex';};
+  document.getElementById('about-close').onclick=()=>{modal.style.display='none';};
+  modal.onclick=e=>{ if(e.target===modal) modal.style.display='none'; };
+
+  // mobile panel toggle
+  const app=document.getElementById('app');
+  document.getElementById('panel-toggle').onclick=()=>app.classList.toggle('panel-open');
 }
 function chipFilter(id,keys,set,cats,labf){
   const el=document.getElementById(id); el.innerHTML='';
