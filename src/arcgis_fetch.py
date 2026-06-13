@@ -53,3 +53,26 @@ def fetch_layer(base_url, out_fields="*", bbox_4326=None, out_sr=2278, page=2000
     import pandas as pd
 
     return gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=out_sr)
+
+
+def fetch_table(base_url, where="1=1", out_fields="*", page=2000, pause=0.2,
+                max_pages=200):
+    """Page through a non-spatial ArcGIS REST table and return a DataFrame."""
+    import pandas as pd
+
+    params = {"where": where, "outFields": out_fields, "returnGeometry": "false",
+              "f": "json", "resultRecordCount": page}
+    rows, offset = [], 0
+    for _ in range(max_pages):
+        url = f"{base_url}/query?{urlencode({**params, 'resultOffset': offset})}"
+        r = requests.get(url, timeout=60)
+        r.raise_for_status()
+        feats = r.json().get("features", [])
+        if not feats:
+            break
+        rows.extend(f["attributes"] for f in feats)
+        if len(feats) < page:
+            break
+        offset += page
+        time.sleep(pause)
+    return pd.DataFrame(rows)

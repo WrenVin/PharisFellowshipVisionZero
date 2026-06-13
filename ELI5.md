@@ -147,13 +147,23 @@ divided-road fix we did earlier (the streets we'd flagged as divided really are
 divided). As always, we labeled where every number came from — the city's
 measurement, or a sensible default for small neighborhood streets.
 
+**Also just done: traffic volume.** We added how many cars use each street per
+day (the city measures this with road sensors). This matters a lot: a wide,
+fast street isn't automatically "more dangerous" if barely anyone drives it —
+you have to account for how many people are actually exposed. The city measures
+traffic at a few hundred spots across the district, so we have real numbers for
+nearly all the *big* streets (98%) and fewer of the small residential ones —
+which is fine, because the big streets are where the danger is. We were careful
+*not* to make up numbers for streets with no count; we'd rather leave a blank
+than guess. (Bonus: the same sensors also recorded how fast cars *actually*
+drive — not just the posted limit — which will matter a lot later.)
+
 Still coming:
 1. **The crash data.** The detailed, location-stamped crash records live with
    the state (TxDOT) and need special government access — the council office is
    helping get District C's slice. This is the one piece we're waiting on.
-2. **More blanks to fill.** Next is traffic volume (how many cars use each
-   street) from the same city source, then sidewalks, land use, and
-   neighborhood demographics.
+2. **A few more blanks.** Sidewalks, land use (homes vs. shops vs. industry),
+   and neighborhood demographics.
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Conflate traffic volume (ADT) + operating speed
+
+The exposure confounder. Source: Traffic_gx count **stations** (layers 4 major / 5 local) joined to count **readings** (table 22) by `LocationID = station GlobalID`. Added `fetch_table` to `arcgis_fetch.py` for the non-spatial table; new `src/conflate_adt.py`.
+
+**Method:** most-recent valid reading per station (stations span 2012–2026, multiple readings each) → snap station to nearest segment (≤150 ft) → segment ADT = mean of its stations → propagate along same-named corridors (`street_median`) → leave the rest blank (deliberately NOT class-imputed; imputing a confounder is a modeling decision to make + sensitivity-test explicitly).
+
+**Diagnostic that reframed the result:** initial 30% overall coverage looked weak until I clipped stations to the actual district polygon — the bbox pull had 985 stations but **only ~320 are inside District C** (ADT's true measurement density). 99% of in-district stations sit within 150 ft of a segment, so tolerance was never the issue. Also fixed a report-metric bug (coverage was divided by all segments, not per-class). Corrected picture: **ADT covers 98% of primary and 97% of secondary arterials**, 34% tertiary, 6% residential — i.e. dense exactly where crashes and the HIN live. Median arterial ADT ~13.6k veh/day (p95 ~25k).
+
+**Bonus — operating speed.** Table 22 also carries `PercentileSpeed85` (85th-pct measured speed) = the **DAG mediator**. Captured as `op_speed_85_mph` (~4% coverage). Flagged in codebook: model as the mechanism, do NOT adjust for it. First real data we have on the mediator (vs. posted speed).
+
+All values provenance-tagged; ADT + volume added to map tooltip and CSV front; 4 docs updated; map republished to Pages.
+
+---
+
 ## 2026-06-13 — Map tooltips updated + published to GitHub Pages
 
 Vincent flagged the map still showed OSM `lanes` and lacked width/median. Fixed `make_map.py` tooltips to use `lanes_final` (with source), `roadway_width_ft`, and `median_type`.

@@ -110,6 +110,21 @@ Same source and snap-match as speed. See `reports/lanes_width_median_report.md`.
 
 Lane semantics note: the city's `NO_OF_LANES` is **total cross-section** on its orientation-coded lines (verified Memorial Dr = 6 = 3+3), matching our merged `lanes`. ~14% of city lines are per-direction coded — a residual ambiguity, mitigated by preferring whole-road matches and the OSM cross-check.
 
+### Traffic volume & operating speed (Houston Public Works count stations)
+
+Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count readings (table 22) by `LocationID`. Most recent valid reading per station; stations snapped to nearest segment (≤150 ft), then ADT propagated along same-named corridors. See `reports/adt_conflation_report.md`.
+
+| Variable | Type | Units | Description |
+|---|---|---|---|
+| `adt` | float | vehicles/day | **Average daily traffic — the exposure confounder.** Coverage: **98% of primary, 97% of secondary** arterials; 34% tertiary, 6% residential; 30% overall (ADT is measured at ~320 stations citywide-in-district, so it's dense on big roads, sparse on locals). |
+| `adt_source` | text | `measured` / `street_median` / *(blank)* | `measured` = a count station on this segment; `street_median` = inherited from same-named corridor; blank = no count (NOT imputed here — ADT imputation is a deliberate, separate modeling step). |
+| `adt_year` | int | year | Year of the reading used (range 2012–2026). |
+| `n_adt_stations` | int | count | Number of count stations mapped onto the segment. |
+| `op_speed_85_mph` | float | mph | **85th-percentile measured (operating) speed** — the design→severity **MEDIATOR** in the DAG. ~4% coverage. **Model as the mechanism; do NOT adjust for it.** Not a risk predictor. Distinct from `posted_speed_mph`. |
+| `op_speed_source` | text | `measured` / *(blank)* | Provenance of `op_speed_85_mph`. |
+
+> ADT is treated as total (both directions) at the count location. Most local streets have no station; we intentionally leave their ADT blank rather than class-impute, because imputing a confounder is a modeling choice to be made (and sensitivity-tested) explicitly.
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |

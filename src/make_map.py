@@ -70,6 +70,12 @@ if "roadway_width_ft" in seg.columns:
         lambda v: f"{v:.0f} ft" if v == v else "unknown"
     )
     seg["median_disp"] = seg["median_type"].fillna("unknown")
+if "adt" in seg.columns:
+    _adtsrc = {"measured": "measured", "street_median": "corridor estimate"}
+    seg["adt_disp"] = [
+        f"{v:,.0f} veh/day ({_adtsrc.get(s, s)})" if v == v else "no count"
+        for v, s in zip(seg["adt"], seg["adt_source"])
+    ]
 seg["len_disp"] = seg["length_ft"].map(lambda v: f"{v:,.0f} ft")
 seg["oneway_disp"] = seg["oneway"].map({True: "yes", False: "no"})
 seg["divided_disp"] = seg["merged_dual"].map(
@@ -78,10 +84,10 @@ seg["divided_disp"] = seg["merged_dual"].map(
 
 if "roadway_width_ft" in seg.columns:
     TOOLTIP = ["street", "road_class", "lanes_disp", "width_disp", "posted_speed",
-               "median_disp", "oneway_disp", "divided_disp", "len_disp"]
+               "adt_disp", "median_disp", "oneway_disp", "divided_disp", "len_disp"]
     ALIASES = ["Street", "Road type", "Traffic lanes (total)", "Roadway width",
-               "Posted speed", "Median", "One-way", "Divided road (merged)",
-               "Segment length"]
+               "Posted speed", "Traffic volume", "Median", "One-way",
+               "Divided road (merged)", "Segment length"]
 else:
     TOOLTIP = ["street", "road_class", "lanes_disp", "posted_speed",
                "oneway_disp", "divided_disp", "len_disp"]

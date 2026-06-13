@@ -29,7 +29,8 @@ df["google_maps"] = [f"https://maps.google.com/?q={la},{lo}"
 # put the columns a human reads first up front
 front = [c for c in ["seg_id", "name", "highway", "road_class", "posted_speed_mph",
                      "speed_source", "lanes_final", "lanes_source", "roadway_width_ft",
-                     "median_type", "length_ft", "oneway", "merged_dual",
+                     "median_type", "adt", "adt_source", "op_speed_85_mph",
+                     "length_ft", "oneway", "merged_dual",
                      "n_signals", "mid_lat", "mid_lon", "google_maps"]
          if c in df.columns]
 df = df[front + [c for c in df.columns if c not in front]]
