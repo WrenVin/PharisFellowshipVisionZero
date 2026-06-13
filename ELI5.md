@@ -168,11 +168,22 @@ caveat we wrote down: the Census reports this by *neighborhood*, not by street,
 so every street in a neighborhood gets that neighborhood's numbers — it's
 background context, not a fact about one specific block.
 
+**Also just done: sidewalks.** For each street we worked out whether it has a
+sidewalk on both sides, one side, or none. Surprising hurdle: **Houston has no
+official map of where its sidewalks are** — so we used OpenStreetMap, where
+volunteers have actually drawn about 344 miles of District C sidewalks. We
+matched those to each street and figured out which side(s) they're on (and we
+widened the search for big roads, since their sidewalks sit farther from the
+center). About 56% of streets have a sidewalk on at least one side; 44% have
+none mapped. Big honest caveat, same as before: "none" means "none drawn in the
+map," which is strong evidence of a gap but not a guarantee — so we'll treat it
+carefully, especially since missing sidewalks are part of the danger story.
+
 Still coming:
 1. **The crash data.** The detailed, location-stamped crash records live with
    the state (TxDOT) and need special government access — the council office is
    helping get District C's slice. This is the one piece we're waiting on.
-2. **Two more blanks.** Sidewalks and land use (homes vs. shops vs. industry).
+2. **One more blank.** Land use (homes vs. shops vs. industry).
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

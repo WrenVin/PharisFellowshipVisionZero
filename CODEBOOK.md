@@ -141,6 +141,20 @@ Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherit
 
 > **Ecological attribution:** these are *neighborhood* values attached to every street in that neighborhood — appropriate as a DAG confounder and equity overlay, but NOT a street-level measurement; don't read a block-group figure as a property of one street. Block-group ACS estimates also carry non-trivial margins of error (especially median income). Substitutions made because the detailed poverty (B17001) and vehicle (B08201) tables are not published at block-group level: poverty via **C17002**, vehicles via **B25044**.
 
+### Sidewalks (OSM-derived — no official Houston inventory exists)
+
+Houston publishes no complete sidewalk inventory, so this is built from OSM's ~344 mi of separately-mapped `footway=sidewalk` lines in District C, associated to each street by side. Search distance scales with road width (half-width + 25 ft, clamped 30–60 ft). See `reports/sidewalk_conflation_report.md`.
+
+| Variable | Type | Values | Description |
+|---|---|---|---|
+| `sidewalk_presence` | text | `both` / `one_side` / `partial` / `none` | Sidewalk on both sides, one side, partial (some coverage but neither side ≥50% of the segment), or none mapped. |
+| `sw_left_frac`, `sw_right_frac` | float | 0–1 | Continuous per-side coverage (share of the segment's sample points with a sidewalk on that side). Side is relative to digitized direction, not compass — it separates "both vs one side", not which cardinal side. |
+| `sidewalk_source` | text | `osm_footway` / `osm_road_tag` | Inferred from separate footway lines, or (fallback where none mapped) the road's OSM `sidewalk=*` tag. |
+
+Coverage: at least one side on ~56% of segments (22% of arterials have both sides); `none` on ~44%.
+
+> **Missing ≠ absent**, strongly here: `none` means no sidewalk *mapped* within the search distance. It's good evidence of a gap, but OSM completeness is uneven — not a field survey. Supersedes the raw OSM `sidewalk` column (16% coverage) for analysis.
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |

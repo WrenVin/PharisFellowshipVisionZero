@@ -4,6 +4,22 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Conflate sidewalks (OSM-derived)
+
+**No official Houston sidewalk inventory exists** (checked: city "Sidewalk Service Areas" = admin sectors; "Sidewalk Permits" = construction points; Traffic_gx "Bike and Pedestrian" = count stations — none is a presence inventory). OSM is best-available. Key find: OSM maps **~344 mi of separate `footway=sidewalk` lines** in District C — far richer than the 16% of roads carrying a `sidewalk=*` tag. New `src/conflate_sidewalks.py`.
+
+**Method:** sample 11 points per segment; at each, find ALL sidewalk footways within a width-scaled distance and classify each by side (left/right via cross product with segment direction); per segment, left_frac/right_frac → `sidewalk_presence` (both / one_side / partial / none). Falls back to the road `sidewalk` tag where no footway is mapped.
+
+**Two fixes during build:**
+1. First pass used `sjoin_nearest` (single nearest sidewalk per point) → could only ever mark ONE side, so "both" was undercounted at 3.4%. Switched to buffer-intersect (all sidewalks near each point, left & right independently) → both-sides rose to a realistic 12.5%.
+2. Fixed 35 ft centerline tolerance → it missed sidewalks on wide arterials (sidewalk sits 40–50 ft from centerline on a 6-lane road). Scaled search distance to `roadway_width_ft/2 + 25 ft` (clamped 30–60). Arterial both-sides 18.6% → **22.4%**.
+
+**Result:** at least one side on **56.5%** of segments; both sides 13.9% (22.4% arterials); **none mapped 43.5%** — consistent with Houston's known sidewalk gaps. Added to map tooltip + CSV.
+
+**Caveat (documented prominently):** missing ≠ absent — `none` = none *mapped* within range; OSM completeness is uneven, not a field survey.
+
+---
+
 ## 2026-06-13 — Conflate neighborhood demographics (ACS)
 
 The DAG demographics confounder + equity-overlay basis. Source: Census ACS 2023 5-year at **block group**; geometry from TIGERweb (no key); attributes from the Census Data API. New `src/conflate_demographics.py`.
