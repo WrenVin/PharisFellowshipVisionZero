@@ -207,10 +207,16 @@ the severe ones clustering on the big roads — exactly what you'd expect.
 (Still waiting on two years — 2020 and 2025 — but we built the process so those
 just drop in and re-run when they come.)
 
-Next steps: figure out which crashes involved people walking or biking, then
-**connect each crash to its street**, and finally build the model that answers
-the big question: **which dangerous streets is the city's current crash-only
-method missing?**
+We then figured out **which crashes involved people walking or biking** (the
+crash records list everyone involved, so we flagged any crash with a pedestrian
+or cyclist). The finding is sobering and important: people on foot or bike are
+only **2% of crashes but about a third of the deaths** — they're rarely in
+crashes, but when they are, it's far more likely to be fatal. That's exactly
+why this project focuses on street *design*.
+
+Next steps: **connect each crash to its street**, and finally build the model
+that answers the big question: **which dangerous streets is the city's current
+crash-only method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

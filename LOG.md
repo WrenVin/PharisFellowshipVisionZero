@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Crash Step 2: pedestrian/bicycle mode
+
+Folded mode into `build_crashes.py` (not a separate script) so one rerun recomputes severity AND mode when 2020/2025 arrive. Mode from CRIS `unit` table (Unit_Desc_ID 4=pedestrian, 3=pedalcyclist), unioned with the `person` table (Prsn_Type_ID 4/3) for robustness; codes confirmed from the CRIS lookup table. New columns: `mode`, `involves_ped`, `involves_bike`.
+
+**Results:** 755 pedestrian crashes (171 severe, 42 fatal), 437 bicycle (50 severe, 7 fatal). **Vulnerable users = 2.1% of all crashes but 21.3% of severe and ~36% of deaths (49/138)** — real-data confirmation of the project's pedestrian-harm premise (prospectus cited ~36%). Data integrity: unit-based vs person-based flags agree to within 1 of 755 ped crashes — classification trustworthy.
+
+This lets us later model ped/bike severe crashes specifically, not just all-severe. Next step: buffer-assign crashes to segments.
+
+---
+
 ## 2026-06-13 — CRIS crash data arrived; Step 1: clean District C crash points
 
 **The outcome variable is here.** Vincent added TxDOT CRIS public extracts to `data/raw/CRIS/` (years 2016–2019, 2021–2024, partial 2026; 2020 & 2025 still coming). ~740 MB — gitignored (an accidental `git add -A` had committed+pushed it; fixed by soft-reset + force-push of the tip commit `c7c8645`, CRIS purged from the remote, kept on local disk). Going forward: tighter `git add`, never `-A` with large raw data staged.

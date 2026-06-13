@@ -180,11 +180,14 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 | `kabco` | text | K / A / B / C / O / UNK | Severity on the KABCO scale (K=fatal, A=serious, B=minor, C=possible, O=none). Decoded from `Crash_Sev_ID` (4=K,1=A,2=B,3=C,5=O,0=UNK), verified against the fatal flag + injury counts. |
 | `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). 1,039 severe (138 K + 901 A). |
 | `any_injury` | bool | — | Any injury (Tot_Injry_Cnt > 0). |
+| `mode` | text | pedestrian / bicycle / motor vehicle | Crash mode (pedestrian takes precedence if a crash has both). |
+| `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **755 ped crashes, 171 severe, 42 fatal.** |
+| `involves_bike` | bool | — | Any pedalcyclist (Unit_Desc_ID=3 / Prsn_Type_ID=3). **437 bike crashes, 50 severe, 7 fatal.** |
 | `Crash_Sev_ID` | int | 0–5 | Raw CRIS severity code (see `kabco`). |
 | `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
 | `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
 
-> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Pedestrian/bicycle **mode is not in this layer yet** (needs a person/unit join).
+> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **2.1% of all crashes but 21.3% of severe crashes and ~36% of deaths** in District C.
 
 ## Intersection context (tier 1 — computed from the street graph)
 
