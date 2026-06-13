@@ -111,11 +111,14 @@ it. After this, the network is clean — no more confusing scraps.
 ### Keeping everything honest and shareable
 Alongside the street-building, we set up the habit stuff so this project stays
 trustworthy and isn't a black box:
-- **A map you can actually read — now live on the web** at
+- **An interactive Street Explorer — live on the web** at
   https://wrenvin.github.io/PharisFellowshipVisionZero/ (no software needed,
-  just open the link). It color-codes streets by type, has a plain-English
-  legend, and lets you hover any street to see its details — lanes, width,
-  speed limit, median — in normal words.
+  just open the link). You can **color the streets by anything** (traffic,
+  speed, lanes, income…), **filter** to just the streets you care about — e.g.
+  "show me wide, fast streets with no sidewalk," which instantly highlights the
+  most worrying streets — **search** for a street by name, and **click any
+  street** to pin a panel with everything we know about it. It's the seed of
+  the public dashboard the project will grow into.
 - **Four documents we keep updated:** the README (quick facts), the LOG (a
   dated diary of every decision and *why*), the CODEBOOK (what every piece of
   data means), and this ELI5.

@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Interactive map rebuilt as a custom Leaflet app
+
+Vincent: the folium map was hard to use — thin lines hard to click, hover-only tooltip vanished, and only colorable by road type. He wanted full control, public-facing. Agreed to graduate from folium (static, baked styling) to a **custom Leaflet web-app** where all styling/filtering happens live in the browser.
+
+**Built** (`docs/index.html`, ~700 lines, vanilla JS + Leaflet, no build step) + `src/export_webmap_data.py` (exports simplified `docs/segments.geojson` 5.7 MB + `boundary.geojson`). Replaces folium `make_map.py` (deleted) and the 14 MB generated html.
+
+Features: **color streets by any attribute** (categorical palettes + numeric quantile gradient, legend redraws); **stacking filters** — road-type/sidewalk/land-use chips + dual-range sliders for speed/lanes/ADT (e.g. "4+ lanes, ≥35 mph, no sidewalk" → 243 candidates, a dangerous-by-design pre-screen); **street search**; **click-to-pin info panel** (grouped, source-tagged, persists); appearance controls (line width/opacity/basemap). Easy selection via **canvas renderer with click-tolerance** (fixes the thin-line problem) + hover highlight.
+
+**Verified in-browser** via the preview server: clean load (no console errors), gradient legend on numeric color-by, info panel populates correctly (Westheimer: 5 lanes/OSM, 30 mph TX-default, 14k veh/day corridor-est, Commercial, block-group demographics), filter scenario narrows 7,381→243. Fixed count-badge overlapping the zoom control (moved bottom-left).
+
+Pipeline/refresh: map now refreshes via `export_webmap_data.py` (not make_map). Added `.claude/launch.json` for local preview.
+
+---
+
 ## 2026-06-13 — Conflate adjacent land use (HCAD parcels) — last predictor
 
 DAG confounder. Source: COH "Land Use (Grouped)" parcel layer (HCAD). New `src/conflate_landuse.py`. For each segment, parcels whose polygon comes within 100 ft are summarized area-weighted into `landuse_dominant` + `pct_residential/commercial/industrial`.

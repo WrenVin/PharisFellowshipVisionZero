@@ -2,7 +2,7 @@
 
 A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
 
-**🗺️ Live interactive map:** https://wrenvin.github.io/PharisFellowshipVisionZero/ (every District C street, color-coded by type, hover for lanes/width/speed/median).
+**🗺️ Live interactive Street Explorer:** https://wrenvin.github.io/PharisFellowshipVisionZero/ — every District C street, with live controls: **color by any attribute**, **stacking filters** (e.g. 4+ lanes, ≥35 mph, no sidewalk → dangerous-by-design candidates), street search, and a click-to-pin info panel.
 
 ## Research question
 
@@ -33,13 +33,17 @@ src/
   conflate_sidewalks.py        # infer sidewalk presence from OSM footways
   conflate_landuse.py          # join adjacent land use from HCAD parcels
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
-  make_map.py                  # interactive network map (legend + plain-English labels)
+  export_webmap_data.py        # export GeoJSON for the interactive web app (docs/)
+docs/                          # the public web app (GitHub Pages)
+  index.html                   # custom Leaflet Street Explorer (color/filter/search)
+  segments.geojson             # street data the app loads
+  boundary.geojson             # District C outline
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
   dual_merge_report.md      # divided-road merge report (generated)
   sliver_cleanup_report.md  # sliver cleanup report (generated)
   speed_conflation_report.md # speed limit conflation report (generated)
-  network_map.html      # interactive network map (generated)
+  …plus one report per conflation step (lanes/width/median, ADT, demographics, sidewalks, land use)
 notebooks/     # exploratory analysis
 ELI5.md        # plain-English story of the project (start here if non-technical)
 LOG.md         # dated project log: decisions, findings, rationale
@@ -67,8 +71,10 @@ python3 -m venv .venv
 .venv/bin/python src/conflate_sidewalks.py       # infer sidewalks from OSM footways
 .venv/bin/python src/conflate_landuse.py         # join adjacent land use (HCAD parcels)
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
-.venv/bin/python src/make_map.py                 # reports/network_map.html
+.venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON for the web app
 ```
+
+The web app is `docs/index.html` (static Leaflet, no build step). Preview locally with `python3 -m http.server --directory docs` and open `localhost:8000`; GitHub Pages serves it live.
 
 **Analysis dataset:** `data/processed/district_c_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
 **To inspect by hand:** `data/processed/district_c_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
