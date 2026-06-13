@@ -29,9 +29,10 @@ CLASS_COLOR = {
 }
 DUAL_COLOR = "#e377c2"
 
-seg = gpd.read_file(
-    ROOT / "data/processed/district_c_segments_clean.gpkg", layer="segments"
-).to_crs(4326)
+# prefer the enriched (conflated) file once it exists
+_enr = ROOT / "data/processed/district_c_segments_enriched.gpkg"
+_clean = ROOT / "data/processed/district_c_segments_clean.gpkg"
+seg = gpd.read_file(_enr if _enr.exists() else _clean, layer="segments").to_crs(4326)
 boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson")
 
 # Friendly display columns
@@ -39,9 +40,20 @@ base_class = seg["highway"].str.replace("_link", "", regex=False)
 seg["road_class"] = base_class.map(CLASS_LABEL).fillna("Minor street")
 seg.loc[seg["highway"].str.endswith("_link"), "road_class"] = "Minor street"
 seg["street"] = seg["name"].fillna("(unnamed)")
-seg["posted_speed"] = seg["maxspeed_mph"].map(
-    lambda v: f"{v:.0f} mph" if v == v else "not tagged"
-)
+if "posted_speed_mph" in seg.columns:
+    _srclabel = {
+        "city": "city posted limit", "osm": "OpenStreetMap",
+        "default_30_local": "TX default (local, 30)",
+        "default_30_unposted": "TX default (unposted, 30)",
+    }
+    seg["posted_speed"] = [
+        f"{v:.0f} mph ({_srclabel.get(s, s)})" if v == v else "unknown"
+        for v, s in zip(seg["posted_speed_mph"], seg["speed_source"])
+    ]
+else:
+    seg["posted_speed"] = seg["maxspeed_mph"].map(
+        lambda v: f"{v:.0f} mph" if v == v else "not tagged"
+    )
 seg["lanes_disp"] = seg["lanes"].map(lambda v: f"{v:.0f}" if v == v else "not tagged")
 seg["len_disp"] = seg["length_ft"].map(lambda v: f"{v:,.0f} ft")
 seg["oneway_disp"] = seg["oneway"].map({True: "yes", False: "no"})

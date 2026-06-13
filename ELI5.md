@@ -129,13 +129,30 @@ trustworthy and isn't a black box:
 
 ## What's next
 
-The streets are ready. The two things still coming:
+The streets are ready, and we've started **filling in the blanks** — adding
+facts about each street from the city's own datasets.
+
+**Just done: speed limits.** We found the City of Houston's official speed-limit
+data and matched it onto our streets. A real-world wrinkle we handled honestly:
+Houston only formally posts speed limits on its *bigger* streets. Most
+neighborhood streets aren't individually posted — but Texas law says any city
+street without a posted sign is automatically 30 mph. So we used the city's real
+numbers where they exist and the legal 30-mph default everywhere else, and we
+*labeled every street with where its number came from*, so we never confuse "the
+city measured this" with "the law says it's this." Every street now has a speed.
+
+Still coming:
 1. **The crash data.** The detailed, location-stamped crash records live with
    the state (TxDOT) and need special government access — the council office is
    helping get District C's slice. This is the one piece we're waiting on.
-2. **Filling in the blanks.** Traffic volume (how many cars use each street),
-   real speed limits, sidewalks, land use, neighborhood demographics — pulled
-   from city and state datasets to complete each street's profile.
+2. **More blanks to fill.** The same city dataset that gave us speeds also has
+   lane counts, street widths, medians, and traffic volume (how many cars use
+   each street) — we'll add those next, one at a time. Then sidewalks, land use,
+   and neighborhood demographics.
+
+Bonus discovery: the city also publishes its *own* official list of
+most-dangerous streets (the "High Injury Network") — exactly the thing our
+project gets compared against at the end. Good to have it in hand early.
 
 Once those land, we connect crashes to streets, build the model that learns
 "what does a dangerous street look like," and finally answer the headline

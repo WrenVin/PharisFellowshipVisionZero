@@ -6,7 +6,8 @@ Documents every variable in the segment datasets. One row = one **road segment**
 
 | File / layer | What it is | Use for |
 |---|---|---|
-| `district_c_segments_clean.gpkg`, layer `segments` | **The analysis network.** Divided roads merged, slivers cleaned. | All analysis and mapping. |
+| `district_c_segments_enriched.gpkg`, layer `segments` | **The analysis network**, clean network + conflated city data (speed; more to come). Canonical once conflation began. | All analysis and mapping. |
+| `district_c_segments_clean.gpkg`, layer `segments` | Clean network before any external conflation (divided roads merged, slivers cleaned). | Provenance / rebuild base for conflation. |
 | `district_c_segments_clean.gpkg`, layer `removed_slivers` | Audit: dropped turn lanes/slip roads (`*_link`) and unnamed sub-50-ft fragments, with `removal_reason`. | Audits; crash-assignment context. |
 | `district_c_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
 | `district_c_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
@@ -60,13 +61,34 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official Dis
 |---|---|---|---|---|
 | `oneway` | bool | true/false | 100% | One-way traffic? In the merged network this means *genuinely* one-way (Montrose-style couplets etc.) — merged divided roads are `false`. |
 | `lanes` | float | count | **85%** | **Total cross-section traffic lanes, both directions.** On merged divided roads this is the sum of both halves (e.g., Memorial = 3+3 = 6), so it means the same thing on every row. NaN if either half untagged. |
-| `maxspeed_mph` | float | mph | **14%** | **Posted** speed limit. Not operating speed (the model's mediator — do not confuse the two). Texas prima facie default where unposted is 30 mph; imputation decision pending. |
+| `maxspeed_mph` | float | mph | 14% | **Original OSM** posted speed (kept for provenance). For analysis use `posted_speed_mph` below instead. |
 | `width_ft` | float | feet | **0%** | Roadway width. Untagged in Houston OSM — must come from another source (city inventory, lanes × standard width, aerial imagery). Kept as a placeholder column. |
 | `sidewalk` | text | `both`, `one_side`, `none`, missing | 17% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
 | `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 10% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
 | `parking` | text | `present`, `none`, missing | 2% | On-street parking. Too sparse to use; conflate from city data later. |
 | `lit` | text | `yes`, `no`, missing | 22% | Street lighting. |
 | `surface` | text | `asphalt`, `concrete`, … | 73% | Pavement surface type. |
+
+## Conflated city data (tier 3 — joined from City of Houston / Public Works)
+
+Source for speed: Houston Public Works "Speed Limit" layer (`TDO/Traffic_gx/2`), via the city GeoHub (staging host `geogimstest`; production host was unreachable 2026-06-12). Matched by snapping 5 sample points per segment to the nearest city speed line within 60 ft. See `reports/speed_conflation_report.md`.
+
+| Variable | Type | Units / values | Description |
+|---|---|---|---|
+| `posted_speed_mph` | float | mph | **Final posted speed for analysis** — 100% populated. Value priority recorded in `speed_source`. |
+| `speed_source` | text | see below | Where `posted_speed_mph` came from. |
+| `maxspeed_city` | float | mph | Raw city-matched posted speed (NaN if no confident match). |
+| `match_frac` | float | 0–1 | Share of the segment's 5 sample points that snapped to a city speed line. |
+| `city_name` | text | — | Street name from the matched city line (for audit). |
+| `speed_name_match` | bool | — | Does the city street name agree with the OSM `name`? Confidence flag on the spatial match (~86% true on city matches). |
+
+`speed_source` values:
+- **`city`** — matched to the city's posted-speed network. Authoritative. (~18% of segments, ~48% of arterials/collectors.)
+- **`osm`** — no city match, but OSM carried a posted speed.
+- **`default_30_local`** — residential/local class, unposted → Texas prima facie 30 mph (legal default, not a measurement).
+- **`default_30_unposted`** — higher OSM class but not on the city's posted network (median ~1,100 ft from any city speed line, i.e. genuinely unposted) → also 30 mph by TX default. **This is the set to sensitivity-test** if posted speed ever drives a published figure.
+
+> `posted_speed_mph` is **posted**, not **operating**, speed. The causal model treats *operating* speed as the design→severity mediator; that needs a different source (speed studies / probe data) and is not this column.
 
 ## Intersection context (tier 1 — computed from the street graph)
 

@@ -4,6 +4,24 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-12 (night) — Tier-3 conflation begins: posted speed limits
+
+First external data joined onto the network. Doing conflation one layer at a time; speed first (Vincent's call).
+
+**Major data discovery.** Houston Public Works' `TDO/Traffic_gx` ArcGIS service (found via the city GeoHub) is an engineering goldmine for the whole conflation phase: a **Speed Limit** layer carrying `POSTED_SPEED`, `NO_OF_LANES`, `AVG_LANE_WIDTH` (fills our 0%-coverage width gap!), `MEDIAN_TYPE`, and classification — already in EPSG:2278 — plus separate **Major Thoroughfare ADT** and **Local Street ADT** layers (city counts traffic on locals too, solving the AADT-coverage worry I'd flagged for TxDOT RHiNo). Also in the same `HoustonMap/Transportation` service: the **official Vision Zero HIN 2022 & 2018** polylines with per-segment crash/death counts and rates, ped/bike dangerous-roads layers, and a social-vulnerability layer — i.e. the city's crash-based baseline for the divergence analysis is publicly downloadable. Caveat: speed source is on staging host `geogimstest` (production `geogims` unreachable 2026-06-12); flagged.
+
+**Infrastructure.** New reusable `src/arcgis_fetch.py` (paged, bbox-clipped ArcGIS REST → GeoDataFrame) for all city pulls. New **enrichment model**: `district_c_segments_enriched.gpkg` = clean network + conflated columns, grown one conflation step at a time; each `conflate_*.py` is idempotent (drops its own columns on reload). This is now the canonical analysis file.
+
+**Speed method** (`src/conflate_speed.py`): geometries differ between OSM and the city network, so no exact join — snap 5 sample points per segment to the nearest city speed line within 60 ft, take modal `POSTED_SPEED` if ≥40% of points match. Fill priority recorded in `speed_source`: city → osm → TX 30 mph default.
+
+**Key finding — coverage is a *posting* fact, not a match failure.** City-posted speed matched only 18% of segments / 48% of arterials. Diagnostic: the unmatched higher-class segments sit a **median ~1,100 ft from any city speed line** (only 4 of 1,104 within 100 ft) — they're genuinely not on Houston's posted-thoroughfare network. Under TX Transportation Code §545.352 an unposted urban street is **30 mph** by default, so these legally default to 30 (tagged `default_30_unposted`, kept distinct for sensitivity testing). Corrected an initial bug where I restricted the 30 mph default to residential classes only — the prima facie default applies to any unposted urban street regardless of OSM class.
+
+**Result:** `posted_speed_mph` now 100% populated (was 14% OSM-only), every value provenance-tagged. City matches: 35 mph dominant (1,152), then 40 (123), 45 (35), 50 (22). Spatial-join name-agreement 86% (sanity OK). Map tooltips now show speed + its source.
+
+**Staged for next steps (already visible in the same city layer):** lanes, lane width, median type, ADT.
+
+---
+
 ## 2026-06-12 (night) — ELI5 doc added
 
 Created `ELI5.md` at Vincent's request: a plain-English, conversational story of the whole project — the big idea (reactive vs. proactive street safety, the Texas camera ban), and a step-by-step of the road-network build with no jargon. Now FOUR docs to keep current: README (facts), LOG (diary), CODEBOOK (dictionary), ELI5 (story).

@@ -22,11 +22,14 @@ src/
   build_segments.py            # intersection-to-intersection segments + coverage report
   merge_dual_carriageways.py   # collapse divided-road halves into single segments
   clean_slivers.py             # drop turn-lane links, absorb median-crossing pieces
+  arcgis_fetch.py              # reusable paged ArcGIS REST fetcher (city data pulls)
+  conflate_speed.py            # join City of Houston posted speed limits
   make_map.py                  # interactive network map (legend + plain-English labels)
 reports/
-  feature_coverage.md      # segment & feature coverage report (generated)
-  dual_merge_report.md     # divided-road merge report (generated)
-  sliver_cleanup_report.md # sliver cleanup report (generated)
+  feature_coverage.md       # segment & feature coverage report (generated)
+  dual_merge_report.md      # divided-road merge report (generated)
+  sliver_cleanup_report.md  # sliver cleanup report (generated)
+  speed_conflation_report.md # speed limit conflation report (generated)
   network_map.html      # interactive network map (generated)
 notebooks/     # exploratory analysis
 ELI5.md        # plain-English story of the project (start here if non-technical)
@@ -48,10 +51,11 @@ python3 -m venv .venv
 .venv/bin/python src/build_segments.py           # segments + coverage report
 .venv/bin/python src/merge_dual_carriageways.py  # merge divided-road halves
 .venv/bin/python src/clean_slivers.py            # sliver cleanup
+.venv/bin/python src/conflate_speed.py           # join city posted speed limits
 .venv/bin/python src/make_map.py                 # reports/network_map.html
 ```
 
-**Analysis dataset:** `data/processed/district_c_segments_clean.gpkg` (layer `segments`).
+**Analysis dataset:** `data/processed/district_c_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
 
 Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`** — keep it in sync with any schema change.
 
@@ -65,7 +69,7 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Feature coverage measured (lanes 85%, maxspeed 14%, width 0% — see `reports/feature_coverage.md`). Next: tier-3 conflation (AADT, speed limits, sidewalks, parcels, ACS). Awaiting TxDOT CRIS crash extract via the council office.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Tier-3 conflation underway: **posted speed limits joined** from Houston Public Works (`posted_speed_mph` now 100% populated). Next conflation layers (same city service): lanes, lane width, median, ADT (traffic volume); then sidewalks, parcels, ACS. Awaiting TxDOT CRIS crash extract via the council office.
 
 ## Data sources
 
@@ -73,7 +77,10 @@ Road network built and cleaned: **7,381 segments / 638 centerline miles** (front
 |---|---|---|
 | District C boundary | COH GIS ArcGIS REST | downloaded |
 | Street network + design features | OpenStreetMap (Overpass) | downloaded |
+| Posted speed limits | Houston Public Works (Traffic_gx) | done |
 | Crashes | TxDOT CRIS (district extract) | pending via council office |
-| Traffic volume (AADT) | TxDOT RHiNo | planned |
+| Official HIN baseline (2018/2022) | COH GIS Transportation | located, not yet pulled |
+| Traffic volume (ADT) | Houston Public Works (Traffic_gx) | planned |
+| Lanes / width / median | Houston Public Works (Traffic_gx) | planned |
 | Land use | City of Houston parcels | planned |
 | Demographics / exposure | ACS | planned |
