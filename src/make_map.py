@@ -54,17 +54,39 @@ else:
     seg["posted_speed"] = seg["maxspeed_mph"].map(
         lambda v: f"{v:.0f} mph" if v == v else "not tagged"
     )
-seg["lanes_disp"] = seg["lanes"].map(lambda v: f"{v:.0f}" if v == v else "not tagged")
+# lanes: prefer conflated lanes_final (with source), fall back to OSM lanes
+_lanesrc = {"city": "city", "osm": "OpenStreetMap", "default_local_2": "local default",
+            "none": "unknown"}
+if "lanes_final" in seg.columns:
+    seg["lanes_disp"] = [
+        f"{v:.0f} ({_lanesrc.get(s, s)})" if v == v else "unknown"
+        for v, s in zip(seg["lanes_final"], seg["lanes_source"])
+    ]
+else:
+    seg["lanes_disp"] = seg["lanes"].map(lambda v: f"{v:.0f}" if v == v else "not tagged")
+
+if "roadway_width_ft" in seg.columns:
+    seg["width_disp"] = seg["roadway_width_ft"].map(
+        lambda v: f"{v:.0f} ft" if v == v else "unknown"
+    )
+    seg["median_disp"] = seg["median_type"].fillna("unknown")
 seg["len_disp"] = seg["length_ft"].map(lambda v: f"{v:,.0f} ft")
 seg["oneway_disp"] = seg["oneway"].map({True: "yes", False: "no"})
 seg["divided_disp"] = seg["merged_dual"].map(
     {True: "yes - both halves merged into this segment", False: "no"}
 )
 
-TOOLTIP = ["street", "road_class", "lanes_disp", "posted_speed",
-           "oneway_disp", "divided_disp", "len_disp"]
-ALIASES = ["Street", "Road type", "Traffic lanes (total)", "Posted speed",
-           "One-way", "Divided road (merged)", "Segment length"]
+if "roadway_width_ft" in seg.columns:
+    TOOLTIP = ["street", "road_class", "lanes_disp", "width_disp", "posted_speed",
+               "median_disp", "oneway_disp", "divided_disp", "len_disp"]
+    ALIASES = ["Street", "Road type", "Traffic lanes (total)", "Roadway width",
+               "Posted speed", "Median", "One-way", "Divided road (merged)",
+               "Segment length"]
+else:
+    TOOLTIP = ["street", "road_class", "lanes_disp", "posted_speed",
+               "oneway_disp", "divided_disp", "len_disp"]
+    ALIASES = ["Street", "Road type", "Traffic lanes (total)", "Posted speed",
+               "One-way", "Divided road (merged)", "Segment length"]
 
 m = folium.Map(tiles="CartoDB positron")
 boundary.explore(
