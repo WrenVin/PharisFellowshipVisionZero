@@ -60,9 +60,9 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official Dis
 | Variable | Type | Units / values | Coverage | Description |
 |---|---|---|---|---|
 | `oneway` | bool | true/false | 100% | One-way traffic? In the merged network this means *genuinely* one-way (Montrose-style couplets etc.) — merged divided roads are `false`. |
-| `lanes` | float | count | **85%** | **Total cross-section traffic lanes, both directions.** On merged divided roads this is the sum of both halves (e.g., Memorial = 3+3 = 6), so it means the same thing on every row. NaN if either half untagged. |
+| `lanes` | float | count | 85% | **OSM** total cross-section lanes (sum of both halves on merged roads). For analysis use `lanes_final` (tier 3) which prefers the city's authoritative count. |
 | `maxspeed_mph` | float | mph | 14% | **Original OSM** posted speed (kept for provenance). For analysis use `posted_speed_mph` below instead. |
-| `width_ft` | float | feet | **0%** | Roadway width. Untagged in Houston OSM — must come from another source (city inventory, lanes × standard width, aerial imagery). Kept as a placeholder column. |
+| `width_ft` | float | feet | **0%** | OSM roadway width — untagged in Houston. Superseded by `roadway_width_ft` (tier 3), now 98.6% covered. |
 | `sidewalk` | text | `both`, `one_side`, `none`, missing | 17% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
 | `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 10% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
 | `parking` | text | `present`, `none`, missing | 2% | On-street parking. Too sparse to use; conflate from city data later. |
@@ -89,6 +89,26 @@ Source for speed: Houston Public Works "Speed Limit" layer (`TDO/Traffic_gx/2`),
 - **`default_30_unposted`** — higher OSM class but not on the city's posted network (median ~1,100 ft from any city speed line, i.e. genuinely unposted) → also 30 mph by TX default. **This is the set to sensitivity-test** if posted speed ever drives a published figure.
 
 > `posted_speed_mph` is **posted**, not **operating**, speed. The causal model treats *operating* speed as the design→severity mediator; that needs a different source (speed studies / probe data) and is not this column.
+
+### Lanes, width, median (Houston Public Works Speed Limit layer)
+
+Same source and snap-match as speed. See `reports/lanes_width_median_report.md`.
+
+| Variable | Type | Units / values | Description |
+|---|---|---|---|
+| `lanes_final` | float | count | **Total cross-section lanes for analysis** — 98.6% covered. Priority: city → OSM → local 2-lane default. |
+| `lanes_source` | text | `city` / `osm` / `default_local_2` / `none` | Where `lanes_final` came from. |
+| `city_lanes` | float | count | Raw city-matched lane count (NaN if no match). |
+| `lanes_osm_city_agree` | bool | — | Where both OSM and city exist, do they agree within 1 lane? (79% true.) QC flag — where they differ the city is usually higher (OSM tags one direction of a divided road). |
+| `roadway_width_ft` | float | feet | **Roadway (travel-lane) width for analysis** — 98.6% covered, was 0% in OSM. = `lanes_final` × avg lane width. Excludes the median. |
+| `avg_lane_width_ft` | float | feet | City average lane width (~12 ft almost everywhere; 11 occasionally). |
+| `width_source` | text | `city_lanes_x_width` / `lanes_x_12ft_assumed` / `none` | How `roadway_width_ft` was derived. |
+| `median_type` | text | `Raised` / `Depressed` / `TWLT` / `Undivided` / `Divided (unspecified)` | Median design. `TWLT` = continuous center two-way left-turn lane. `Divided (unspecified)` = a merged divided road with no city median record. |
+| `median_source` | text | `city` / `merged_dual` / `default_local_undivided` / `none` | Where `median_type` came from. |
+| `median_width_ft` | float | feet | City-measured median width (not defaulted; 17% covered). |
+| `geom_match_frac` | float | 0–1 | Share of the segment's sample points that snapped to a city line in this conflation. |
+
+Lane semantics note: the city's `NO_OF_LANES` is **total cross-section** on its orientation-coded lines (verified Memorial Dr = 6 = 3+3), matching our merged `lanes`. ~14% of city lines are per-direction coded — a residual ambiguity, mitigated by preferring whole-road matches and the OSM cross-check.
 
 ## Intersection context (tier 1 — computed from the street graph)
 

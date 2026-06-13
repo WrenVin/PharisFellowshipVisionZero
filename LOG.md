@@ -4,6 +4,22 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-12 (night, cont.) — Conflate lanes, width, median
+
+Same city source (cached `Traffic_gx/2`, re-fetched to add `MEDIAN_WIDTH`/`DIRECTION`). New shared helper `src/conflate_util.py::snap_match` (the point-snap match logic, now reusable). New `src/conflate_lanes_width_median.py`.
+
+**Verified lane semantics before trusting them.** City `DIRECTION` is mostly *orientation* (N/S, E/W) → each line is the whole road and `NO_OF_LANES` is **total** cross-section (Memorial Dr = 6 = 3+3, matches our merged `lanes`). ~14% of lines are per-direction coded (Allen Pkwy) — a residual ambiguity.
+
+**Lane priority decision — and a mid-task correction.** Started with OSM primary / city gap-fill. The OSM-vs-city cross-check (1,276 shared segments, agree-within-1-lane 79%) showed disagreements are systematic: where they differ the **city is usually higher** because OSM tags only one direction of a divided road (e.g., N/S Braeswood OSM=2, city=4–6). So flipped to **city authoritative → OSM fill → local 2-lane default**. `lanes_final` now 98.6% (city 18%, OSM 69%, local-2 12%, none 1.4%); `lanes_osm_city_agree` kept as a QC flag.
+
+**Width — fills the 0% gap.** Avg lane width is ~12 ft citywide (rarely 11), so `roadway_width_ft = lanes_final × avg_lane_width` (travel pavement, excludes median). **98.6% covered, was 0%.** `width_source` distinguishes city-measured lane width (18%) from the 12-ft assumption (81%).
+
+**Median.** `median_type` ∈ {Raised 984, Depressed 59, TWLT 53 (center turn lane), Undivided, Divided (unspecified)}. Filled: city where present (18%), local streets → Undivided (64%), merged-dual-without-city → "Divided (unspecified)" (216, so we never mislabel a divided road as undivided), higher-class unknown → NaN (17.7%). `median_width_ft` city-only (not defaulted). **Independent validation: 76.9% of our merged dual-carriageway segments are typed Raised/Depressed by the city** — the median data confirms the merge.
+
+All conflated columns provenance-tagged (`*_source`). CSV (now 50 cols, key new fields surfaced up front) + map refreshed.
+
+---
+
 ## 2026-06-12 (night) — Tier-3 conflation begins: posted speed limits
 
 First external data joined onto the network. Doing conflation one layer at a time; speed first (Vincent's call).

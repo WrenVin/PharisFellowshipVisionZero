@@ -136,14 +136,22 @@ numbers where they exist and the legal 30-mph default everywhere else, and we
 *labeled every street with where its number came from*, so we never confuse "the
 city measured this" with "the law says it's this." Every street now has a speed.
 
+**Also just done: lanes, width, and medians.** That same city dataset told us,
+for each street, how many lanes it has, how wide the pavement is, and whether
+it has a median (a raised divider, a center turn lane, or nothing). Two nice
+wins here: street *width* was completely blank before — now it's filled in for
+99% of streets. And the city's median info independently confirmed the
+divided-road fix we did earlier (the streets we'd flagged as divided really are
+divided). As always, we labeled where every number came from — the city's
+measurement, or a sensible default for small neighborhood streets.
+
 Still coming:
 1. **The crash data.** The detailed, location-stamped crash records live with
    the state (TxDOT) and need special government access — the council office is
    helping get District C's slice. This is the one piece we're waiting on.
-2. **More blanks to fill.** The same city dataset that gave us speeds also has
-   lane counts, street widths, medians, and traffic volume (how many cars use
-   each street) — we'll add those next, one at a time. Then sidewalks, land use,
-   and neighborhood demographics.
+2. **More blanks to fill.** Next is traffic volume (how many cars use each
+   street) from the same city source, then sidewalks, land use, and
+   neighborhood demographics.
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our
