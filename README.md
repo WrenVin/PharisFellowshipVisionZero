@@ -29,6 +29,7 @@ reports/
   sliver_cleanup_report.md # sliver cleanup report (generated)
   network_map.html      # interactive network map (generated)
 notebooks/     # exploratory analysis
+ELI5.md        # plain-English story of the project (start here if non-technical)
 LOG.md         # dated project log: decisions, findings, rationale
 CODEBOOK.md    # definition of every variable in the segment dataset
 ```
