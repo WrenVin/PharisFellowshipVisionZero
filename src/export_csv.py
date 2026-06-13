@@ -29,8 +29,8 @@ df["google_maps"] = [f"https://maps.google.com/?q={la},{lo}"
 # put the columns a human reads first up front
 front = [c for c in ["seg_id", "name", "highway", "road_class", "posted_speed_mph",
                      "speed_source", "lanes_final", "lanes_source", "roadway_width_ft",
-                     "median_type", "sidewalk_presence", "adt", "adt_source",
-                     "op_speed_85_mph",
+                     "median_type", "sidewalk_presence", "landuse_dominant",
+                     "pct_commercial", "adt", "adt_source", "op_speed_85_mph",
                      "median_hh_income", "pct_poverty", "pct_hispanic",
                      "pct_black_nh", "pct_white_nh", "pct_zero_car_hh",
                      "length_ft", "oneway", "merged_dual",

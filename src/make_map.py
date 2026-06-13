@@ -87,6 +87,8 @@ if "sidewalk_presence" in seg.columns:
     _swlabel = {"both": "both sides", "one_side": "one side",
                 "partial": "partial", "none": "none mapped"}
     seg["sidewalk_disp"] = seg["sidewalk_presence"].map(_swlabel).fillna("unknown")
+if "landuse_dominant" in seg.columns:
+    seg["landuse_disp"] = seg["landuse_dominant"].fillna("n/a (park/campus/etc.)")
 seg["len_disp"] = seg["length_ft"].map(lambda v: f"{v:,.0f} ft")
 seg["oneway_disp"] = seg["oneway"].map({True: "yes", False: "no"})
 seg["divided_disp"] = seg["merged_dual"].map(
@@ -95,12 +97,14 @@ seg["divided_disp"] = seg["merged_dual"].map(
 
 if "roadway_width_ft" in seg.columns:
     TOOLTIP = ["street", "road_class", "lanes_disp", "width_disp", "posted_speed",
-               "adt_disp", "median_disp", "sidewalk_disp", "oneway_disp",
-               "divided_disp", "len_disp", "nhood_income_disp", "nhood_zerocar_disp"]
+               "adt_disp", "median_disp", "sidewalk_disp", "landuse_disp",
+               "oneway_disp", "divided_disp", "len_disp",
+               "nhood_income_disp", "nhood_zerocar_disp"]
     ALIASES = ["Street", "Road type", "Traffic lanes (total)", "Roadway width",
-               "Posted speed", "Traffic volume", "Median", "Sidewalks", "One-way",
-               "Divided road (merged)", "Segment length",
-               "Neighborhood median income", "Neighborhood car-free households"]
+               "Posted speed", "Traffic volume", "Median", "Sidewalks",
+               "Adjacent land use", "One-way", "Divided road (merged)",
+               "Segment length", "Neighborhood median income",
+               "Neighborhood car-free households"]
 else:
     TOOLTIP = ["street", "road_class", "lanes_disp", "posted_speed",
                "oneway_disp", "divided_disp", "len_disp"]

@@ -4,6 +4,24 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Conflate adjacent land use (HCAD parcels) — last predictor
+
+DAG confounder. Source: COH "Land Use (Grouped)" parcel layer (HCAD). New `src/conflate_landuse.py`. For each segment, parcels whose polygon comes within 100 ft are summarized area-weighted into `landuse_dominant` + `pct_residential/commercial/industrial`.
+
+**Three bugs fought through (good case study in not trusting the first number):**
+1. `resultOffset` paging silently broke — the server caps geojson pages by transfer SIZE (~750–4000 features, variable) and sets `exceededTransferLimit`; offset paging then **duplicated some parcels and skipped others** (108k rows, only 44k unique, ~34k missing). Fixed with an **OBJECTID cursor** (`where OBJECTID > last_max`, ordered) — bulletproof.
+2. Merge crash: built results with `seg_id` as index then merged `on="seg_id"` → reset_index.
+3. geojson/gpkg round-trip upper-cased the field (`GROUP_DSCR`) → case-robust lookup.
+4. First spatial pass used parcel **centroids** within 100 ft → only 57% coverage because deep lots have centroids set far back. Switched to parcel **polygon** intersects buffer → 79%.
+
+**Reconciliation:** 44,116 unique parcels vs a returnCountOnly of 77,931 — the gap is HCAD **stacked condo records** (multiple ownership rows at one footprint), redundant for land use; de-duplicated. **Verified the 21% NaN is real, not a gap:** those segments are a median ~340 ft from any parcel — roads through Hermann Park, Rice University, the Texas Medical Center, cemeteries, and bayou greenways. Left `none`, not mislabeled.
+
+**Result:** `landuse_dominant` on 79% of segments (78% arterials): Residential 3,859, Commercial 1,121, Institutional 303, Industrial 258, Undeveloped 225, Parks 32. Added to map tooltip + CSV.
+
+**Tier-3 conflation complete** — all predictors assembled (speed, lanes, width, median, ADT, operating speed, demographics, sidewalks, land use). Only the CRIS crash outcome (pending) remains before modeling.
+
+---
+
 ## 2026-06-13 — Conflate sidewalks (OSM-derived)
 
 **No official Houston sidewalk inventory exists** (checked: city "Sidewalk Service Areas" = admin sectors; "Sidewalk Permits" = construction points; Traffic_gx "Bike and Pedestrian" = count stations — none is a presence inventory). OSM is best-available. Key find: OSM maps **~344 mi of separate `footway=sidewalk` lines** in District C — far richer than the 16% of roads carrying a `sidewalk=*` tag. New `src/conflate_sidewalks.py`.

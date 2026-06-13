@@ -31,6 +31,7 @@ src/
   conflate_adt.py              # join traffic volume (ADT) + operating speed
   conflate_demographics.py     # join Census ACS neighborhood demographics
   conflate_sidewalks.py        # infer sidewalk presence from OSM footways
+  conflate_landuse.py          # join adjacent land use from HCAD parcels
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   make_map.py                  # interactive network map (legend + plain-English labels)
 reports/
@@ -64,6 +65,7 @@ python3 -m venv .venv
 .venv/bin/python src/conflate_adt.py             # join traffic volume + operating speed
 .venv/bin/python src/conflate_demographics.py    # join ACS demographics (needs CENSUS_API_KEY)
 .venv/bin/python src/conflate_sidewalks.py       # infer sidewalks from OSM footways
+.venv/bin/python src/conflate_landuse.py         # join adjacent land use (HCAD parcels)
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
 .venv/bin/python src/make_map.py                 # reports/network_map.html
 ```
@@ -83,7 +85,7 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Tier-3 conflation underway. Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), plus **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (both/one/none; ~56% of segments have ≥1 side). Next: parcels (land use). Awaiting TxDOT CRIS crash extract via the council office.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). **Predictor set complete.** Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (~56% have ≥1 side). From HCAD: **adjacent land use** (79%). The only remaining input is the **crash outcome** — awaiting the TxDOT CRIS District C extract via the council office — after which: crash assignment → spatial baseline → negative binomial → divergence analysis.
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 
@@ -98,6 +100,7 @@ Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `da
 | Traffic volume (ADT) + operating speed | Houston Public Works (Traffic_gx) | done |
 | Demographics (income, poverty, race, vehicles) | Census ACS 2023 5-yr | done |
 | Sidewalk presence | OpenStreetMap footways | done (no official inventory) |
+| Adjacent land use | City of Houston / HCAD parcels | done |
 | Crashes | TxDOT CRIS (district extract) | pending via council office |
 | Official HIN baseline (2018/2022) | COH GIS Transportation | located, not yet pulled |
 | Land use | City of Houston parcels | planned |

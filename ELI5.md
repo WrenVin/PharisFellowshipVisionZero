@@ -179,19 +179,29 @@ none mapped. Big honest caveat, same as before: "none" means "none drawn in the
 map," which is strong evidence of a gap but not a guarantee — so we'll treat it
 carefully, especially since missing sidewalks are part of the danger story.
 
-Still coming:
-1. **The crash data.** The detailed, location-stamped crash records live with
-   the state (TxDOT) and need special government access — the council office is
-   helping get District C's slice. This is the one piece we're waiting on.
-2. **One more blank.** Land use (homes vs. shops vs. industry).
+**Also just done: land use.** For each street we worked out what's around it —
+homes, shops/offices, industry, parks, etc. — using the county's property
+records. Streets lined with shops and businesses behave differently (more cars
+turning in and out, more people on foot) than quiet residential blocks, so this
+helps the model compare fairly. About 79% of streets got a clear answer; the
+rest are roads running through big places with no individual lots — Hermann
+Park, Rice University, the Medical Center, the bayou trails — and we left those
+honestly blank rather than guess.
+
+**That completes the street profiles.** Every street in District C now has its
+full design + context fingerprint: size, speed, traffic, sidewalks, median,
+land use, and neighborhood. The foundation is built.
+
+The one thing still missing is **the crash data** — the location-stamped
+records of where people have actually been hurt. They live with the state
+(TxDOT) and need special government access; the council office is helping get
+District C's slice. Once it arrives, we connect crashes to streets and build
+the model that answers the big question: **which dangerous streets is the
+city's current crash-only method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our
 project gets compared against at the end. Good to have it in hand early.
-
-Once those land, we connect crashes to streets, build the model that learns
-"what does a dangerous street look like," and finally answer the headline
-question: **which dangerous streets is the city's current method missing?**
 
 ---
 

@@ -155,6 +155,19 @@ Coverage: at least one side on ~56% of segments (22% of arterials have both side
 
 > **Missing ≠ absent**, strongly here: `none` means no sidewalk *mapped* within the search distance. It's good evidence of a gap, but OSM completeness is uneven — not a field survey. Supersedes the raw OSM `sidewalk` column (16% coverage) for analysis.
 
+### Adjacent land use (City of Houston / HCAD parcels — confounder)
+
+Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segment, parcels whose polygon comes within 100 ft are summarized **area-weighted** by category. See `reports/landuse_conflation_report.md`.
+
+| Variable | Type | Values / units | Description |
+|---|---|---|---|
+| `landuse_dominant` | text | Residential / Commercial / Industrial / Institutional / Parks-Open / Undeveloped / Other | Land-use category with the largest adjacent land **area** within 100 ft. |
+| `pct_residential`, `pct_commercial`, `pct_industrial` | float | % | Area share of nearby land in each category (Commercial = commercial+office). |
+| `n_parcels_nearby` | int | count | Parcels within 100 ft of the segment. |
+| `landuse_source` | text | `hcad_parcels` / `none` | Present on 79% of segments (78% of arterials). |
+
+> Coverage is 79% because ~21% of segments are roads through **large non-parceled areas** — Hermann Park, Rice University, the Texas Medical Center, cemeteries, bayou greenways (nearest parcel a median ~340 ft away). Those are left `none`, not mislabeled. HCAD "stacked" condo records (shared footprint) are de-duplicated. Confounder, not mediator: land use shapes both road design and crash counts.
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |
