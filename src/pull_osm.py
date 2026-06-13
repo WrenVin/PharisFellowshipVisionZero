@@ -9,6 +9,7 @@ Output:
   data/raw/district_c_edges_raw.gpkg  - edges with OSM tags (for inspection)
 """
 
+import re
 from pathlib import Path
 
 import geopandas as gpd
@@ -61,22 +62,30 @@ G = ox.graph_from_polygon(
 )
 print(f"Raw graph: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
-# Drop freeways and ramps (TxDOT-controlled, not city-redesignable)
+# Drop freeways, ramps, and frontage/feeder roads (TxDOT right-of-way,
+# part of the highway facility -- not city-redesignable; decision 2026-06-12)
 EXCLUDE = {"motorway", "motorway_link"}
+FRONTAGE = re.compile(r"frontage|feeder|service road", re.I)
 
 
 def _classes(hwy):
     return set(hwy) if isinstance(hwy, list) else {hwy}
 
 
+def _names(nm):
+    vals = nm if isinstance(nm, list) else [nm]
+    return [v for v in vals if isinstance(v, str)]
+
+
 drop = [
     (u, v, k)
     for u, v, k, d in G.edges(keys=True, data=True)
     if _classes(d.get("highway")) & EXCLUDE
+    or any(FRONTAGE.search(n) for n in _names(d.get("name")))
 ]
 G.remove_edges_from(drop)
 G.remove_nodes_from([n for n in G.nodes if G.degree(n) == 0])
-print(f"Removed {len(drop):,} motorway/ramp edges")
+print(f"Removed {len(drop):,} motorway/ramp/frontage edges")
 print(f"Filtered graph: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
 ox.save_graphml(G, RAW / "district_c_drive.graphml")

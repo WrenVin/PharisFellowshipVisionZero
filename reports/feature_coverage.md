@@ -6,25 +6,25 @@ roads excluded. CRS: EPSG:2278 (US ft).
 
 ## Network summary
 
-- **Segments (intersection-to-intersection, undirected):** 10,345
-- **Total centerline length:** 763.2 mi
+- **Segments (intersection-to-intersection, undirected):** 10,010
+- **Total centerline length:** 736.8 mi
 - **Median segment length:** 304 ft
-- Length percentiles (ft): p5=40, p25=212, p50=304, p75=477, p95=1,018
-- **Signalized segment ends:** 548 segments touch >=1 signal
-- **One-way segments:** 3,684 (35.6%)
-- **Dual-carriageway candidates:** 2,608 segments (177.3 mi) — same-named antiparallel one-way twin within 150 ft
+- Length percentiles (ft): p5=40, p25=219, p50=304, p75=475, p95=1,005
+- **Signalized segment ends:** 502 segments touch >=1 signal
+- **One-way segments:** 3,351 (33.5%)
+- **Dual-carriageway candidates:** 2,578 segments (175.7 mi) — same-named antiparallel one-way twin within 150 ft
 
 ## Segments by highway class
 
 | highway        |    n |   miles |
 |:---------------|-----:|--------:|
-| residential    | 5243 |   434.2 |
-| secondary      | 2759 |   184.9 |
-| tertiary       | 1092 |    73   |
+| residential    | 5240 |   433.8 |
+| secondary      | 2462 |   161.4 |
+| tertiary       | 1060 |    70.7 |
 | primary        |  529 |    41.3 |
-| secondary_link |  351 |     9.2 |
-| unclassified   |  249 |    16.3 |
-| primary_link   |   80 |     3.5 |
+| secondary_link |  347 |     8.6 |
+| unclassified   |  248 |    16.2 |
+| primary_link   |   82 |     4   |
 | tertiary_link  |   41 |     0.7 |
 | emergency_bay  |    1 |     0   |
 
@@ -32,14 +32,14 @@ roads excluded. CRS: EPSG:2278 (US ft).
 
 | feature      |   overall_pct |   arterial_collector_pct |   local_pct |
 |:-------------|--------------:|-------------------------:|------------:|
-| lanes        |          84.8 |                     90.8 |        79.4 |
-| maxspeed_mph |          14.2 |                     24.7 |         4.8 |
+| lanes        |          84.4 |                     90.4 |        79.5 |
+| maxspeed_mph |          13.7 |                     24.5 |         4.8 |
 | width_ft     |           0   |                      0   |         0   |
-| sidewalk     |          17.1 |                     25.6 |         9.6 |
-| cycleway     |           9.6 |                     19.8 |         0.6 |
-| parking      |           1.7 |                      1.4 |         2   |
-| lit          |          21.8 |                     39.6 |         6.1 |
-| surface      |          72.8 |                     82.3 |        64.5 |
+| sidewalk     |          16.5 |                     25   |         9.6 |
+| cycleway     |           9.6 |                     20.4 |         0.6 |
+| parking      |           1.8 |                      1.5 |         2   |
+| lit          |          20.9 |                     38.8 |         6.1 |
+| surface      |          72.2 |                     81.7 |        64.5 |
 
 ## Notes
 

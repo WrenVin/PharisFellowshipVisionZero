@@ -57,14 +57,14 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 ## Key data decisions (details in LOG.md)
 
 - **Unit of analysis:** intersection-to-intersection road segments (split at junction nodes), undirected — one row per physical street segment.
-- **Scope:** city-controlled surface streets only. Freeways and ramps (I-610, US-59/I-69) are excluded — TxDOT controls them and the city cannot redesign them. Locals are kept. Service roads (alleys, driveways) excluded.
+- **Scope:** city-controlled surface streets only. Freeways, ramps, **and frontage/feeder roads** (I-610, US-59/I-69 and their feeders) are excluded — TxDOT right-of-way, part of the highway facility, not city-redesignable. Locals are kept. Service roads (alleys, driveways) excluded.
 - **Boundary:** official post-redistricting District C polygon from the City of Houston GIS ArcGIS REST service (`HoustonMap/Administrative_Boundary/MapServer/2`), verified current (lists CM Panzarella).
 - **CRS:** EPSG:2278 (Texas State Plane South Central, US survey feet) for all distance work, so buffer distances are honest feet.
 - **Geometry source:** OpenStreetMap as the geometric spine; TxDOT RHiNo (AADT), city parcels (land use), and ACS (demographics) to be conflated on later.
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,635 segments / 663 centerline miles** (divided roads merged, slivers cleaned, stable `seg_id`s). Feature coverage measured (lanes 85%, maxspeed 14%, width 0% — see `reports/feature_coverage.md`). Open scope question: freeway frontage roads in/out. Next: tier-3 conflation (AADT, speed limits, sidewalks, parcels, ACS). Awaiting TxDOT CRIS crash extract via the council office.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). Feature coverage measured (lanes 85%, maxspeed 14%, width 0% — see `reports/feature_coverage.md`). Next: tier-3 conflation (AADT, speed limits, sidewalks, parcels, ACS). Awaiting TxDOT CRIS crash extract via the council office.
 
 ## Data sources
 

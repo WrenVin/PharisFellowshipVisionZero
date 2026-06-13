@@ -12,7 +12,7 @@ Documents every variable in the segment datasets. One row = one **road segment**
 | `district_c_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
 | `district_c_segments.gpkg` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
 
-Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, and service roads (alleys/driveways) are excluded. Pipeline: `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
+Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, **frontage/feeder roads** (TxDOT right-of-way), and service roads (alleys/driveways) are excluded. Pipeline: `src/pull_osm.py` → `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
 
 **Sliver cleanup** (see `reports/sliver_cleanup_report.md`): `*_link` segments (turn lanes/slip roads — intersection plumbing, not streets) dropped; short (<100 ft) named pieces (median crossings, intersection interiors) **absorbed** into their longest same-named neighbor with geometry and length preserved; unnamed fragments <50 ft dropped. An absorbed segment's `length_ft` includes everything it absorbed; its endpoint columns (`u`/`v`, `deg_*`, `signal_*`) reflect the new, post-absorption endpoints.
 
