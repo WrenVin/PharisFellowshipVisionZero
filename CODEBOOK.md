@@ -189,6 +189,21 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 
 > ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **2.1% of all crashes but 21.3% of severe crashes and ~36% of deaths** in District C.
 
+## Crash outcome counts (per segment — assigned from CRIS)
+
+Added by `src/assign_crashes.py`: each crash credited to its single nearest segment within 200 ft (divided-road halves searched too, credited to the representative segment). Counts sum back to the assigned-crash total (each crash counted once). Reflects whatever years are in `data/raw/CRIS/` (currently 2016–2024 + partial 2026). See `reports/crash_assignment_report.md`.
+
+| Variable | Type | Description |
+|---|---|---|
+| `n_crash` | int | All assigned crashes on the segment. |
+| `n_injury` | int | Crashes with any injury. |
+| `n_severe` | int | **Severe (K+A) crashes — the negative-binomial outcome.** 539 segments (7.3%) have ≥1; max 11. |
+| `n_fatal` | int | Fatal (K) crashes. |
+| `n_ped`, `n_bike` | int | Crashes involving a pedestrian / cyclist. |
+| `n_ped_severe`, `n_bike_severe` | int | Severe ped / bike crashes (the policy-relevant vulnerable-user outcome). |
+
+> 82.9% of District C crashes assigned (median 5 ft to segment); ~17% unassigned are >200 ft from any city street — freeway/feeder crashes on excluded roads + geocoding error. Intersection crashes go to the nearest leg (count-preserving simplification).
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |

@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Crash Step 3: assign crashes to segments (buffer method)
+
+`src/assign_crashes.py`. Each crash → single nearest segment within **200 ft** (Dumbaugh/Rae/Wunneburger). Nearest-only (not all-within-buffer) so counts sum back to the crash total. Divided roads handled: also searched the `merged_away` halves and credited hits to the representative `seg_id` (no boulevard crashes orphaned). Adds per-segment counts to the enriched layer (idempotent): `n_crash`, `n_injury`, `n_severe`, `n_fatal`, `n_ped`, `n_bike`, `n_ped_severe`, `n_bike_severe`.
+
+**Results:** 47,929/57,848 (82.9%) assigned; median distance **5 ft** (p99 189) — buffer well-calibrated. **Count integrity verified**: per-segment sums == assigned totals exactly (n_crash 47,929, n_severe 832, n_ped 730) → each crash counted once. 17% unassigned = freeway/feeder crashes (excluded roads) + geocode error. **539/7,381 segments (7.3%) have ≥1 severe crash** → 92.7% zero, the overdispersed/zero-heavy pattern NB is built for and the reason the feature model matters. **Sanity ✓:** top severe corridors = Memorial, Washington, Montrose, Kirby, Westheimer, Richmond, N. Braeswood — Houston's known HIN arterials.
+
+Crash data prep is now complete (clean → severity → mode → segment counts). Did NOT touch the dashboard (Vincent: set up data right before display). Crash refresh pipeline: `build_crashes.py` → `assign_crashes.py`. Next: display on dashboard, or modeling (Moran's I / Getis-Ord baseline → negative binomial → divergence).
+
+---
+
 ## 2026-06-13 — Crash Step 2: pedestrian/bicycle mode
 
 Folded mode into `build_crashes.py` (not a separate script) so one rerun recomputes severity AND mode when 2020/2025 arrive. Mode from CRIS `unit` table (Unit_Desc_ID 4=pedestrian, 3=pedalcyclist), unioned with the `person` table (Prsn_Type_ID 4/3) for robustness; codes confirmed from the CRIS lookup table. New columns: `mode`, `involves_ped`, `involves_bike`.

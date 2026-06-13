@@ -32,6 +32,8 @@ src/
   conflate_demographics.py     # join Census ACS neighborhood demographics
   conflate_sidewalks.py        # infer sidewalk presence from OSM footways
   conflate_landuse.py          # join adjacent land use from HCAD parcels
+  build_crashes.py             # clean CRIS crashes -> District C points (severity + mode)
+  assign_crashes.py            # assign crashes to segments (200-ft buffer) -> counts
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   export_webmap_data.py        # export GeoJSON for the interactive web app (docs/)
 docs/                          # the public web app (GitHub Pages)
@@ -91,7 +93,7 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). **Crash data integration underway** (one step at a time): **57,848 District C crashes** cleaned, severity-classified (1,039 severe K+A), and mode-tagged (755 pedestrian, 437 bicycle — vulnerable users are 2% of crashes but ~36% of deaths). Next: buffer-assign crashes to segments → modeling. **Predictor set complete.** Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (~56% have ≥1 side). From HCAD: **adjacent land use** (79%). The only remaining input is the **crash outcome** — awaiting the TxDOT CRIS District C extract via the council office — after which: crash assignment → spatial baseline → negative binomial → divergence analysis.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). **Crash data prep complete** (one step at a time): **57,848 District C crashes** cleaned, severity-classified (1,039 severe K+A), mode-tagged (755 ped, 437 bike), and **assigned to segments** (200-ft buffer; per-segment `n_severe` etc., counts verified to sum back to the crash total). Every segment now has its crash outcome. Next: modeling (spatial baseline → negative binomial → divergence), and showing crashes on the dashboard. **Predictor set complete.** Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (~56% have ≥1 side). From HCAD: **adjacent land use** (79%). The only remaining input is the **crash outcome** — awaiting the TxDOT CRIS District C extract via the council office — after which: crash assignment → spatial baseline → negative binomial → divergence analysis.
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 

@@ -214,9 +214,20 @@ only **2% of crashes but about a third of the deaths** — they're rarely in
 crashes, but when they are, it's far more likely to be fatal. That's exactly
 why this project focuses on street *design*.
 
-Next steps: **connect each crash to its street**, and finally build the model
-that answers the big question: **which dangerous streets is the city's current
-crash-only method missing?**
+Then we **connected each crash to its street**: we matched every crash to the
+nearest street (within about 200 feet, which absorbs the small errors in where
+crashes get pinned on a map), so now every street block carries its own crash
+tally — total crashes, severe crashes, and pedestrian/bike crashes. We
+double-checked that every crash got counted exactly once, and the streets that
+came out worst (Memorial, Westheimer, Montrose, Kirby…) are exactly the ones
+Houston already knows are dangerous — a reassuring sign we did it right. Telling
+detail: **93% of street blocks have had zero severe crashes** — which is the
+whole reason the city's "wait for crashes" approach has blind spots, and why our
+design-based approach can help.
+
+The crash data is now fully prepared. Next: build the model that answers the big
+question — **which dangerous streets is the city's current crash-only method
+missing?** — and add crashes to the live map.
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our
