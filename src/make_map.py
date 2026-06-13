@@ -147,3 +147,10 @@ m.get_root().html.add_child(folium.Element(legend_html))
 out = ROOT / "reports/network_map.html"
 m.save(out)
 print(f"saved {out}")
+
+# also publish to docs/ for GitHub Pages (served from main /docs)
+docs = ROOT / "docs"
+docs.mkdir(exist_ok=True)
+(docs / ".nojekyll").write_text("")  # serve files as-is, no Jekyll processing
+m.save(docs / "index.html")
+print(f"saved {docs / 'index.html'}")
