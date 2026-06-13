@@ -1,9 +1,4 @@
-# ELI5 — What We're Doing, In Plain English
 
-A no-jargon tour of this project. If you've never opened the code, start here.
-(README = the facts, LOG = the diary, CODEBOOK = the dictionary, **ELI5 = the story.**)
-
----
 
 ## The big idea
 
