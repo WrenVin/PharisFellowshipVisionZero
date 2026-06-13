@@ -1,0 +1,94 @@
+# Codebook — District C Segment Dataset
+
+Documents every variable in the segment datasets. One row = one **road segment**: a stretch of street between two intersections (or an intersection and a dead end), undirected — a two-way street is one row, not two, and (after the merge) a divided boulevard is one row, not two.
+
+**Files** (in `data/processed/`):
+
+| File / layer | What it is | Use for |
+|---|---|---|
+| `district_c_segments_merged.gpkg`, layer `segments` | **The analysis network.** Divided-road halves merged into single segments. | All analysis and mapping. |
+| `district_c_segments_merged.gpkg`, layer `merged_away` | Audit layer: the removed halves of divided roads, each with `rep_seg_id` pointing to the segment that now represents it. | Crash assignment (search both layers' geometries, credit hits to the representative); audits. |
+| `district_c_segments.gpkg`, layer `segments` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
+
+Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, and service roads (alleys/driveways) are excluded. Produced by `src/build_segments.py` then `src/merge_dual_carriageways.py`.
+
+**Coverage** = % of segments with a non-missing value (from `reports/feature_coverage.md`). Missing means "not tagged in OSM," **not** "feature absent on the ground."
+
+## Identifiers & topology
+
+| Variable | Type | Description |
+|---|---|---|
+| `seg_id` | text | **Stable segment ID** (`C-00001`...), assigned before the dual-carriageway merge. The permanent key for joins across all layers and pipeline steps. |
+| `u`, `v` | int | OSM node IDs of the segment's two endpoints (its intersections). Stable keys for joining back to the street graph. |
+| `key` | int | Disambiguator when two distinct segments connect the same pair of intersections (e.g., both halves of a divided road, a loop). Almost always 0. |
+| `osmid` | text | OSM way ID(s) the segment was built from. Pipe-separated when several short ways were merged. Use to look any segment up at `openstreetmap.org/way/<id>`. |
+| `name` | text | Street name (e.g., "Westheimer Road"). Missing on some unnamed links/alleys. |
+
+## Road classification
+
+| Variable | Type | Description |
+|---|---|---|
+| `highway` | text | OSM road class — the functional hierarchy. **Translations below.** When merged ways disagreed, the first value; see `highway_all` for all of them. |
+| `highway_all` | text | All road-class values across merged ways, pipe-separated. Audit column. |
+
+**OSM road class → plain English** (these are the map colors):
+
+| OSM value | Means | District C examples |
+|---|---|---|
+| `primary` | Major arterial — the biggest city streets | Main St, Kirby Dr (parts) |
+| `secondary` | Arterial — major through-streets | Richmond Ave, Shepherd Dr, Westheimer Rd |
+| `tertiary` | Collector — connects neighborhoods to arterials | Dunlavy St, W 20th St |
+| `residential` | Local / neighborhood street | most streets in the Heights, Montrose, Meyerland |
+| `unclassified` | Minor street that doesn't fit the hierarchy (often industrial/edge cases) | scattered |
+| `*_link` (e.g., `secondary_link`) | Turn lane, connector, or slip road between two roads | turn ramps at major intersections |
+
+## Geometry & measurement
+
+| Variable | Type | Units | Description |
+|---|---|---|---|
+| `length_ft` | float | feet | Segment centerline length, measured in EPSG:2278 (Texas State Plane, US ft). Median ≈ 304 ft ≈ one Houston block. |
+| `bearing` | float | degrees (0–360, 0 = north) | Compass direction from the segment's start node to its end node. Used internally for dual-carriageway detection; not a design feature. |
+| `geometry` | LineString | — | The segment's shape, CRS EPSG:2278. |
+
+## Street design features (tier 2 — from OSM tags, coverage varies)
+
+| Variable | Type | Units / values | Coverage | Description |
+|---|---|---|---|---|
+| `oneway` | bool | true/false | 100% | One-way traffic? In the merged network this means *genuinely* one-way (Montrose-style couplets etc.) — merged divided roads are `false`. |
+| `lanes` | float | count | **85%** | **Total cross-section traffic lanes, both directions.** On merged divided roads this is the sum of both halves (e.g., Memorial = 3+3 = 6), so it means the same thing on every row. NaN if either half untagged. |
+| `maxspeed_mph` | float | mph | **14%** | **Posted** speed limit. Not operating speed (the model's mediator — do not confuse the two). Texas prima facie default where unposted is 30 mph; imputation decision pending. |
+| `width_ft` | float | feet | **0%** | Roadway width. Untagged in Houston OSM — must come from another source (city inventory, lanes × standard width, aerial imagery). Kept as a placeholder column. |
+| `sidewalk` | text | `both`, `one_side`, `none`, missing | 17% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
+| `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 10% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
+| `parking` | text | `present`, `none`, missing | 2% | On-street parking. Too sparse to use; conflate from city data later. |
+| `lit` | text | `yes`, `no`, missing | 22% | Street lighting. |
+| `surface` | text | `asphalt`, `concrete`, … | 73% | Pavement surface type. |
+
+## Intersection context (tier 1 — computed from the street graph)
+
+| Variable | Type | Description |
+|---|---|---|
+| `deg_u`, `deg_v` | int | Number of street legs meeting at each endpoint. 1 = dead end, 2 = pseudo-node, 3 = T-intersection, 4 = crossroads, 5+ = complex junction. |
+| `signal_u`, `signal_v` | bool | Traffic signal at that endpoint (OSM `highway=traffic_signals` node). |
+| `n_signals` | int (0–2) | How many of the segment's two ends are signalized. |
+
+## Divided-road merge variables
+
+| Variable | Type | Description |
+|---|---|---|
+| `dual_carriageway` | bool | Segment was part of a confirmed divided-road pair (either side). |
+| `merged_dual` | bool | This segment is the **representative centerline of a divided road** — its opposite half was merged into it. Geometry is the longer half's line (offset from the true median by up to ~75 ft; analysis-irrelevant, crash assignment uses both layers). |
+| `n_twins_merged` | int | How many opposite-half segments were merged into this one. |
+| `twin_seg_ids` | text | `seg_id`s of the merged-away halves, pipe-separated. |
+| `lanes_rep_half`, `lanes_twin_half` | float | Audit columns: lanes of this half and of the merged half(s) before summing into `lanes`. |
+| `rep_seg_id` | text | **(`merged_away` layer only.)** The `seg_id` of the representative segment that replaced this half. |
+
+Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparallel, one-way segments within 150 ft; corridors are connected components of the twin relation, 2-colored into sides; the longer side is kept. 1,248 halves (86 mi) merged into 1,193 representatives; zero coloring conflicts.
+
+## Known limitations (read before analyzing)
+
+1. **Missing ≠ absent.** Every tier-2 OSM feature gap means "nobody tagged it," not "it isn't there." Coverage percentages above tell you how much to trust each column.
+2. **Merged divided-road geometry is one half's line**, not the true median axis — fine for analysis and mapping, but don't measure median widths from it.
+3. **Sliver segments exist.** ~5% of segments are under 40 ft (turn-lane links, median crossovers); a cleanup rule is pending.
+4. **`maxspeed` is posted speed**, not the operating speed that mediates crash severity in the causal model.
+5. Crash counts, AADT (traffic volume), land use, and demographics are **not in this dataset yet** — they arrive with tier-3 conflation and the CRIS extract.
