@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-12 (evening) — Sliver cleanup
+
+**Profiling first, rule second.** Short segments turned out to be three different things: (A) 470 `*_link` turn lanes/slip roads (13.3 mi) — intersection plumbing at any length; (B) ~1,000 short *named* pieces, mostly degree 3-4 both ends — the bits of real cross streets passing through boulevard medians / intersection interiors; (C) 30 unnamed sub-50-ft fragments — junk.
+
+**Rules** (`src/clean_slivers.py`): A → dropped to `removed_slivers` audit layer. B → **absorbed** into longest same-named neighboring segment (geometry linemerged, length summed, endpoints + degree/signal context updated; iterative so chains collapse; non-contiguous merges refused). C → dropped to audit. Named shorts with no same-named neighbor conservatively kept (31).
+
+**Results:** 9,097 → **7,635 segments**; 677.0 → **663.4 mi** (loss = exactly the dropped links + junk; absorption preserved all street length). 962 pieces absorbed in 2 passes. p5 segment length 40 → **145 ft**. 0 orphaned `merged_away` pointers (remapped through absorption chains).
+
+**New analysis file:** `district_c_segments_clean.gpkg` (layers: `segments`, `removed_slivers`, `merged_away`). Map regenerated from it.
+
+**Flagged, not actioned — freeway frontage roads.** Sliver profiling surfaced "West Loop South Frontage Road" / "Southwest Freeway Frontage Road" segments in the network (tagged secondary/primary in OSM, so they survived the motorway filter). Feeders are TxDOT right-of-way — arguably outside "streets the city can redesign," same logic as excluding freeways. Decision needed: keep or exclude. Affects scope, not slivers; raised with Vincent.
+
+---
+
 ## 2026-06-12 (later still) — Dual-carriageway merge
 
 **Problem:** divided roads (Memorial, the Braeswoods, Heights Blvd...) were two parallel one-way segments each — ambiguous crash assignment, halved exposure per unit. ~25% of network mileage.

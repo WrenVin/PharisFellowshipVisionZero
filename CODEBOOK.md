@@ -6,11 +6,15 @@ Documents every variable in the segment datasets. One row = one **road segment**
 
 | File / layer | What it is | Use for |
 |---|---|---|
-| `district_c_segments_merged.gpkg`, layer `segments` | **The analysis network.** Divided-road halves merged into single segments. | All analysis and mapping. |
-| `district_c_segments_merged.gpkg`, layer `merged_away` | Audit layer: the removed halves of divided roads, each with `rep_seg_id` pointing to the segment that now represents it. | Crash assignment (search both layers' geometries, credit hits to the representative); audits. |
-| `district_c_segments.gpkg`, layer `segments` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
+| `district_c_segments_clean.gpkg`, layer `segments` | **The analysis network.** Divided roads merged, slivers cleaned. | All analysis and mapping. |
+| `district_c_segments_clean.gpkg`, layer `removed_slivers` | Audit: dropped turn lanes/slip roads (`*_link`) and unnamed sub-50-ft fragments, with `removal_reason`. | Audits; crash-assignment context. |
+| `district_c_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
+| `district_c_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
+| `district_c_segments.gpkg` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
 
-Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, and service roads (alleys/driveways) are excluded. Produced by `src/build_segments.py` then `src/merge_dual_carriageways.py`.
+Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, and service roads (alleys/driveways) are excluded. Pipeline: `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
+
+**Sliver cleanup** (see `reports/sliver_cleanup_report.md`): `*_link` segments (turn lanes/slip roads — intersection plumbing, not streets) dropped; short (<100 ft) named pieces (median crossings, intersection interiors) **absorbed** into their longest same-named neighbor with geometry and length preserved; unnamed fragments <50 ft dropped. An absorbed segment's `length_ft` includes everything it absorbed; its endpoint columns (`u`/`v`, `deg_*`, `signal_*`) reflect the new, post-absorption endpoints.
 
 **Coverage** = % of segments with a non-missing value (from `reports/feature_coverage.md`). Missing means "not tagged in OSM," **not** "feature absent on the ground."
 
@@ -89,6 +93,6 @@ Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparal
 
 1. **Missing ≠ absent.** Every tier-2 OSM feature gap means "nobody tagged it," not "it isn't there." Coverage percentages above tell you how much to trust each column.
 2. **Merged divided-road geometry is one half's line**, not the true median axis — fine for analysis and mapping, but don't measure median widths from it.
-3. **Sliver segments exist.** ~5% of segments are under 40 ft (turn-lane links, median crossovers); a cleanup rule is pending.
+3. **Sliver cleanup applied** (p5 length now 145 ft). 31 named short segments without a same-named neighbor were conservatively kept; `*_link` turn lanes live in `removed_slivers`, not the network.
 4. **`maxspeed` is posted speed**, not the operating speed that mediates crash severity in the causal model.
 5. Crash counts, AADT (traffic volume), land use, and demographics are **not in this dataset yet** — they arrive with tier-3 conflation and the CRIS extract.

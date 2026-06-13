@@ -30,7 +30,7 @@ CLASS_COLOR = {
 DUAL_COLOR = "#e377c2"
 
 seg = gpd.read_file(
-    ROOT / "data/processed/district_c_segments_merged.gpkg", layer="segments"
+    ROOT / "data/processed/district_c_segments_clean.gpkg", layer="segments"
 ).to_crs(4326)
 boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson")
 
