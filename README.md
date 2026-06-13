@@ -2,6 +2,8 @@
 
 A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
 
+**🗺️ Live interactive map:** https://wrenvin.github.io/PharisFellowshipVisionZero/ (every District C street, color-coded by type, hover for lanes/width/speed/median).
+
 ## Research question
 
 Does a **feature-based (systemic) risk model** identify dangerous District C streets that Houston's **crash-based High Injury Network (HIN)** misses — and how much risk lies "off the HIN"?

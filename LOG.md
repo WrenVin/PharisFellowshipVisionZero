@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Map tooltips updated + published to GitHub Pages
+
+Vincent flagged the map still showed OSM `lanes` and lacked width/median. Fixed `make_map.py` tooltips to use `lanes_final` (with source), `roadway_width_ft`, and `median_type`.
+
+Then published the map live. `make_map.py` now also writes `docs/index.html` (+ `.nojekyll`); enabled GitHub Pages via the REST API (token from osxkeychain credential helper) serving `main` `/docs`. Repo is public so Pages works on the free tier. **Live: https://wrenvin.github.io/PharisFellowshipVisionZero/** — council office / reviewers can view without running anything. Verified the 14 MB map serves (HTTP 200, legend + tooltips present). Note: `docs/index.html` is force-committed (the `reports/` copy stays gitignored); regenerating the map updates both. Caveat: each regen commits a fresh ~14 MB blob — fine for now, revisit if history bloats.
+
+---
+
 ## 2026-06-12 (night, cont.) — Conflate lanes, width, median
 
 Same city source (cached `Traffic_gx/2`, re-fetched to add `MEDIAN_WIDTH`/`DIRECTION`). New shared helper `src/conflate_util.py::snap_match` (the point-snap match logic, now reusable). New `src/conflate_lanes_width_median.py`.
