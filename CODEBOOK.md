@@ -12,6 +12,7 @@ Documents every variable in the segment datasets. One row = one **road segment**
 | `district_c_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
 | `district_c_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
 | `district_c_segments.gpkg` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
+| `district_c_crashes.gpkg`, layer `crashes` | **Cleaned crash points** (TxDOT CRIS), deduped, geocoded, clipped to District C, severity-classified. Built by `src/build_crashes.py`. | Crash analysis; segment assignment (next step). |
 
 Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, **frontage/feeder roads** (TxDOT right-of-way), and service roads (alleys/driveways) are excluded. Pipeline: `src/pull_osm.py` → `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
 
@@ -167,6 +168,23 @@ Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segme
 | `landuse_source` | text | `hcad_parcels` / `none` | Present on 79% of segments (78% of arterials). |
 
 > Coverage is 79% because ~21% of segments are roads through **large non-parceled areas** — Hermann Park, Rice University, the Texas Medical Center, cemeteries, bayou greenways (nearest parcel a median ~340 ft away). Those are left `none`, not mislabeled. HCAD "stacked" condo records (shared footprint) are de-duplicated. Confounder, not mediator: land use shapes both road design and crash counts.
+
+## Crash points — `district_c_crashes.gpkg` (separate file, not a segment column yet)
+
+TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to District C (EPSG:2278). 57,848 crashes (2016–2024 + partial 2026; 2020 & 2025 pending). See `reports/crash_build_report.md`. **Not yet joined to segments** — that's the next step.
+
+| Variable | Type | Values | Description |
+|---|---|---|---|
+| `Crash_ID` | int | — | TxDOT CRIS crash identifier (unique). |
+| `year`, `date` | int / text | — | Crash year and date (from `Crash_Date`). |
+| `kabco` | text | K / A / B / C / O / UNK | Severity on the KABCO scale (K=fatal, A=serious, B=minor, C=possible, O=none). Decoded from `Crash_Sev_ID` (4=K,1=A,2=B,3=C,5=O,0=UNK), verified against the fatal flag + injury counts. |
+| `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). 1,039 severe (138 K + 901 A). |
+| `any_injury` | bool | — | Any injury (Tot_Injry_Cnt > 0). |
+| `Crash_Sev_ID` | int | 0–5 | Raw CRIS severity code (see `kabco`). |
+| `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
+| `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
+
+> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Pedestrian/bicycle **mode is not in this layer yet** (needs a person/unit join).
 
 ## Intersection context (tier 1 — computed from the street graph)
 

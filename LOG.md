@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — CRIS crash data arrived; Step 1: clean District C crash points
+
+**The outcome variable is here.** Vincent added TxDOT CRIS public extracts to `data/raw/CRIS/` (years 2016–2019, 2021–2024, partial 2026; 2020 & 2025 still coming). ~740 MB — gitignored (an accidental `git add -A` had committed+pushed it; fixed by soft-reset + force-push of the tip commit `c7c8645`, CRIS purged from the remote, kept on local disk). Going forward: tighter `git add`, never `-A` with large raw data staged.
+
+**Good surprise:** the public extract IS geocoded (`Latitude`/`Longitude`), so buffer-based segment assignment is feasible — the earlier worry was unfounded.
+
+**Step 1 (`src/build_crashes.py`):** glob all `Houston_Crash_*` folders → dedupe by `Crash_ID` → geocode (CRIS coords, officer-reported fallback) → clip to District C → KABCO severity. Result: **57,848 District C crashes; 1,039 severe (K+A) = 138 fatal + 901 serious** — the NB outcome. Severity decode verified two ways (Sev_ID vs fatal-flag/injury-counts agree exactly). 89.7% of citywide crashes geocoded (~10% dropped → reporting-collider flag). Output `district_c_crashes.gpkg` + report + preview PNG (crashes follow the grid, severe cluster on arterials — sanity ✓).
+
+**Built for easy re-runs** (Vincent is awaiting 2020/2025): fully year-agnostic — drop a new `Houston_Crash_<year>/` folder in and rerun; year comes from `Crash_Date` not the folder, dedupe handles overlap, outputs overwrite, and the report computes present-years/gaps live (currently flags 2020 & 2025).
+
+**Doing crash integration one step at a time (Vincent's request).** Next step: pedestrian/bike **mode** via person/unit join, then buffer-assign crashes to segments.
+
+---
+
 ## 2026-06-13 — Street Explorer refinements: mobile, speed floor, data-vintage transparency
 
 Three asks from Vincent on the new app:

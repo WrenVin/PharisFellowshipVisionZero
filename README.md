@@ -91,7 +91,7 @@ Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`
 
 ## Current status (as of 2026-06-12)
 
-Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). **Predictor set complete.** Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (~56% have ≥1 side). From HCAD: **adjacent land use** (79%). The only remaining input is the **crash outcome** — awaiting the TxDOT CRIS District C extract via the council office — after which: crash assignment → spatial baseline → negative binomial → divergence analysis.
+Road network built and cleaned: **7,381 segments / 638 centerline miles** (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s). **Crash data integration underway** (one step at a time): Step 1 done — **57,848 District C crashes cleaned & severity-classified** (1,039 severe K+A); next: mode join, then segment assignment → modeling. **Predictor set complete.** Joined from Houston Public Works: **posted speed** (100%), **lane count** (98.6%), **roadway width** (98.6%, was 0%), **median type** (82%), **traffic volume / ADT** (98% of arterials), **operating speed** (the DAG mediator). From Census ACS: **neighborhood demographics** (income, poverty, race, car-free households; 100%). OSM-derived: **sidewalk presence** (~56% have ≥1 side). From HCAD: **adjacent land use** (79%). The only remaining input is the **crash outcome** — awaiting the TxDOT CRIS District C extract via the council office — after which: crash assignment → spatial baseline → negative binomial → divergence analysis.
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 
@@ -107,7 +107,7 @@ Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `da
 | Demographics (income, poverty, race, vehicles) | Census ACS 2023 5-yr | done |
 | Sidewalk presence | OpenStreetMap footways | done (no official inventory) |
 | Adjacent land use | City of Houston / HCAD parcels | done |
-| Crashes | TxDOT CRIS (district extract) | pending via council office |
+| Crashes | TxDOT CRIS public extracts | received & cleaned (2016–2024, +partial 2026; 2020/2025 pending) |
 | Official HIN baseline (2018/2022) | COH GIS Transportation | located, not yet pulled |
 | Land use | City of Houston parcels | planned |
 | Demographics / exposure | ACS | planned |

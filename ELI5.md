@@ -195,12 +195,22 @@ honestly blank rather than guess.
 full design + context fingerprint: size, speed, traffic, sidewalks, median,
 land use, and neighborhood. The foundation is built.
 
-The one thing still missing is **the crash data** — the location-stamped
-records of where people have actually been hurt. They live with the state
-(TxDOT) and need special government access; the council office is helping get
-District C's slice. Once it arrives, we connect crashes to streets and build
-the model that answers the big question: **which dangerous streets is the
-city's current crash-only method missing?**
+**The crash data has arrived** — the location-stamped records of where people
+have actually been hurt. We're now bringing it in **one careful step at a
+time**. First step, just done: we cleaned it up — took the state's raw crash
+files, removed duplicates, kept the ones with good locations, narrowed to
+District C, and sorted them by how serious they were. The result: **57,848
+crashes in District C, of which 1,039 were severe** (someone killed or
+seriously injured). A quick map confirms they line up along the streets, with
+the severe ones clustering on the big roads — exactly what you'd expect.
+
+(Still waiting on two years — 2020 and 2025 — but we built the process so those
+just drop in and re-run when they come.)
+
+Next steps: figure out which crashes involved people walking or biking, then
+**connect each crash to its street**, and finally build the model that answers
+the big question: **which dangerous streets is the city's current crash-only
+method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our
