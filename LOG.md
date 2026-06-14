@@ -1,6 +1,19 @@
-# Project Log — Vision Zero District C
+# Project Log — Vision Zero, City of Houston
 
 Dated record of what was done, what was decided, and why. Newest entries at the top. Companion to `README.md` (which describes the project as it *is*; this file records how it *got* there).
+
+---
+
+## 2026-06-14 — Doc audit: sync README / CODEBOOK / ELI5 / LOG to the city build
+
+Per Vincent, before making further changes: went through the repo for out-of-date or incorrect information, especially the 4 documents. Found that several figures and labels still reflected the original District C build.
+
+- **CODEBOOK:** fixed `seg_id` example (`C-` → `H-`, prefix from `cfg.SEG_PREFIX`); filenames `district_c_*` → `houston_*`; OSM pull date → 2026-06-14; tier-2 coverage to city values (lanes 56%, maxspeed 8%, sidewalk 8%, cycleway 5%, parking 1%, lit 9%, surface 26%); tier-3 (lanes_final/roadway_width 95.1%, lanes-agree 78%, median width 16%); demographics 96.8% assigned / ~2,445 block groups; sidewalk 2,410 mi, one+ side 29% / none 71%; dual-merge 17,043 halves → 16,138 reps; vulnerable users ~3% of crashes but ~27% of severe / ~41% of deaths. Marked the **land-use section deferred** (absent citywide; numbers there reflect the old District C run).
+- **README:** demographics "100% assigned" → 96.8%; file-listing comments "District C" → study area; `district_c_*` filenames → `houston_*`. (Concentration "6% → 71%" left as-is; verified against `docs/vz_summary.json` — pct_ksi is 71.)
+- **ELI5:** sidewalk story 344 mi → 2,410 mi and 56/44 → 29/71; rewrote the "land use" paragraph from "just done" to **deferred at city scale** (1.5 M parcels need a tiled fetch).
+- **LOG:** title "District C" → "City of Houston."
+
+Not changed: stale `src/*.py` docstrings/print-strings and auto-generated `reports/*.md` still say "District C" in places; those are internal and the reports would need a pipeline re-run to refresh. Flagged for later, not blocking.
 
 ---
 

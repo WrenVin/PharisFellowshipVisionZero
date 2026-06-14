@@ -23,7 +23,7 @@ data/
   external/    # cached third-party pulls (city Traffic_gx, HCAD parcels, Census; API key gitignored)
 src/
   config.py                    # central study-area config (area slug, boundary, derived bbox, paths) — change to retarget
-  pull_osm.py                  # pull OSM street network clipped to District C
+  pull_osm.py                  # pull OSM street network clipped to the study area (City of Houston)
   build_segments.py            # intersection-to-intersection segments + coverage report
   merge_dual_carriageways.py   # collapse divided-road halves into single segments
   clean_slivers.py             # drop turn-lane links, absorb median-crossing pieces
@@ -35,7 +35,7 @@ src/
   conflate_demographics.py     # join Census ACS neighborhood demographics
   conflate_sidewalks.py        # infer sidewalk presence from OSM footways
   conflate_landuse.py          # join adjacent land use from HCAD parcels
-  build_crashes.py             # clean CRIS crashes -> District C points (severity + mode)
+  build_crashes.py             # clean CRIS crashes -> study-area points (severity + mode)
   assign_crashes.py            # assign crashes to segments (200-ft buffer) -> counts
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   export_webmap_data.py        # export GeoJSON for the web apps (docs/)
@@ -45,7 +45,7 @@ docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # Street Explorer (data-first: color/filter/search)
   segments.geojson             # per-street data both apps load
-  boundary.geojson             # District C outline
+  boundary.geojson             # study-area outline (City of Houston)
   vz_summary.json              # district-wide toll / trend / concentration numbers
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   crash_records.json           # per-crash records (seg/year/severity/mode) for year drill-down
@@ -92,8 +92,8 @@ python3 -m venv .venv
 
 The web apps are static Leaflet (`docs/index.html`, `docs/vision-zero.html`; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
 
-**Analysis dataset:** `data/processed/district_c_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
-**To inspect by hand:** `data/processed/district_c_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
+**Analysis dataset:** `data/processed/houston_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
+**To inspect by hand:** `data/processed/houston_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
 
 Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`** — keep it in sync with any schema change.
 
@@ -118,7 +118,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 ## Current status (as of 2026-06-14) — citywide build
 
 - **Road network:** 75,260 surface-street segments / 7,337 centerline miles across the City of Houston (limited-access freeways + frontage roads excluded; at-grade arterials incl. state-owned kept and labeled `on_txdot`; divided roads merged, slivers cleaned, `seg_id`s prefixed `H-`).
-- **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (100% assigned, 89% with income); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
+- **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (96.8% assigned, 89% with income); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
 - **Crash outcome:** TxDOT CRIS 2016–2025 (+ partial 2026), **surface streets** (limited-access freeways/tollways excluded; at-grade arterials incl. state-owned kept). 421,699 crashes; **9,928 KSI (1,687 killed, 8,241 seriously injured)**; ~69,500 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98% assigned, median 4 ft). Each crash is labeled city- vs TxDOT-owned; ~16% of the surface-street KSI shown are on TxDOT-owned arterials.
 - Both dashboards are live and citywide; the Vision Zero page overlays the City's official HIN 2022 (1,261 segments).
 - **Web-app note:** the dashboards load all features client-side; the citywide payload is large (~95 MB: 62 MB segments + 22 MB crash points + 10 MB records). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.

@@ -8,15 +8,15 @@ Documents every variable in the segment datasets. One row = one **road segment**
 
 | File / layer | What it is | Use for |
 |---|---|---|
-| `district_c_segments_enriched.gpkg`, layer `segments` | **The analysis network**, clean network + conflated city data (speed; more to come). Canonical once conflation began. | All analysis and mapping. |
-| `district_c_segments_clean.gpkg`, layer `segments` | Clean network before any external conflation (divided roads merged, slivers cleaned). | Provenance / rebuild base for conflation. |
-| `district_c_segments_clean.gpkg`, layer `removed_slivers` | Audit: dropped turn lanes/slip roads (`*_link`) and unnamed sub-50-ft fragments, with `removal_reason`. | Audits; crash-assignment context. |
-| `district_c_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
-| `district_c_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
-| `district_c_segments.gpkg` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
-| `district_c_crashes.gpkg`, layer `crashes` | **Cleaned crash points** (TxDOT CRIS), deduped, geocoded, clipped to District C, severity-classified. Built by `src/build_crashes.py`. | Crash analysis; segment assignment (next step). |
+| `houston_segments_enriched.gpkg`, layer `segments` | **The analysis network**, clean network + conflated city data (speed; more to come). Canonical once conflation began. | All analysis and mapping. |
+| `houston_segments_clean.gpkg`, layer `segments` | Clean network before any external conflation (divided roads merged, slivers cleaned). | Provenance / rebuild base for conflation. |
+| `houston_segments_clean.gpkg`, layer `removed_slivers` | Audit: dropped turn lanes/slip roads (`*_link`) and unnamed sub-50-ft fragments, with `removal_reason`. | Audits; crash-assignment context. |
+| `houston_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
+| `houston_segments_merged.gpkg` | Post-merge, pre-cleanup snapshot. | Provenance only. |
+| `houston_segments.gpkg` | Pre-merge snapshot (every OSM half separate). | Provenance only. |
+| `houston_crashes.gpkg`, layer `crashes` | **Cleaned crash points** (TxDOT CRIS), deduped, geocoded, clipped to the City of Houston, severity-classified. Built by `src/build_crashes.py`. | Crash analysis; segment assignment (next step). |
 
-Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official District C boundary. Freeways, ramps, **frontage/feeder roads** (TxDOT right-of-way), and service roads (alleys/driveways) are excluded. Pipeline: `src/pull_osm.py` → `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
+Source data: OpenStreetMap (OSM), pulled 2026-06-14, clipped to the City of Houston boundary. Freeways, ramps, **frontage/feeder roads** (TxDOT right-of-way), and service roads (alleys/driveways) are excluded. Pipeline: `src/pull_osm.py` → `src/build_segments.py` → `src/merge_dual_carriageways.py` → `src/clean_slivers.py`.
 
 **Sliver cleanup** (see `reports/sliver_cleanup_report.md`): `*_link` segments (turn lanes/slip roads — intersection plumbing, not streets) dropped; short (<100 ft) named pieces (median crossings, intersection interiors) **absorbed** into their longest same-named neighbor with geometry and length preserved; unnamed fragments <50 ft dropped. An absorbed segment's `length_ft` includes everything it absorbed; its endpoint columns (`u`/`v`, `deg_*`, `signal_*`) reflect the new, post-absorption endpoints.
 
@@ -26,7 +26,7 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official Dis
 
 | Variable | Type | Description |
 |---|---|---|
-| `seg_id` | text | **Stable segment ID** (`C-00001`...), assigned before the dual-carriageway merge. The permanent key for joins across all layers and pipeline steps. |
+| `seg_id` | text | **Stable segment ID** (`H-00001`...; prefix set by `cfg.SEG_PREFIX`), assigned before the dual-carriageway merge. The permanent key for joins across all layers and pipeline steps. |
 | `u`, `v` | int | OSM node IDs of the segment's two endpoints (its intersections). Stable keys for joining back to the street graph. |
 | `key` | int | Disambiguator when two distinct segments connect the same pair of intersections (e.g., both halves of a divided road, a loop). Almost always 0. |
 | `osmid` | text | OSM way ID(s) the segment was built from. Pipe-separated when several short ways were merged. Use to look any segment up at `openstreetmap.org/way/<id>`. |
@@ -41,7 +41,7 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official Dis
 
 **OSM road class → plain English** (these are the map colors):
 
-| OSM value | Means | District C examples |
+| OSM value | Means | Examples |
 |---|---|---|
 | `primary` | Major arterial — the biggest city streets | Main St, Kirby Dr (parts) |
 | `secondary` | Arterial — major through-streets | Richmond Ave, Shepherd Dr, Westheimer Rd |
@@ -63,14 +63,14 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-12, clipped to the official Dis
 | Variable | Type | Units / values | Coverage | Description |
 |---|---|---|---|---|
 | `oneway` | bool | true/false | 100% | One-way traffic? In the merged network this means *genuinely* one-way (Montrose-style couplets etc.) — merged divided roads are `false`. |
-| `lanes` | float | count | 85% | **OSM** total cross-section lanes (sum of both halves on merged roads). For analysis use `lanes_final` (tier 3) which prefers the city's authoritative count. |
-| `maxspeed_mph` | float | mph | 14% | **Original OSM** posted speed (kept for provenance). For analysis use `posted_speed_mph` below instead. |
-| `width_ft` | float | feet | **0%** | OSM roadway width — untagged in Houston. Superseded by `roadway_width_ft` (tier 3), now 98.6% covered. |
-| `sidewalk` | text | `both`, `one_side`, `none`, missing | 17% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
-| `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 10% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
-| `parking` | text | `present`, `none`, missing | 2% | On-street parking. Too sparse to use; conflate from city data later. |
-| `lit` | text | `yes`, `no`, missing | 22% | Street lighting. |
-| `surface` | text | `asphalt`, `concrete`, … | 73% | Pavement surface type. |
+| `lanes` | float | count | 56% | **OSM** total cross-section lanes (sum of both halves on merged roads). For analysis use `lanes_final` (tier 3) which prefers the city's authoritative count. |
+| `maxspeed_mph` | float | mph | 8% | **Original OSM** posted speed (kept for provenance). For analysis use `posted_speed_mph` below instead. |
+| `width_ft` | float | feet | **0%** | OSM roadway width — untagged in Houston. Superseded by `roadway_width_ft` (tier 3), now 95.1% covered. |
+| `sidewalk` | text | `both`, `one_side`, `none`, missing | 8% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
+| `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 5% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
+| `parking` | text | `present`, `none`, missing | 1% | On-street parking. Too sparse to use; conflate from city data later. |
+| `lit` | text | `yes`, `no`, missing | 9% | Street lighting. |
+| `surface` | text | `asphalt`, `concrete`, … | 26% | Pavement surface type. |
 
 ## Conflated city data (tier 3 — joined from City of Houston / Public Works)
 
@@ -99,16 +99,16 @@ Same source and snap-match as speed. See `reports/lanes_width_median_report.md`.
 
 | Variable | Type | Units / values | Description |
 |---|---|---|---|
-| `lanes_final` | float | count | **Total cross-section lanes for analysis** — 98.6% covered. Priority: city → OSM → local 2-lane default. |
+| `lanes_final` | float | count | **Total cross-section lanes for analysis** — 95.1% covered. Priority: city → OSM → local 2-lane default. |
 | `lanes_source` | text | `city` / `osm` / `default_local_2` / `none` | Where `lanes_final` came from. |
 | `city_lanes` | float | count | Raw city-matched lane count (NaN if no match). |
-| `lanes_osm_city_agree` | bool | — | Where both OSM and city exist, do they agree within 1 lane? (79% true.) QC flag — where they differ the city is usually higher (OSM tags one direction of a divided road). |
-| `roadway_width_ft` | float | feet | **Roadway (travel-lane) width for analysis** — 98.6% covered, was 0% in OSM. = `lanes_final` × avg lane width. Excludes the median. |
+| `lanes_osm_city_agree` | bool | — | Where both OSM and city exist, do they agree within 1 lane? (78% true.) QC flag — where they differ the city is usually higher (OSM tags one direction of a divided road). |
+| `roadway_width_ft` | float | feet | **Roadway (travel-lane) width for analysis** — 95.1% covered, was 0% in OSM. = `lanes_final` × avg lane width. Excludes the median. |
 | `avg_lane_width_ft` | float | feet | City average lane width (~12 ft almost everywhere; 11 occasionally). |
 | `width_source` | text | `city_lanes_x_width` / `lanes_x_12ft_assumed` / `none` | How `roadway_width_ft` was derived. |
 | `median_type` | text | `Raised` / `Depressed` / `TWLT` / `Undivided` / `Divided (unspecified)` | Median design. `TWLT` = continuous center two-way left-turn lane. `Divided (unspecified)` = a merged divided road with no city median record. |
 | `median_source` | text | `city` / `merged_dual` / `default_local_undivided` / `none` | Where `median_type` came from. |
-| `median_width_ft` | float | feet | City-measured median width (not defaulted; 17% covered). |
+| `median_width_ft` | float | feet | City-measured median width (not defaulted; 16% covered). |
 | `geom_match_frac` | float | 0–1 | Share of the segment's sample points that snapped to a city line in this conflation. |
 
 Lane semantics note: the city's `NO_OF_LANES` is **total cross-section** on its orientation-coded lines (verified Memorial Dr = 6 = 3+3), matching our merged `lanes`. ~14% of city lines are per-direction coded — a residual ambiguity, mitigated by preferring whole-road matches and the OSM cross-check.
@@ -130,7 +130,7 @@ Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count rea
 
 ### Neighborhood demographics (Census ACS — confounder + equity analysis)
 
-Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 100% of segments assigned; District C spans ~233 block groups. See `reports/demographics_conflation_report.md`.
+Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 96.8% of segments assigned; the city spans ~2,445 block groups. See `reports/demographics_conflation_report.md`.
 
 | Variable | Type | Units | Description |
 |---|---|---|---|
@@ -146,7 +146,7 @@ Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherit
 
 ### Sidewalks (OSM-derived — no official Houston inventory exists)
 
-Houston publishes no complete sidewalk inventory, so this is built from OSM's ~344 mi of separately-mapped `footway=sidewalk` lines in District C, associated to each street by side. Search distance scales with road width (half-width + 25 ft, clamped 30–60 ft). See `reports/sidewalk_conflation_report.md`.
+Houston publishes no complete sidewalk inventory, so this is built from OSM's ~2,410 mi of separately-mapped `footway=sidewalk` lines citywide, associated to each street by side. Search distance scales with road width (half-width + 25 ft, clamped 30–60 ft). See `reports/sidewalk_conflation_report.md`.
 
 | Variable | Type | Values | Description |
 |---|---|---|---|
@@ -154,11 +154,13 @@ Houston publishes no complete sidewalk inventory, so this is built from OSM's ~3
 | `sw_left_frac`, `sw_right_frac` | float | 0–1 | Continuous per-side coverage (share of the segment's sample points with a sidewalk on that side). Side is relative to digitized direction, not compass — it separates "both vs one side", not which cardinal side. |
 | `sidewalk_source` | text | `osm_footway` / `osm_road_tag` | Inferred from separate footway lines, or (fallback where none mapped) the road's OSM `sidewalk=*` tag. |
 
-Coverage: at least one side on ~56% of segments (22% of arterials have both sides); `none` on ~44%.
+Coverage: at least one side on ~29% of segments; both sides ~5%; `none` on ~71% (OSM completeness is uneven).
 
 > **Missing ≠ absent**, strongly here: `none` means no sidewalk *mapped* within the search distance. It's good evidence of a gap, but OSM completeness is uneven — not a field survey. Supersedes the raw OSM `sidewalk` column (16% coverage) for analysis.
 
 ### Adjacent land use (City of Houston / HCAD parcels — confounder)
+
+> **Deferred at city scale — these columns are currently absent.** Land use was conflated for the District C build (numbers below reflect that run), but the citywide fetch (~1.5 M HCAD parcels) needs a tiled/bbox approach not yet built, so `landuse_*` is not present in the current `houston_*` datasets. Section kept for when it is rebuilt.
 
 Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segment, parcels whose polygon comes within 100 ft are summarized **area-weighted** by category. See `reports/landuse_conflation_report.md`.
 
@@ -171,7 +173,7 @@ Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segme
 
 > Coverage is 79% because ~21% of segments are roads through **large non-parceled areas** — Hermann Park, Rice University, the Texas Medical Center, cemeteries, bayou greenways (nearest parcel a median ~340 ft away). Those are left `none`, not mislabeled. HCAD "stacked" condo records (shared footprint) are de-duplicated. Confounder, not mediator: land use shapes both road design and crash counts.
 
-## Crash points — `district_c_crashes.gpkg` (separate file, not a segment column yet)
+## Crash points — `houston_crashes.gpkg` (separate file, not a segment column yet)
 
 TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to the City of Houston (EPSG:2278). **Surface streets**: only limited-access freeways/tollways/ramps/frontage are excluded; at-grade arterials incl. state-owned (S Main/US-90A, SH 6, Westheimer/FM 1093) are KEPT and labeled city- vs TxDOT-owned (`on_txdot`). **421,699 crashes, 9,928 KSI** (2016–2025 + partial 2026). ~16% of these are on TxDOT-owned arterials (rest city streets); freeways (state-owned) are excluded entirely, so the often-cited "~half of KSI on state roads" is mostly freeways, out of scope here. See `reports/crash_build_report.md`.
 
@@ -191,7 +193,7 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 | `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
 | `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
 
-> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **~3% of all crashes but ~30% of severe crashes and ~35% of deaths** on District C city streets.
+> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **~3% of all crashes but ~27% of severe crashes and ~41% of deaths** on city streets.
 
 ## Crash outcome counts (per segment — assigned from CRIS)
 
@@ -227,7 +229,7 @@ Added by `src/assign_crashes.py`: each crash credited to its single nearest segm
 | `lanes_rep_half`, `lanes_twin_half` | float | Audit columns: lanes of this half and of the merged half(s) before summing into `lanes`. |
 | `rep_seg_id` | text | **(`merged_away` layer only.)** The `seg_id` of the representative segment that replaced this half. |
 
-Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparallel, one-way segments within 150 ft; corridors are connected components of the twin relation, 2-colored into sides; the longer side is kept. 1,248 halves (86 mi) merged into 1,193 representatives; zero coloring conflicts.
+Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparallel, one-way segments within 150 ft; corridors are connected components of the twin relation, 2-colored into sides; the longer side is kept. 17,043 halves (1,255 mi) merged into 16,138 representatives; zero coloring conflicts.
 
 ## Known limitations (read before analyzing)
 
@@ -235,4 +237,4 @@ Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparal
 2. **Merged divided-road geometry is one half's line**, not the true median axis — fine for analysis and mapping, but don't measure median widths from it.
 3. **Sliver cleanup applied** (p5 length now 145 ft). 31 named short segments without a same-named neighbor were conservatively kept; `*_link` turn lanes live in `removed_slivers`, not the network.
 4. **`maxspeed` is posted speed**, not the operating speed that mediates crash severity in the causal model.
-5. **Operating speed is sparse** (`op_speed_85_mph`, ~4% coverage) — the design→severity mediator is measured at only a handful of count stations, so any analysis using it leans on those few segments. ADT, land use, demographics, and crash counts are all now conflated in (see sections above).
+5. **Operating speed is sparse** (`op_speed_85_mph`, ~4% coverage) — the design→severity mediator is measured at only a handful of count stations, so any analysis using it leans on those few segments. ADT, demographics, and crash counts are all now conflated in (see sections above); land use is deferred at city scale.

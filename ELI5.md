@@ -181,26 +181,26 @@ background context, not a fact about one specific block.
 **Also just done: sidewalks.** For each street we worked out whether it has a
 sidewalk on both sides, one side, or none. Surprising hurdle: **Houston has no
 official map of where its sidewalks are** — so we used OpenStreetMap, where
-volunteers have actually drawn about 344 miles of District C sidewalks. We
+volunteers have actually drawn about 2,410 miles of Houston sidewalks. We
 matched those to each street and figured out which side(s) they're on (and we
 widened the search for big roads, since their sidewalks sit farther from the
-center). About 56% of streets have a sidewalk on at least one side; 44% have
+center). About 29% of streets have a sidewalk on at least one side; 71% have
 none mapped. Big honest caveat, same as before: "none" means "none drawn in the
 map," which is strong evidence of a gap but not a guarantee — so we'll treat it
 carefully, especially since missing sidewalks are part of the danger story.
 
-**Also just done: land use.** For each street we worked out what's around it —
+**Deferred for now: land use.** We'd like to know what's around each street —
 homes, shops/offices, industry, parks, etc. — using the county's property
-records. Streets lined with shops and businesses behave differently (more cars
-turning in and out, more people on foot) than quiet residential blocks, so this
-helps the model compare fairly. About 79% of streets got a clear answer; the
-rest are roads running through big places with no individual lots — Hermann
-Park, Rice University, the Medical Center, the bayou trails — and we left those
-honestly blank rather than guess.
+records, because streets lined with shops and businesses behave differently
+(more cars turning in and out, more people on foot) than quiet residential
+blocks. We did this back when we only had District C, but doing it for the
+whole city means handling about 1.5 million parcels at once, which needs a
+tiled, piece-by-piece approach we haven't built yet. So this one is parked for
+later; the land-use columns are absent for now.
 
-**That completes the street profiles.** Every street in District C now has its
-full design + context fingerprint: size, speed, traffic, sidewalks, median,
-land use, and neighborhood. The foundation is built.
+**That mostly completes the street profiles.** Every street in Houston now has
+its design + context fingerprint: size, speed, traffic, sidewalks, median, and
+neighborhood. The one missing piece is land use (above). The foundation is built.
 
 **The crash data has arrived** — the location-stamped records of where people
 have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
