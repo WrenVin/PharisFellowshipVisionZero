@@ -199,8 +199,7 @@
       <div class="sub" id="own-sub">Killed or seriously injured</div>
       <div class="stack" id="ownbar"></div>
       <div class="legrow" id="ownleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="ownnote"></div>
-      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The City can redesign its own streets directly; TxDOT-owned arterials (state highways, FM roads) need state coordination. Limited-access freeways are excluded entirely.</div>
+      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
     </div>
     <div class="card" id="hin-card" style="display:none">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 6H15a3 3 0 0 1 3 3v6.5"/></svg></span>Crashes vs. the High Injury Network <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
@@ -541,8 +540,8 @@ function drawOwnership(){
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
-  if(tot<=0){ document.getElementById('ownbar').innerHTML=''; document.getElementById('ownleg').innerHTML='';
-    document.getElementById('ownnote').textContent='No KSI for this view.'; return; }
+  if(tot<=0){ document.getElementById('ownbar').innerHTML='';
+    document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No KSI for this view.</span>'; return; }
   const pct=x=>Math.round(100*x/tot);
   document.getElementById('ownbar').innerHTML=
     '<div style="width:'+pct(cityN)+'%;background:'+OWN_COL.city+'">'+(pct(cityN)>=8?pct(cityN)+'%':'')+'</div>'
@@ -550,7 +549,6 @@ function drawOwnership(){
   document.getElementById('ownleg').innerHTML=
     '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
-  document.getElementById('ownnote').innerHTML='<b>'+pct(txN)+'%</b> are on TxDOT-owned (state) arterials; the City must partner with the state to redesign those.';
 }
 // --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
 function drawHIN(){
