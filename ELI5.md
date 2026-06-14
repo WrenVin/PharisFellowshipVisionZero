@@ -196,16 +196,15 @@ full design + context fingerprint: size, speed, traffic, sidewalks, median,
 land use, and neighborhood. The foundation is built.
 
 **The crash data has arrived** — the location-stamped records of where people
-have actually been hurt. We're now bringing it in **one careful step at a
-time**. First step, just done: we cleaned it up — took the state's raw crash
-files, removed duplicates, kept the ones with good locations, narrowed to
-District C, and sorted them by how serious they were. The result: **57,848
-crashes in District C, of which 1,039 were severe** (someone killed or
-seriously injured). A quick map confirms they line up along the streets, with
-the severe ones clustering on the big roads — exactly what you'd expect.
-
-(Still waiting on two years — 2020 and 2025 — but we built the process so those
-just drop in and re-run when they come.)
+have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
+We cleaned it up: removed duplicates and kept the ones with good locations
+inside District C. One important catch here: at first the data was counting
+*freeway* crashes (on US-59 or I-610) as if they happened on the nearby city
+street the freeway crosses over. It turned out **about 40% of the "District C"
+crashes were actually on the freeways** — so we removed them, because freeways
+belong to the state and this project is about streets the *city* can fix. The
+real city-street numbers: **88 people killed and 712 killed or seriously
+injured** over the decade, with nearly every crash landing right on its street.
 
 We then figured out **which crashes involved people walking or biking** (the
 crash records list everyone involved, so we flagged any crash with a pedestrian
@@ -233,34 +232,21 @@ handful of big roads light up red. That grey-vs-red map is basically the city's
 current "where crashes happened" view — and it's exactly what our design-based
 model will be compared against.
 
-**An important catch:** at first our map was counting freeway crashes as if they
-happened on nearby city streets — when a crash on US-59 or I-610 got pinned to
-the overpass crossing it. We caught this (it turned out **about 40% of the
-"District C" crashes were actually on the freeways**), and removed them, since
-the freeways belong to the state and this project is about streets the *city*
-can fix. After the cleanup the real city-street numbers are **88 people killed
-and 712 killed-or-seriously-injured** over 2016–2025 — and nearly every crash
-now lands right on its street (within a few feet). We also added the two missing
-years (2020, 2025).
-
 We also built a **second, public-friendly dashboard focused purely on safety**
 (a "Vision Zero" view, alongside the data-explorer one). Instead of letting you
 browse every kind of data, it leads with what matters: how many people have been
 killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
 of streets account for ~78% of it), a switch to focus on people walking or
 biking, a breakdown of who's being hurt (in a vehicle vs. walking vs. biking),
-the city's own official "most dangerous streets" list for comparison, and a
-year-by-year chart you can click to see any single year on the map. It's modeled on how cities
-like Austin and New York present their traffic-safety data to the public — it
-shows what has actually happened, and stays out of conclusions we haven't proven
-yet.
+a year-by-year chart you can click to see any single year on the map, a switch
+between shaded streets and individual crash dots, and the city's own official
+"most dangerous streets" list (its High Injury Network) laid over the top for
+comparison. It's modeled on how cities like Austin and New York present their
+traffic-safety data to the public — it shows what has actually happened, and
+stays out of conclusions we haven't proven yet.
 
 Next: build the model that answers the project's real question — **which
 dangerous streets is the city's current crash-only method missing?**
-
-Bonus discovery: the city also publishes its *own* official list of
-most-dangerous streets (the "High Injury Network") — exactly the thing our
-project gets compared against at the end. Good to have it in hand early.
 
 ---
 

@@ -126,7 +126,7 @@ Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count rea
 
 > ADT is treated as total (both directions) at the count location. Most local streets have no station; we intentionally leave their ADT blank rather than class-impute, because imputing a confounder is a modeling choice to be made (and sensitivity-tested) explicitly.
 
-### Neighborhood demographics (Census ACS — confounder + equity overlay)
+### Neighborhood demographics (Census ACS — confounder + equity analysis)
 
 Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 100% of segments assigned; District C spans ~233 block groups. See `reports/demographics_conflation_report.md`.
 
@@ -140,7 +140,7 @@ Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherit
 | `pct_white_nh`, `pct_black_nh`, `pct_hispanic` | float | % | Race/ethnicity shares (B03002). |
 | `pct_zero_car_hh` | float | % | Households with no vehicle (from B25044) — ties demographics to walking/transit exposure and the equity question. |
 
-> **Ecological attribution:** these are *neighborhood* values attached to every street in that neighborhood — appropriate as a DAG confounder and equity overlay, but NOT a street-level measurement; don't read a block-group figure as a property of one street. Block-group ACS estimates also carry non-trivial margins of error (especially median income). Substitutions made because the detailed poverty (B17001) and vehicle (B08201) tables are not published at block-group level: poverty via **C17002**, vehicles via **B25044**.
+> **Ecological attribution:** these are *neighborhood* values attached to every street in that neighborhood — appropriate as a DAG confounder and the basis for equity analysis, but NOT a street-level measurement; don't read a block-group figure as a property of one street. Block-group ACS estimates also carry non-trivial margins of error (especially median income). Substitutions made because the detailed poverty (B17001) and vehicle (B08201) tables are not published at block-group level: poverty via **C17002**, vehicles via **B25044**.
 
 ### Sidewalks (OSM-derived — no official Houston inventory exists)
 
@@ -187,7 +187,7 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 | `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
 | `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
 
-> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **2.1% of all crashes but 21.3% of severe crashes and ~36% of deaths** in District C.
+> ~10% of citywide crashes are ungeocoded and excluded — relevant to the reporting-collider/underreporting concern. Mode is now included (`mode`/`involves_ped`/`involves_bike`); note vulnerable users are **~3% of all crashes but ~30% of severe crashes and ~35% of deaths** on District C city streets.
 
 ## Crash outcome counts (per segment — assigned from CRIS)
 
