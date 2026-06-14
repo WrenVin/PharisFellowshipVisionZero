@@ -162,8 +162,8 @@
       </div>
       <div class="grp">
         <h3>Display as <button class="info" onclick="toggleTip(this)" aria-label="About display modes">i</button></h3>
-        <label class="opt"><input type="radio" name="view" value="corridor" checked> Shaded streets</label>
-        <label class="opt"><input type="radio" name="view" value="streets"> Shaded street segments</label>
+        <label class="opt"><input type="radio" name="view" value="corridor"> Shaded streets</label>
+        <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded street segments</label>
         <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
         <div class="tip">Three levels of detail. Shaded streets colors each street as a whole by its total crashes (a street that changes owner, like Westheimer, counts as two). Shaded street segments colors each block on its own. Crash locations plots every crash as a dot.</div>
       </div>
@@ -275,7 +275,7 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, owner='all', view='corridor', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 const fmt=n=>Number(n).toLocaleString();
