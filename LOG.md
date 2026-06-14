@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: "Find a street" search
+
+Added a street search to the control panel (top), mirroring the Street Explorer. Builds a name index once on load (14,582 unique names, also fed to a `<datalist>` for type-ahead). Enter or pick from the list finds all matching segments, zooms to them, and opens the details panel for the highest-KSI match. A "clear ✕" link resets it. No new data shipped.
+
+---
+
 ## 2026-06-14 — Cut the VZ dashboard's memory use (was reloading low-memory tabs)
 
 The Vision Zero page was loading ~105 MB of JSON (segments 69 MB + crash_points 26 MB + crash_records 10 MB), enough to crash/reload memory-constrained tabs. Trimmed the two biggest offenders without losing any displayed data:

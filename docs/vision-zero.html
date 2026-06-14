@@ -52,6 +52,10 @@
   .ctrl .grp{margin-bottom:16px}
   .ctrl select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
     font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer}
+  .ctrl input[type=text]{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
+    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit}
+  .ctrl input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .ctrl .note{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
   #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -108,6 +112,12 @@
 
   <div class="main">
     <div class="ctrl">
+      <div class="grp">
+        <h3>Find a street</h3>
+        <input type="text" id="search" placeholder="e.g. Westheimer, Main St…" autocomplete="off" list="streetnames"/>
+        <datalist id="streetnames"></datalist>
+        <div class="note" id="searchnote"></div>
+      </div>
       <div class="grp" id="district-grp" style="display:none">
         <h3>District</h3>
         <select id="district"></select>
@@ -336,9 +346,37 @@ Promise.all([
   });
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
   try{map.fitBounds(geo.getBounds());}catch(e){}
+  buildStreetIndex();
   document.getElementById('loading').style.display='none';
   render();
 });
+
+// --- find a street ------------------------------------------------------------
+let streetIndex={};   // lowercased name -> array of layers
+function buildStreetIndex(){
+  const names=new Set();
+  geo.eachLayer(l=>{ const n=l.feature.properties.name; if(!n) return;
+    names.add(n); (streetIndex[n.toLowerCase()]=streetIndex[n.toLowerCase()]||[]).push(l); });
+  const dl=document.getElementById('streetnames');
+  dl.innerHTML=[...names].sort().map(n=>'<option value="'+n.replace(/"/g,'&quot;')+'"></option>').join('');
+}
+function doSearch(q){
+  q=(q||'').trim().toLowerCase();
+  const note=document.getElementById('searchnote');
+  if(!q){ note.textContent=''; return; }
+  const hits=[];
+  for(const nm in streetIndex){ if(nm.includes(q)) hits.push(...streetIndex[nm]); }
+  if(!hits.length){ note.textContent='No street matches "'+q+'".'; return; }
+  const grp=L.featureGroup(hits);
+  try{ map.fitBounds(grp.getBounds().pad(0.2)); }catch(e){}
+  note.innerHTML=hits.length+' segment'+(hits.length>1?'s':'')+' found. <span style="color:#1d4ed8;cursor:pointer" onclick="clearSearch()">clear ✕</span>';
+  // select the highest-KSI matching segment so its details open
+  let best=hits[0].feature;
+  for(const l of hits){ if((l.feature.properties.n_severe||0) > (best.properties.n_severe||0)) best=l.feature; }
+  selId=best.properties.seg_id; restyle(); openInfo(best.properties);
+}
+function clearSearch(){ document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
+  selId=null; document.getElementById('info').style.display='none'; restyle(); }
 
 function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
   return {color:ZERO, weight:1, opacity:.35}; }
@@ -644,6 +682,10 @@ function openInfo(p){
   I.style.display='block';
 }
 
+(()=>{ const sb=document.getElementById('search');
+  sb.addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(sb.value); });
+  sb.addEventListener('change',()=>doSearch(sb.value));   // datalist pick
+})();
 document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
   document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
   p.classList.add('on'); mode=p.dataset.mode; render();
