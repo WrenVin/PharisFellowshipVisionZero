@@ -13,7 +13,7 @@ Vincent's point: showing crash *points* as shaded *segments* can confuse — a h
 - Clearer wording: control hint + legend now state "Streets shaded by count on each block" vs "Each dot is one crash location."
 - Underlying data/model unchanged — purely a presentation option.
 
-Verified in-browser (KSI 712 pts, all-crashes 41,177 pts, year filter), no console errors.
+Verified in-browser. Follow-up: clicking a dot now opens a popup with that crash (severity / mode / date) via a map-click nearest-point search; street info is suppressed in points view.
 
 ---
 

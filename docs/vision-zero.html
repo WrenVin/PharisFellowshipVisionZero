@@ -202,8 +202,21 @@ Promise.all([
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
-    l.on('click',e=>{ selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
+    l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
+      selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
   }}).addTo(map);
+  map.on('click', e=>{  // crash-locations view: click near a dot to see that crash
+    if(view!=='points') return;
+    const cp=e.containerPoint; let best=null, bd=Infinity;
+    for(const p of pts){
+      if(year!==null && p[6]!==year) continue;
+      const m = mode==='all'||(mode==='ped'&&p[4])||(mode==='bike'&&p[5]); if(!m) continue;
+      if(sev==='ksi' && p[2]!==1) continue;
+      const pt=map.latLngToContainerPoint([p[0],p[1]]);
+      const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
+    }
+    if(best && bd<=8) showCrash(best);
+  });
   try{map.fitBounds(geo.getBounds());}catch(e){}
   document.getElementById('loading').style.display='none';
   render();
@@ -311,6 +324,14 @@ function drawTrend(){
   document.getElementById('trend-note').textContent='Y axis = people killed or seriously injured per year'+(partial?' · 2026 is partial':'');
 }
 function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
+function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date]
+  const sevTxt = p[3] ? 'Killed' : (p[2] ? 'Serious injury' : 'Injury / no-injury crash');
+  const modeTxt = p[4] ? 'Pedestrian' : (p[5] ? 'Bicyclist' : 'Vehicle occupant');
+  const when = p[7] || (p[6]!=null ? String(p[6]) : 'date unknown');
+  L.popup({closeButton:true}).setLatLng([p[0],p[1]])
+   .setContent('<div style="font:13px/1.5 Inter,sans-serif"><b>'+sevTxt+'</b><br>'+modeTxt+'<br><span style="color:#5b6672">'+when+'</span></div>')
+   .openOn(map);
+}
 
 function openInfo(p){
   const I=document.getElementById('info');
