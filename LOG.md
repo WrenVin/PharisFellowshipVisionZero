@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: street + design context in the crash popup
+
+Clicking a crash dot now also shows the street it is on (name, class) and that street's design: lanes, roadway width, posted speed, sidewalks, traffic volume, and city-vs-TxDOT owner. Crash points carry no segment link, so rather than bloat crash_points.json we find the nearest segment geometrically at click time (`nearestSegProps`: point-to-segment distance in flat lon·cosLat space, bbox-prefiltered, ~150 m cutoff). Crashes were assigned to their nearest segment in the pipeline (median 4 ft), so this reproduces that link client-side.
+
+---
+
 ## 2026-06-14 — VZ dashboard: "Find a street" search
 
 Added a street search to the control panel (top), mirroring the Street Explorer. Builds a name index once on load (14,582 unique names, also fed to a `<datalist>` for type-ahead). Enter or pick from the list finds all matching segments, zooms to them, and opens the details panel for the highest-KSI match. A "clear ✕" link resets it. No new data shipped.

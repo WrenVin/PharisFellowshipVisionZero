@@ -641,6 +641,25 @@ function drawTimeOfDay(){
 function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
 const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
+// nearest street segment to a crash, found geometrically at click time (crash
+// points carry no segment link, so this avoids bloating crash_points.json).
+// point-to-segment distance in a flat lon*cosLat / lat space (deg).
+function _d2seg(px,py,ax,ay,bx,by){ const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+  let t=l2>0?((px-ax)*dx+(py-ay)*dy)/l2:0; t=t<0?0:t>1?1:t;
+  const cx=ax+t*dx,cy=ay+t*dy; return Math.hypot(px-cx,py-cy); }
+function nearestSegProps(lat,lon){
+  const cosL=Math.cos(lat*Math.PI/180), px=lon*cosL, py=lat;
+  let best=null,bd=Infinity;
+  geo.eachLayer(l=>{ const f=l.feature, c=f.geometry&&f.geometry.coordinates; if(!c)return;
+    const lines=f.geometry.type==='MultiLineString'?c:[c];
+    for(const line of lines){
+      if(Math.abs(line[0][1]-lat)>0.02 && Math.abs(line[line.length-1][1]-lat)>0.02) continue;  // bbox prefilter
+      for(let i=0;i+1<line.length;i++){
+        const d=_d2seg(px,py, line[i][0]*cosL,line[i][1], line[i+1][0]*cosL,line[i+1][1]);
+        if(d<bd){bd=d;best=f.properties;} } }
+  });
+  return (best && bd<0.0015) ? best : null;   // ~150 m cutoff
+}
 function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier]
   const sevTxt = p[3] ? 'Killed' : (p[2] ? 'Serious injury' : 'Injury / no-injury crash');
   const sevCol = p[3] ? '#7a1419' : (p[2] ? '#b4232a' : '#5b6672');
@@ -653,12 +672,31 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   if(p[10]) rows.push(['Council district', p[10]]);
   if(p[11]!=null) rows.push(['Neighborhood income', INC_LABELS[p[11]]]);
   if(p[3] && p[9]) rows.push(['Years of life lost', Math.round(p[9])]);
-  let h='<div style="font:13px/1.55 Inter,sans-serif;min-width:185px">'
-    +'<div style="font-weight:700;font-size:14px;color:'+sevCol+';margin-bottom:5px">'+sevTxt+'</div>';
-  for(const [k,v] of rows) h+='<div style="display:flex;justify-content:space-between;gap:16px">'
+  // nearest street + its design, so a crash reads in context of the road it's on
+  const sp=nearestSegProps(p[0],p[1]);
+  const swTxt={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'};
+  const street=[];
+  if(sp){
+    if(sp.lanes_final!=null) street.push(['Lanes', sp.lanes_final]);
+    if(sp.roadway_width_ft!=null) street.push(['Roadway width', sp.roadway_width_ft+' ft']);
+    if(sp.posted_speed_mph!=null) street.push(['Posted speed', sp.posted_speed_mph+' mph']);
+    if(sp.sidewalk_presence) street.push(['Sidewalks', swTxt[sp.sidewalk_presence]||sp.sidewalk_presence]);
+    if(sp.adt!=null) street.push(['Traffic volume', fmt(sp.adt)+' veh/day']);
+    street.push(['Road owner', sp.on_txdot ? 'TxDOT (state)' : 'City of Houston']);
+  }
+  const kv=(k,v)=>'<div style="display:flex;justify-content:space-between;gap:16px">'
     +'<span style="color:#5b6672">'+k+'</span><span style="font-weight:600;text-align:right">'+v+'</span></div>';
+  let h='<div style="font:13px/1.55 Inter,sans-serif;min-width:195px">'
+    +'<div style="font-weight:700;font-size:14px;color:'+sevCol+';margin-bottom:5px">'+sevTxt+'</div>';
+  if(sp) h+='<div style="font-weight:600;margin-bottom:4px">'+(sp.name||'(unnamed street)')
+    +' <span style="color:#5b6672;font-weight:400">· '+sp.road_class+'</span></div>';
+  for(const [k,v] of rows) h+=kv(k,v);
+  if(street.length){
+    h+='<div style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#8a939c;margin:7px 0 3px">Street design</div>';
+    for(const [k,v] of street) h+=kv(k,v);
+  }
   h+='</div>';
-  L.popup({closeButton:true}).setLatLng([p[0],p[1]]).setContent(h).openOn(map);
+  L.popup({closeButton:true,maxWidth:260}).setLatLng([p[0],p[1]]).setContent(h).openOn(map);
 }
 
 function openInfo(p){
