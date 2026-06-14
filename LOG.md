@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Removed the "blind spot" strip from the VZ dashboard
+
+Vincent: the 93%-zero-KSI / "built to be dangerous, a design model can see them" strip is a *research claim* (the divergence thesis, not yet demonstrated) and doesn't belong on a public dashboard showing current crash data. Removed the strip (HTML + drawStrip + CSS). The dashboard now reports only what the data shows; the divergence story stays in the research/analysis where it'll be proven. Verified clean load, no errors. (Lesson: keep the public dashboard descriptive; reserve claims for the analysis.)
+
+---
+
 ## 2026-06-13 — Second dashboard: a Vision Zero view
 
 Vincent: the Street Explorer is data-first (built around road type); a *Vision Zero* dashboard should put harm front and center. Researched how Austin/NYC/LA/Seattle/SF present publicly — all reactive, toll-led, organized around "are we ending traffic deaths?": big KSI numbers, a severe-crash map as the homepage, the "X% of streets = Y% of harm" High Injury Network stat, a mode lens (walking/biking), equity disparities named explicitly, and a flat yearly trend. None show *predicted* risk (streets dangerous by design but not-yet-bloody) — that's our differentiator (Act 3, after modeling).

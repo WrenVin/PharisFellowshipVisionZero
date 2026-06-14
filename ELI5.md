@@ -240,12 +240,12 @@ killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
 of streets account for 82% of it), a switch to focus on people walking or
 biking, whether the harm falls more on lower-income neighborhoods, and whether
 things are getting better year to year (they aren't). It's modeled on how cities
-like Austin and New York present their traffic-safety data to the public — but
-with a twist only we have: it points out that 93% of streets have had no serious
-crash, setting up the question our model will answer.
+like Austin and New York present their traffic-safety data to the public — it
+shows what has actually happened, and stays out of conclusions we haven't proven
+yet.
 
-Next: build that model — **which dangerous streets is the city's current
-crash-only method missing?**
+Next: build the model that answers the project's real question — **which
+dangerous streets is the city's current crash-only method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

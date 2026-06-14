@@ -26,9 +26,7 @@
   .kpi .v{font-size:30px;font-weight:700;color:#7a1419;line-height:1.15;margin-top:2px}
   .kpi.neutral .v{color:var(--ink)}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
-  .strip{background:#fbe9ea;color:#7a1419;border-radius:8px;padding:10px 14px;font-size:13.5px;margin:6px 0 16px}
-  .strip b{font-weight:700}
-  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-top:6px}
   .ctrl{flex:0 0 210px;border:1px solid var(--line);border-radius:12px;padding:14px}
   .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
   .ctrl .grp{margin-bottom:16px}
@@ -91,8 +89,6 @@
   </div>
 
   <div class="kpis" id="kpis"></div>
-
-  <div class="strip" id="strip"></div>
 
   <div class="main">
     <div class="ctrl">
@@ -198,7 +194,7 @@ Promise.all([
 });
 
 function restyle(){ geo.setStyle(styleFor); }
-function render(){ breaks._inc=null; restyle(); drawKPIs(); drawLegend(); drawStrip(); drawEquity(); }
+function render(){ breaks._inc=null; restyle(); drawKPIs(); drawLegend(); drawEquity(); }
 
 function drawKPIs(){
   const t=vz.toll, m=vz.mode;
@@ -215,11 +211,6 @@ function drawKPIs(){
 }
 function kpiCard(l,v,s,neutral){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
-}
-function drawStrip(){
-  document.getElementById('strip').innerHTML=
-    '<b>'+vz.hin.pct_zero_streets+'% of District C streets</b> have no record of anyone killed or seriously injured — '
-    +'but many are built to be dangerous. A crash-only map can’t see them; a design-based model can.';
 }
 function drawLegend(){
   const el=document.getElementById('legend');
