@@ -5,9 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Vision Zero · District C — Traffic Safety</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{--ink:#15212b;--muted:#5b6672;--line:#e4e7eb;--panel:#f7f8fa;--accent:#b4232a;
-    --sans:'Helvetica Neue',Helvetica,Arial,sans-serif}
+    --sans:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
+  body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  #trend rect.ybar{transition:opacity .12s}
+  #trend rect.ybar:hover{stroke:#7a1419;stroke-width:2;opacity:1}
   *{box-sizing:border-box}
   html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff}
   a{color:#1d4ed8}
@@ -217,12 +223,12 @@ function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'">
 
 function drawLegend(){
   const el=document.getElementById('legend'), mx=activeMax();
-  const what=sev==='all'?'crashes':'killed or seriously injured';
-  const pre=mode==='all'?'':mode==='ped'?'Walking — ':'Biking — ';
+  const metric=sev==='all'?'Crashes':'Killed or seriously injured';
+  const pre=mode==='all'?'':mode==='ped'?'Walking · ':'Biking · ';
   const yr=year===null?'':' · '+year;
-  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+what+yr+'</div>'
+  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>'
     +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
-    +'<div class="ends"><span>none</span><span>'+Math.round(mx)+' on one street</span></div>';
+    +'<div class="ends"><span>0</span><span>'+Math.round(mx)+' on one street</span></div>';
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
   el.innerHTML=h;
 }
@@ -258,7 +264,7 @@ function drawTrend(){
     const op = year!==null && !sel ? .35 : (faded?.4:1);
     let r=(v==null)
       ? '<rect x="'+x+'" y="'+(T+ph-5)+'" width="'+bw+'" height="5" fill="#dde0e4"/>'
-      : '<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(sel?'#7a1419':'#e0584f')+'" opacity="'+op+'" style="cursor:pointer" onclick="selectYear('+yr+')"><title>'+yr+': '+v+' KSI — click to view</title></rect>';
+      : '<rect class="ybar" x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(sel?'#7a1419':'#e0584f')+'" opacity="'+op+'" style="cursor:pointer" onclick="selectYear('+yr+')"><title>'+yr+': '+v+' KSI — click to view</title></rect>';
     return r+'<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="'+(sel?'#7a1419':'#9aa3ad')+'">’'+String(yr).slice(2)+'</text>'; };
   full.forEach((yr,i)=>{ s+=bar(yr,y[yr],L+gap*i+(gap-bw)/2,false); });
   if(partial){ s+=bar(2026,y[2026],L+gap*full.length+(gap-bw)/2,true); }

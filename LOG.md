@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Dashboard typography + label polish
+
+- **Inter font** (Google Fonts) applied to both dashboards + antialiasing — more professional than the prior Helvetica/Arial fallback.
+- Legend labels capitalized ("Killed or seriously injured", "Crashes"); legend low end "none" → "0".
+- Year bars now show a hover state (pointer cursor + outline) signalling they're clickable.
+
+Verified in-browser, no console errors.
+
+---
+
 ## 2026-06-13 — VZ dashboard: year drill-down, neutral copy, legend + basemap fixes
 
 Round of fixes from Vincent's review:
