@@ -4,6 +4,19 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Dashboard polish (both pages) from Vincent's review
+
+**Street Explorer (`index.html`):** renamed "Vision Zero · District C" → "District C Street Explorer" (the Vision Zero name belongs to the other page); added a "→ Vision Zero dashboard" link; moved the "Data sources & dates" trigger to the bottom of the panel.
+
+**Vision Zero dashboard (`vision-zero.html`)** — fixed the "sloppy/hard-to-see" issues:
+- Low crash values were near-white and vanished into the basemap. Switched the count ramp to OrRd starting at a saturated orange (visible even at 1 KSI), thickened crash streets, and **scaled line weight with severity** (darker = thicker) so hotspots pop; zero-KSI streets are now faint thin grey context.
+- "Isolate the High Injury Network" barely changed anything (zeros were already invisible). With bold colored lines it now reads clearly — removing the grey network leaves just the red HIN.
+- Equity overlay promised "red lines" that weren't drawn, and income was vague. Rebuilt as **two layers**: streets shaded by neighbourhood income (blue, now with real $25k–$250k labels) + a **red KSI overlay on top** — you can actually see where the harm falls vs income.
+
+Verified all states in-browser (KSI/walking/biking, HIN isolate, equity), no console errors.
+
+---
+
 ## 2026-06-13 — Removed the "blind spot" strip from the VZ dashboard
 
 Vincent: the 93%-zero-KSI / "built to be dangerous, a design model can see them" strip is a *research claim* (the divergence thesis, not yet demonstrated) and doesn't belong on a public dashboard showing current crash data. Removed the strip (HTML + drawStrip + CSS). The dashboard now reports only what the data shows; the divergence story stays in the research/analysis where it'll be proven. Verified clean load, no errors. (Lesson: keep the public dashboard descriptive; reserve claims for the analysis.)

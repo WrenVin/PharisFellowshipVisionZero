@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vision Zero District C — Street Explorer</title>
+<title>District C Street Explorer</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root{
@@ -108,9 +108,9 @@
 <body>
 <div id="app">
   <div id="panel">
-    <h1>Vision Zero · District C</h1>
+    <h1>District C Street Explorer</h1>
     <div class="sub">Every public street in Houston Council District C — color, filter, and click any street to inspect it.</div>
-    <button class="aboutbtn" id="about-open">ⓘ Data sources &amp; dates</button>
+    <a class="aboutbtn" href="vision-zero.html">→ Vision Zero dashboard</a>
 
     <div class="section">
       <h2>Color streets by</h2>
@@ -152,6 +152,7 @@
     </div>
 
     <div class="foot">
+      <button class="aboutbtn" id="about-open" style="margin:0 0 8px">ⓘ Data sources &amp; dates</button><br>
       Data: OpenStreetMap, City of Houston / HCAD, U.S. Census ACS. Field definitions in
       <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank">CODEBOOK.md</a>.
       "No data" = not recorded in the source, not necessarily absent on the ground.
