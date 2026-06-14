@@ -16,6 +16,12 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: click = single block; whole street is opt-in
+
+Per Vincent: clicking a single segment was selecting the entire street, which he didn't want. Reverted clicks to single-segment selection (`selectSeg`): the panel shows just that block's crash history and design (and its city/TxDOT owner), and highlights only that one segment. Whole-street selection (summed totals, full-corridor highlight) now happens only from the search box, or from a new "View this whole street →" link added to the single-block popup. State: added `selSeg` alongside `selStreet`; render() re-derives whichever is active within the current filter (clears a single block if a filter hides it). Verified in-browser: click shows one block + the link; the link/search expand to the full street.
+
+---
+
 ## 2026-06-14 — TxDOT label: drop interstates + curate the last false positives
 
 Two more fixes after Vincent spotted residual bad pieces (e.g. Pierce St running under the Pierce Elevated / I-45, parallel to the freeway):

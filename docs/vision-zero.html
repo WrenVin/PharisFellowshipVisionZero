@@ -274,7 +274,7 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
@@ -383,7 +383,7 @@ Promise.all([
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
       const p=f.properties;
       if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;   // ignore filtered-out segments
-      selectStreet(p.name && p.name.trim() ? p.name : '__seg__'+p.seg_id, false);
+      selectSeg(p);   // a click selects ONE segment; "view whole street" is in its popup
       L.DomEvent.stop(e); });
   }}).addTo(map);
   map.on('click', e=>{  // crash-locations view: click near a dot to see that crash
@@ -432,8 +432,15 @@ function clearSearch(){ document.getElementById('search').value=''; document.get
   clearSel(); }
 // select every in-filter segment of a street by name; returns the seg_ids selected.
 // fitView: pan/zoom to the street (true for search, false for a map click).
+// select a SINGLE segment (a map click): show just that segment's info, with a
+// "View this whole street" action in the panel. Street-wide highlight is reserved
+// for the search box / that action.
+function selectSeg(p){
+  selStreet=null; selSeg=p; selIds=new Set([p.seg_id]);
+  restyle(); openInfoSeg(p);
+}
 function selectStreet(name, fitView){
-  selStreet=name;
+  selStreet=name; selSeg=null;
   const props=collectStreetProps();
   selIds=new Set(props.map(p=>p.seg_id));
   restyle();
@@ -458,7 +465,7 @@ function collectStreetProps(){
   }
   return out;
 }
-function clearSel(){ selStreet=null; selIds=new Set();
+function clearSel(){ selStreet=null; selSeg=null; selIds=new Set();
   document.getElementById('info').style.display='none'; restyle(); }
 
 function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
@@ -484,10 +491,12 @@ function buildPoints(){
 }
 function render(){
   computeCounts();
-  if(selStreet!==null){   // re-derive the selection within the (possibly new) filter
+  if(selStreet!==null){   // re-derive a street selection within the (possibly new) filter
     const props=collectStreetProps();
     if(props.length){ selIds=new Set(props.map(p=>p.seg_id)); openInfoStreet(selStreet, props); }
     else clearSel();
+  } else if(selSeg!==null){   // single-segment selection: clear if filtered out
+    if(!inDist(selSeg.district) || !ownerOk(selSeg.on_txdot)) clearSel();
   }
   restyle();
   if(view==='points') buildPoints();
@@ -791,6 +800,33 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
 }
 
 // sum crash counts across all selected segments of a street; show design as ranges
+// single-segment info panel (a map click), with a "View this whole street" action
+function openInfoSeg(p){
+  const I=document.getElementById('info');
+  const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'n/a';
+  const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
+  const whole = (p.name && p.name.trim())
+    ? '<div class="g" style="padding-top:2px"><a href="#" onclick="event.preventDefault();selectStreet('
+       + JSON.stringify(p.name) + ',true)" style="font-size:12.5px">View this whole street →</a></div>'
+    : '';
+  I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
+    +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
+      +' · '+(p.on_txdot?'TxDOT (state)':'City of Houston')+'</div></div>'
+    +'<div class="g"><h4>This block, crash history (2016–2026)</h4>'
+      +row('Killed or seriously injured',(p.n_severe||0),p.n_severe>0)
+      +row('People killed',(p.n_fatal||0),p.n_fatal>0)
+      +row('Severe (walking)',(p.n_ped_severe||0))
+      +row('Severe (biking)',(p.n_bike_severe||0))
+      +row('All crashes',(p.n_crash||0))+'</div>'
+    +'<div class="g"><h4>Street design</h4>'
+      +row('Lanes',(p.lanes_final!=null?p.lanes_final:'n/a'))
+      +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'n/a'))
+      +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'n/a'))
+      +row('Sidewalks',sw)
+      +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
+    +whole;
+  I.style.display='block';
+}
 function openInfoStreet(name, props){
   const I=document.getElementById('info');
   const sum=f=>props.reduce((a,p)=>a+(p[f]||0),0);
