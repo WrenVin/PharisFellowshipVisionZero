@@ -342,7 +342,7 @@ function tally(y){
 function concentration(){
   const rows=[];
   geo.eachLayer(l=>{const p=l.feature.properties; if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;
-    rows.push([p.n_severe||0, (p.length_ft||0)/5280]);});
+    rows.push([activeCounts[p.seg_id]||0, (p.length_ft||0)/5280]);});
   rows.sort((a,b)=>b[0]-a[0]);
   let totSev=0, totMi=0; for(const r of rows){totSev+=r[0]; totMi+=r[1];}
   if(totSev<=0 || totMi<=0) return {pct_streets:6, pct_ksi:0};
@@ -503,7 +503,7 @@ function drawKPIs(){
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
   const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
-  const conSub='of streets → of KSI'+(year===null?'':' (all years)');
+  const conSub='of streets → of '+(sev==='all'?'crashes':'KSI')+(year===null?'':' (all years)');
   const yll=Math.round(yllTotal()), serious=ksi-killed, con=concentration();
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
   document.getElementById('kpis').innerHTML=
