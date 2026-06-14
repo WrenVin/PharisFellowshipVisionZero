@@ -70,6 +70,18 @@ COLS = {
     "on_txdot": None,  # TxDOT-owned (state) road vs city-owned?
 }
 
+# Only these fields are read by the dashboard (docs/vision-zero.html). Everything
+# else in COLS stays out of segments.geojson to keep the browser payload small:
+# the full property set is ~52 MB at city scale (vs ~6 MB of geometry) and was
+# crashing low-memory tabs. The richer per-segment data lives in the CSV/GPKG.
+WEB_KEEP = [
+    "seg_id", "name", "road_class", "district", "on_txdot", "on_hin",
+    "n_crash", "n_severe", "n_fatal", "n_ped", "n_ped_severe",
+    "n_bike", "n_bike_severe", "length_ft",
+    "lanes_final", "roadway_width_ft", "posted_speed_mph",
+    "sidewalk_presence", "adt",
+]
+
 FRIENDLY_CLASS = {
     "primary": "Major arterial", "secondary": "Arterial", "tertiary": "Collector",
     "residential": "Local street", "unclassified": "Minor street",
@@ -155,10 +167,21 @@ keep["geometry"] = keep.geometry.simplify(25, preserve_topology=False)
 keep = keep.to_crs(4326)
 
 DOCS.mkdir(exist_ok=True)
+# Full property set -> segments.geojson, used by the Street Explorer (index.html),
+# which surfaces every design + demographic field.
 out = DOCS / "segments.geojson"
 if out.exists():
     out.unlink()
 keep.to_file(out, driver="GeoJSON", COORDINATE_PRECISION=5)
+# Slim copy -> segments_vz.geojson for the Vision Zero dashboard, which only reads
+# WEB_KEEP. Dropping the ~17 unused fields ~halves the payload (52 MB of props
+# becomes ~18 MB) and keeps low-memory tabs from crashing.
+vz_out = DOCS / "segments_vz.geojson"
+if vz_out.exists():
+    vz_out.unlink()
+web = keep[[c for c in WEB_KEEP if c in keep.columns] + ["geometry"]].copy()
+web.to_file(vz_out, driver="GeoJSON", COORDINATE_PRECISION=5)
+print(f"Wrote slim VZ segments -> {vz_out} ({vz_out.stat().st_size/1e6:.1f} MB)")
 
 # boundary: simplify hard (outline only, not measured) to keep it light
 boundary = cfg.boundary(2278)

@@ -215,7 +215,7 @@ const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
 let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
-let records=[], pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
+let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
@@ -226,9 +226,16 @@ const KICON={
   ksi:'<svg viewBox="0 0 24 24" fill="none" stroke="#e0982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M12 11v5M9.5 13.5h5"/></svg>',
   conc:'<svg viewBox="0 0 24 24" fill="none" stroke="#3a9e78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="21" x2="5" y2="13"/><line x1="12" y1="21" x2="12" y2="4"/><line x1="19" y1="21" x2="19" y2="9"/></svg>'};
 
-function recMatch(r){ // r=[seg,year,sev,fatal,ped,bike]
-  const m = modeMatch(r[4], r[5]);
-  return m && (sev==='all' || r[2]===1);
+// per segment-year counts -> the one number the shading needs, for the active
+// mode+severity. a=[n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]
+function segCountYear(a){
+  if(mode==='veh'){
+    const tot=sev==='ksi'?a[1]:a[0], p=sev==='ksi'?a[3]:a[2], b=sev==='ksi'?a[5]:a[4];
+    return Math.max(0, tot-p-b);
+  }
+  if(mode==='ped')  return sev==='ksi'?a[3]:a[2];
+  if(mode==='bike') return sev==='ksi'?a[5]:a[4];
+  return sev==='ksi'?a[1]:a[0];   // all modes
 }
 // shared mode test: ped/bike flags -> does this crash belong to the active lens?
 function modeMatch(ped, bike){
@@ -247,7 +254,10 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
-  else { for(const r of records){ if(r[1]===year && recMatch(r) && (r[0] in seg2dist) && inDist(seg2dist[r[0]]) && ownerOk(seg2tx[r[0]])) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
+  else { const yr=String(year);
+    for(const seg in segYear){ const a=segYear[seg][yr]; if(!a) continue;
+      if(!inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
+      const c=segCountYear(a); if(c>0) activeCounts[seg]=c; } }
   let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
   _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
 }
@@ -293,13 +303,13 @@ L.control.layers(bases,null,{position:'topleft',collapsed:true}).addTo(map);
 Promise.all([
   fetch('vz_summary.json').then(r=>r.json()),
   fetch('boundary.geojson').then(r=>r.json()),
-  fetch('segments.geojson').then(r=>r.json()),
+  fetch('segments_vz.geojson').then(r=>r.json()),
   fetch('hin.geojson').then(r=>r.json()),
-  fetch('crash_records.json').then(r=>r.json()),
+  fetch('crash_year.json').then(r=>r.json()),
   fetch('crash_points.json').then(r=>r.json()),
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
-]).then(([summary,bnd,seg,hin,recs,points,dists])=>{
-  vz=summary; records=recs; pts=points;
+]).then(([summary,bnd,seg,hin,cyear,points,dists])=>{
+  vz=summary; segYear=cyear; pts=points;
   for(const f of seg.features){ seg2dist[f.properties.seg_id]=f.properties.district; seg2tx[f.properties.seg_id]=!!f.properties.on_txdot; }  // seg -> district + ownership
   if(dists && dists.features && dists.features.length) setupDistricts(dists);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);

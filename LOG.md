@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Cut the VZ dashboard's memory use (was reloading low-memory tabs)
+
+The Vision Zero page was loading ~105 MB of JSON (segments 69 MB + crash_points 26 MB + crash_records 10 MB), enough to crash/reload memory-constrained tabs. Trimmed the two biggest offenders without losing any displayed data:
+
+- **Slim segments for the VZ map.** The dashboard only reads 19 of the 36 segment fields, but properties were ~52 MB of the 69 MB file. Added a `WEB_KEEP` whitelist in `export_webmap_data.py` and now write a second, slim `docs/segments_vz.geojson` (34 MB) for the dashboard; the full `segments.geojson` stays for the Street Explorer (which uses every design/demographic field). VZ page now fetches `segments_vz.geojson`.
+- **Pre-aggregate the year drill-down.** Replaced the one-row-per-crash `crash_records.json` (414k rows, 10 MB) with `crash_year.json`: `{seg_id: {year: [n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]}}` (~152k cells, 3.7 MB), built in `assign_crashes.py`. The dashboard's per-year shading now reads these six counts via `segCountYear()` (mirrors the all-years `segCount`), so any mode/severity combo is still exact. Dropped `recMatch`.
+
+Net: ~105 MB → ~64 MB of payload, and far fewer JS objects (152k vs 414k crash arrays; 19 vs 36 keys per segment). Verified in-browser: KPIs, year drill-down, mode/owner filters, and the map all reconcile; no console errors.
+
+---
+
 ## 2026-06-14 — Doc audit: sync README / CODEBOOK / ELI5 / LOG to the city build
 
 Per Vincent, before making further changes: went through the repo for out-of-date or incorrect information, especially the 4 documents. Found that several figures and labels still reflected the original District C build.
