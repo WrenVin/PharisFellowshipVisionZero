@@ -7,23 +7,23 @@ Thresholds: absorb named pieces < 100 ft; drop unnamed fragments < 50 ft.
 
 | | before | after |
 |---|---|---|
-| Segments | 8,771 | 7,381 |
-| Centerline miles | 651.4 | 637.8 |
+| Segments | 92,433 | 75,260 |
+| Centerline miles | 7,536.7 | 7,336.6 |
 
 ## Actions
 
 | Rule | Action | Count | Miles |
 |---|---|---|---|
-| A | `*_link` (turn lanes / slip roads) dropped to audit | 470 | 13.3 |
-| B | short named pieces absorbed into same-named neighbor | 890 | (length preserved in absorbers) |
-| C | unnamed fragments < 50 ft dropped to audit | 30 | 0.17 |
+| A | `*_link` (turn lanes / slip roads) dropped to audit | 6,895 | 196.1 |
+| B | short named pieces absorbed into same-named neighbor | 9,825 | (length preserved in absorbers) |
+| C | unnamed fragments < 50 ft dropped to audit | 453 | 3.09 |
 
-- Absorption passes: 2; named short segments kept for lack of a
-  same-named neighbor (conservative): 30
+- Absorption passes: 3; named short segments kept for lack of a
+  same-named neighbor (conservative): 292
 - `merged_away` rep pointers remapped through absorptions; pointers landing
-  on removed segments (orphans): 0
-- Minimum segment length after cleanup (named kept): 24 ft;
-  p5 = 149 ft (was 40 ft pre-cleanup)
+  on removed segments (orphans): 1
+- Minimum segment length after cleanup (named kept): 16 ft;
+  p5 = 134 ft (was 40 ft pre-cleanup)
 
 ## Use
 

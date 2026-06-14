@@ -6,19 +6,19 @@ group containing its midpoint. Geometry from Census TIGERweb.
 
 ## Coverage
 
-- Segments assigned a block group: **100.0%** (7,381 of 7,381).
-- District C spans roughly 233 block groups.
+- Segments assigned a block group: **96.8%** (72,837 of 75,260).
+- District C spans roughly 2445 block groups.
 
 ## District C demographic range (block-group values, population-weighted where shown)
 
 | Metric | min | median | max |
 |---|---|---|---|
-| Median HH income ($) | 25,000 | 146,968 | 250,001 |
-| % below poverty | 0 | 5 | 56 |
-| % Hispanic | 0 | 16 | 89 |
-| % Black (NH) | 0 | 4 | 72 |
-| % White (NH) | 1 | 60 | 100 |
-| % zero-car households | 0 | 2 | 39 |
+| Median HH income ($) | 10,119 | 71,182 | 250,001 |
+| % below poverty | 0 | 12 | 94 |
+| % Hispanic | 0 | 35 | 100 |
+| % Black (NH) | 0 | 11 | 100 |
+| % White (NH) | 0 | 17 | 100 |
+| % zero-car households | 0 | 4 | 83 |
 
 ## Notes
 

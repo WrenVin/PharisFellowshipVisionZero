@@ -6,40 +6,45 @@ roads excluded. CRS: EPSG:2278 (US ft).
 
 ## Network summary
 
-- **Segments (intersection-to-intersection, undirected):** 10,010
-- **Total centerline length:** 736.8 mi
-- **Median segment length:** 304 ft
-- Length percentiles (ft): p5=40, p25=219, p50=304, p75=475, p95=1,005
-- **Signalized segment ends:** 502 segments touch >=1 signal
-- **One-way segments:** 3,351 (33.5%)
-- **Dual-carriageway candidates:** 2,578 segments (175.7 mi) — same-named antiparallel one-way twin within 150 ft
+- **Segments (intersection-to-intersection, undirected):** 109,476
+- **Total centerline length:** 8,791.5 mi
+- **Median segment length:** 310 ft
+- Length percentiles (ft): p5=44, p25=176, p50=310, p75=519, p95=1,206
+- **Signalized segment ends:** 6,899 segments touch >=1 signal
+- **One-way segments:** 42,066 (38.4%)
+- **Dual-carriageway candidates:** 34,538 segments (2,538.6 mi) — same-named antiparallel one-way twin within 150 ft
 
 ## Segments by highway class
 
-| highway        |    n |   miles |
-|:---------------|-----:|--------:|
-| residential    | 5240 |   433.8 |
-| secondary      | 2462 |   161.4 |
-| tertiary       | 1060 |    70.7 |
-| primary        |  529 |    41.3 |
-| secondary_link |  347 |     8.6 |
-| unclassified   |  248 |    16.2 |
-| primary_link   |   82 |     4   |
-| tertiary_link  |   41 |     0.7 |
-| emergency_bay  |    1 |     0   |
+| highway          |     n |   miles |
+|:-----------------|------:|--------:|
+| residential      | 54887 |  4655.9 |
+| secondary        | 26125 |  2091.9 |
+| tertiary         | 12881 |  1024.3 |
+| primary          |  5923 |   533.2 |
+| secondary_link   |  4717 |   122.4 |
+| unclassified     |  2552 |   254.1 |
+| primary_link     |  1326 |    46.4 |
+| tertiary_link    |   657 |     9.6 |
+| trunk_link       |   199 |    18   |
+| trunk            |   187 |    34.8 |
+| living_street    |    15 |     0.8 |
+| road             |     3 |     0   |
+| emergency_bay    |     2 |     0.1 |
+| residential_link |     2 |     0   |
 
 ## Tier-2 feature coverage (% of segments with a value)
 
 | feature      |   overall_pct |   arterial_collector_pct |   local_pct |
 |:-------------|--------------:|-------------------------:|------------:|
-| lanes        |          84.4 |                     90.4 |        79.5 |
-| maxspeed_mph |          13.7 |                     24.5 |         4.8 |
+| lanes        |          55.6 |                     77.2 |        36.3 |
+| maxspeed_mph |           8.2 |                     15.5 |         1.6 |
 | width_ft     |           0   |                      0   |         0   |
-| sidewalk     |          16.5 |                     25   |         9.6 |
-| cycleway     |           9.6 |                     20.4 |         0.6 |
-| parking      |           1.8 |                      1.5 |         2   |
-| lit          |          20.9 |                     38.8 |         6.1 |
-| surface      |          72.2 |                     81.7 |        64.5 |
+| sidewalk     |           8.4 |                     14.6 |         2.9 |
+| cycleway     |           5   |                      9.9 |         0.5 |
+| parking      |           0.6 |                      0.9 |         0.4 |
+| lit          |           9   |                     17.2 |         1.6 |
+| surface      |          25.9 |                     34.5 |        18.4 |
 
 ## Notes
 

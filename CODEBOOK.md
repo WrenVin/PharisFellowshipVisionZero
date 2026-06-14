@@ -1,6 +1,8 @@
-# Codebook — District C Segment Dataset
+# Codebook — Houston Segment Dataset
 
 Documents every variable in the segment datasets. One row = one **road segment**: a stretch of street between two intersections (or an intersection and a dead end), undirected — a two-way street is one row, not two, and (after the merge) a divided boulevard is one row, not two.
+
+> **Scope: now the entire City of Houston** (75,260 segments), rebuilt 2026-06-14 from District C by switching `AREA` in `src/config.py`. Headline counts in the crash sections below are citywide. A few inline tier-2/tier-3 coverage percentages in the variable tables may still reflect the original District C build; current citywide coverage is in README "Current status." **Land use (`landuse_*`) is deferred** at city scale and absent from the current dataset.
 
 **Files** (in `data/processed/`):
 
@@ -171,7 +173,7 @@ Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segme
 
 ## Crash points — `district_c_crashes.gpkg` (separate file, not a segment column yet)
 
-TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to District C (EPSG:2278). **41,177 city-street crashes** (2016–2025 + partial 2026). **Freeway/tollway-facility crashes are excluded** (28,336 dropped — Road_Cls_ID Interstate/Tollway, any service-road/ramp/connector road part, or class-2 US/State highways with a freeway street name) because they were being snapped onto nearby city cross-streets; they are TxDOT facilities, not the city streets this project studies. See `reports/crash_build_report.md`.
+TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to the City of Houston (EPSG:2278). **421,699 city-street crashes** (2016–2025 + partial 2026). **Freeway/tollway-facility crashes are excluded** (257,136 dropped — Road_Cls_ID Interstate/Tollway, any service-road/ramp/connector road part, or class-2 US/State highways with a freeway street name) because they were being snapped onto nearby city cross-streets; they are TxDOT facilities, not the city streets this project studies. See `reports/crash_build_report.md`.
 
 | Variable | Type | Values | Description |
 |---|---|---|---|
@@ -179,12 +181,12 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 | `year`, `month`, `date` | int / int / text | — | Crash year, month (1–12), and date (from `Crash_Date`). Month powers the dashboard's by-month drill-down. |
 | `hour` | int | 0–23 | Hour of day (from `Crash_Time`). Powers the by-time-of-day chart. ~99.9% parseable. |
 | `kabco` | text | K / A / B / C / O / UNK | Severity on the KABCO scale (K=fatal, A=serious, B=minor, C=possible, O=none). Decoded from `Crash_Sev_ID` (4=K,1=A,2=B,3=C,5=O,0=UNK), verified against the fatal flag + injury counts. |
-| `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). **712 severe on city streets (88 K + 624 A).** |
-| `yll` | float | years | **Years of Life Lost (estimated)** — YPLL before age 75 (CDC convention): Σ max(0, 75 − age) over the people killed in the crash, from the CRIS person table. The public extract records a victim age for only ~half of fatal crashes (person detail suppressed on the rest), so fatal crashes without a recorded age get the mean (~40 yr/fatality). **Total ≈ 3,564 estimated YLL** on city streets; anchored to the 88 fatal crashes. 0 for non-fatal crashes. |
+| `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). **9,928 severe on city streets (1,687 K + 8,241 A).** |
+| `yll` | float | years | **Years of Life Lost (estimated)** — YPLL before age 75 (CDC convention): Σ max(0, 75 − age) over the people killed in the crash, from the CRIS person table. The public extract records a victim age for only ~half of fatal crashes (person detail suppressed on the rest), so fatal crashes without a recorded age get the mean (~40 yr/fatality). **Total ≈ 69,500 estimated YLL** citywide; anchored to the 1,687 fatal crashes. 0 for non-fatal crashes. |
 | `any_injury` | bool | — | Any injury (Tot_Injry_Cnt > 0). |
 | `mode` | text | pedestrian / bicycle / motor vehicle | Crash mode (pedestrian takes precedence if a crash has both). |
-| `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **802 ped crashes, 163 severe, 24 fatal** (city streets). |
-| `involves_bike` | bool | — | Any pedalcyclist (Unit_Desc_ID=3 / Prsn_Type_ID=3). **479 bike crashes, 49 severe, 7 fatal** (city streets). |
+| `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **8,772 ped crashes, 2,226 severe, 597 fatal** (city streets). |
+| `involves_bike` | bool | — | Any pedalcyclist (Unit_Desc_ID=3 / Prsn_Type_ID=3). **3,293 bike crashes, 459 severe, 89 fatal** (city streets). |
 | `Crash_Sev_ID` | int | 0–5 | Raw CRIS severity code (see `kabco`). |
 | `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
 | `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
@@ -199,12 +201,12 @@ Added by `src/assign_crashes.py`: each crash credited to its single nearest segm
 |---|---|---|
 | `n_crash` | int | All assigned crashes on the segment. |
 | `n_injury` | int | Crashes with any injury. |
-| `n_severe` | int | **Severe (K+A) crashes — the negative-binomial outcome.** 526 segments (7.1%) have ≥1; max 9. City streets only. |
+| `n_severe` | int | **Severe (K+A) crashes — the negative-binomial outcome.** 6,169 segments (8.2%) have ≥1; max 16. City streets only. |
 | `n_fatal` | int | Fatal (K) crashes. |
 | `n_ped`, `n_bike` | int | Crashes involving a pedestrian / cyclist. |
 | `n_ped_severe`, `n_bike_severe` | int | Severe ped / bike crashes (the policy-relevant vulnerable-user outcome). |
 
-> 99.6% of city-street crashes assigned (median 4 ft to segment) now that freeway crashes are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 113 segments / 43 mi — distinct from these CRIS-derived counts.
+> 98.2% of city-street crashes assigned (median 4 ft to segment) now that freeway crashes are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 1,261 segments citywide — distinct from these CRIS-derived counts.
 
 ## Intersection context (tier 1 — computed from the street graph)
 

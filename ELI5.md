@@ -25,9 +25,16 @@ its way to safety — it has to *design* its way there. That makes "which street
 are dangerously designed?" not just interesting, but the main lever the city
 actually has.
 
-We're doing all of this for one slice of Houston — **City Council District C**
-(the inner-loop area: Heights, Montrose, Museum District, Meyerland, Braeswood)
-— in partnership with that district's council office.
+We started in one slice of Houston — **City Council District C** (the inner-loop
+area: Heights, Montrose, Museum District, Meyerland, Braeswood), in partnership
+with that district's council office.
+
+> **Update — we've now scaled this up to the entire City of Houston.** Once the
+> whole process worked for District C, expanding was mostly a matter of swapping
+> in the city's outline and re-running everything. The story below was written as
+> we built District C step by step (so it still says "District C" in places), but
+> the **current maps and numbers now cover all ~75,000 city street segments**, not
+> just the one district. The citywide toll is at the end.
 
 ---
 
@@ -198,13 +205,16 @@ land use, and neighborhood. The foundation is built.
 **The crash data has arrived** — the location-stamped records of where people
 have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
 We cleaned it up: removed duplicates and kept the ones with good locations
-inside District C. One important catch here: at first the data was counting
+inside the city. One important catch here: at first the data was counting
 *freeway* crashes (on US-59 or I-610) as if they happened on the nearby city
-street the freeway crosses over. It turned out **about 40% of the "District C"
-crashes were actually on the freeways** — so we removed them, because freeways
-belong to the state and this project is about streets the *city* can fix. The
-real city-street numbers: **88 people killed and 712 killed or seriously
-injured** over the decade, with nearly every crash landing right on its street.
+street the freeway crosses over. It turned out **about 40% of the crashes near
+city streets were actually on the freeways** — so we removed them, because
+freeways belong to the state and this project is about streets the *city* can
+fix. The real city-street numbers across all of Houston: **1,687 people killed
+and 9,928 killed or seriously injured** over the decade (about **69,500 years of
+life lost**), with nearly every crash landing right on its street. (When we ran
+just District C, those numbers were 88 killed and 712 injured — the city is
+roughly ten times larger.)
 
 We then figured out **which crashes involved people walking or biking** (the
 crash records list everyone involved, so we flagged any crash with a pedestrian
@@ -237,7 +247,7 @@ We also built a **second, public-friendly dashboard focused purely on safety**
 browse every kind of data, it leads with what matters: how many people have been
 killed or seriously hurt, **how many years of life that lost** (a powerful way to
 show a young person's death counts for more than the bare number "1"), *which*
-streets carry almost all of that harm (just 6% of streets account for ~78% of it),
+streets carry almost all of that harm (just 6% of streets account for ~71% of it citywide),
 a switch to focus on a single travel mode (everyone, driving, walking, or biking),
 and breakdowns of who's being hurt (in a vehicle vs. walking vs. biking), of when
 it happens **by time of day**, and **by year — and you can click a year to break

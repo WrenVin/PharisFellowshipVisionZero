@@ -56,8 +56,10 @@ for c in ("oneway", "merged_dual"):
     if c in keep.columns:
         keep[c] = keep[c].astype("boolean")
 
-# simplify in feet (EPSG:2278) for display, then reproject to WGS84
-keep["geometry"] = keep.geometry.simplify(12, preserve_topology=False)
+# simplify in feet (EPSG:2278) for display, then reproject to WGS84.
+# 25 ft keeps streets recognizable while roughly halving the payload at
+# city scale (75k segments); tune if the web map needs crisper geometry.
+keep["geometry"] = keep.geometry.simplify(25, preserve_topology=False)
 keep = keep.to_crs(4326)
 
 DOCS.mkdir(exist_ok=True)
@@ -66,7 +68,10 @@ if out.exists():
     out.unlink()
 keep.to_file(out, driver="GeoJSON", COORDINATE_PRECISION=5)
 
-boundary = cfg.boundary(4326)
+# boundary: simplify hard (outline only, not measured) to keep it light
+boundary = cfg.boundary(2278)
+boundary["geometry"] = boundary.geometry.simplify(100, preserve_topology=True)
+boundary = boundary.to_crs(4326)
 bpath = DOCS / "boundary.geojson"
 if bpath.exists():
     bpath.unlink()

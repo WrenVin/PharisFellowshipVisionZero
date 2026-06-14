@@ -20,9 +20,9 @@ from pathlib import Path
 import geopandas as gpd
 
 # --- the study area -----------------------------------------------------------
-AREA = "district_c"          # slug -> output filenames + boundary file
-AREA_LABEL = "District C"    # human-readable, for report/title text
-SEG_PREFIX = "C"             # stable segment-id prefix (e.g. C-00001)
+AREA = "houston"             # slug -> output filenames + boundary file
+AREA_LABEL = "Houston"       # human-readable, for report/title text
+SEG_PREFIX = "H"             # stable segment-id prefix (e.g. H-00001)
 
 # --- coordinate reference systems ---------------------------------------------
 CRS_FT = 2278     # EPSG:2278 Texas State Plane South-Central (US ft) — distance work

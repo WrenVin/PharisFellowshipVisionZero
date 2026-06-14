@@ -5,7 +5,11 @@ __pycache__/
 cache/
 # raw pulls are reproducible via src/pull_osm.py; keep repo light
 data/raw/*.graphml
-data/raw/district_c_edges_raw.gpkg
+data/raw/*_edges_raw.gpkg
+# pre-enrichment provenance snapshots — regenerable, large at city scale
+# (keep *_segments_clean.gpkg [has merged_away] and *_segments_enriched.gpkg)
+data/processed/*_segments.gpkg
+data/processed/*_segments_merged.gpkg
 # raw TxDOT CRIS crash extracts — large (~740 MB), re-downloadable from CRIS
 data/raw/CRIS/
 # secrets — never commit API keys

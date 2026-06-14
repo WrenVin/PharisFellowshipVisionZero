@@ -4,6 +4,28 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Scaled the whole project from District C to the entire City of Houston
+
+Flipped `config.py` `AREA` from `district_c` to `houston` and reran the full pipeline citywide. The area-agnostic refactor paid off — no per-script edits were needed to retarget; the work was getting the boundary, fixing two scale-exposed bugs, and deferring land use.
+
+**City boundary.** The COH staging host that served our District C boundary (`geogimstest`) is down; found the live production host (`mycity2.houstontx.gov/pubgis02`, same `HoustonMap/Administrative_Boundary/MapServer/2`). Pulled all **11 council districts (A–K)**, verified District C matches our existing file exactly (35.19 sq mi, CM Panzarella), and **dissolved them into one City of Houston polygon = 671.8 sq mi** (a MultiPolygon — the city has detached annexed parts). Saved `data/raw/houston_boundary.geojson`.
+
+**Scale (≈10×).** OSM 176,886 edges → **109,476 segments** → merge → **92,433** → sliver cleanup → **75,260 segments / 7,337 mi** (`H-#####` ids). Crashes: 421,699 city-street (257k freeway excluded) → **9,928 KSI (1,687 K + 8,241 A)**, ~69,500 est. years of life lost; 98.2% assigned, median 4 ft. Concentration is **6% of streets → 71% of KSI** citywide (vs 78% in District C). Top severe corridors (Westheimer, Bissonnet, Richmond, Main, Tidwell…) are Houston's known HIN streets — sanity ✓.
+
+**Two bugs the bigger data exposed:**
+1. `conflate_speed` cached the speed layer **without `MEDIAN_WIDTH`/`DIRECTION`**, which `conflate_lanes_width_median` needs (masked for District C by an older fuller cache). Added those fields to the shared fetch.
+2. `conflate_landuse` passed the **whole boundary polygon** as the ArcGIS spatial filter — fine for District C's small polygon, but the 8 MB city MultiPolygon isn't valid esri "rings" and is too big, so it returned nothing. **Land use is deferred** (1.5 M parcels citywide also needs a tiled/bbox fetch + lighter join). `landuse_*` columns are absent for now; it's a model confounder, not used by the dashboards.
+
+**Predictor coverage citywide:** speed 100%, lanes/width 95.1%, median 87.6%, ADT ~25% overall (dense on arterials), demographics 100% assigned / 89% income, sidewalks 100% classified. Land use deferred.
+
+**Official HIN, now scripted.** The HIN overlay was a one-off District-C pull. Wrote `src/export_hin.py` (area-aware) and regenerated **citywide HIN 2022 = 1,261 segments** (was 113).
+
+**Dashboards** retitled District C → Houston (both pages) and verified citywide in-browser (KPIs 1,687 / 69,513 / 8,241 / 6%→71%, all charts, HIN overlay, no console errors).
+
+**Repo hygiene.** Citywide data is heavy. Generalized `.gitignore` (`*_edges_raw.gpkg`; added the pre-enrichment provenance snapshots `*_segments.gpkg`, `*_segments_merged.gpkg`). Kept the analysis dataset (`*_segments_enriched.gpkg`), `*_segments_clean.gpkg`, crashes, CSV, external caches, and `docs/`. **Web payload is the open issue:** dashboards load ~95 MB client-side (62 MB segments + 22 MB points + 10 MB records); works but heavy first load — vector tiles or per-area pages are the scalable fix.
+
+---
+
 ## 2026-06-14 — Make the pipeline area-agnostic (config.py) for future city-scale expansion
 
 Refactor so the project can retarget from District C to another district — or the whole City of Houston — by changing one file, without touching the 15 pipeline scripts. No behavior change for District C: the regenerated `docs/` and `data/processed/` outputs are byte-identical.

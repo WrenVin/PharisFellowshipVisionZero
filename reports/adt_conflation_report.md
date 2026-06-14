@@ -10,24 +10,24 @@ same-named corridors.
 
 | `adt_source` | segments | share |
 |---|---|---|
-| measured (station on the segment) | 307 | 4.2% |
-| street_median (corridor propagation) | 1,927 | 26.1% |
-| none (left blank) | 5,147 | 69.7% |
+| measured (station on the segment) | 2,437 | 3.2% |
+| street_median (corridor propagation) | 16,513 | 21.9% |
+| none (left blank) | 56,310 | 74.8% |
 
-- **ADT present on 30.3% of segments overall.** Coverage *within* each
-  road class: primary 98.2%,
-  secondary 97.2%,
-  tertiary 33.7%,
-  residential 6.1%
+- **ADT present on 25.2% of segments overall.** Coverage *within* each
+  road class: primary 84.6%,
+  secondary 81.3%,
+  tertiary 34.7%,
+  residential 4.4%
   — counts concentrate on the major roads, as expected.
-- District C has ~320 count stations (the genuine measurement density);
-  312 station-readings mapped onto segments.
-- ADT distribution (segments with a value): p25=9,235, median=13,622, p75=18,202, p95=25,412 vehicles/day.
+- District C has ~2,494 count stations (the genuine measurement density);
+  2,466 station-readings mapped onto segments.
+- ADT distribution (segments with a value): p25=6,924, median=13,174, p75=17,773, p95=28,564 vehicles/day.
 - Reading recency: years 2012–2026.
 
 ## Operating speed (bonus — the DAG mediator, NOT a confounder)
 
-- `op_speed_85_mph` (85th-percentile measured speed) present on 3.9% of segments (289).
+- `op_speed_85_mph` (85th-percentile measured speed) present on 3.1% of segments (2,370).
 - This is the design->severity **mediator**: model it as the mechanism, do
   NOT adjust for it. Stored for that purpose, not as a risk predictor.
 

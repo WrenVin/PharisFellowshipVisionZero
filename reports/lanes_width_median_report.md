@@ -6,36 +6,36 @@ point-snap helper (60 ft, >=40% of 5 sample points).
 
 ## Lane count
 
-- `lanes_final` coverage: **98.6%** of segments
-  (city authoritative 18.0%, OSM fill 68.6%, local-2 default 11.9%, none 1.4%).
-- **OSM-vs-city cross-check:** where both exist (1,276 segments),
-  they agree within 1 lane **79.2%** of the time. Where they
+- `lanes_final` coverage: **95.1%** of segments
+  (city authoritative 17.0%, OSM fill 36.8%, local-2 default 41.2%, none 4.9%).
+- **OSM-vs-city cross-check:** where both exist (10,990 segments),
+  they agree within 1 lane **78.4%** of the time. Where they
   differ, the city is usually higher — OSM tends to tag one direction of a divided
   road — so city is preferred (not OSM) on the arterials that matter most.
 
 ## Roadway width (new — OSM width was 0%)
 
-- `roadway_width_ft` coverage: **98.6%**
+- `roadway_width_ft` coverage: **95.1%**
   (= lanes_final x avg lane width; avg lane width is ~12 ft citywide).
-- From city lane width: 17.7%;
-  12 ft assumed: 80.9%.
+- From city lane width: 16.8%;
+  12 ft assumed: 78.3%.
 
 ## Median
 
-- `median_type` coverage: **84.3%**
-  (city 18.0%, local "Undivided" default 63.3%, unknown 15.7%). Distribution:
+- `median_type` coverage: **87.6%**
+  (city 17.0%, local "Undivided" default 63.1%, unknown 12.4%). Distribution:
 
 median_type
-Undivided                4908
-NaN                      1161
-Raised                    984
-Divided (unspecified)     216
-Depressed                  59
-TWLT                       53
+Undivided                50359
+NaN                       9299
+Raised                    9026
+Divided (unspecified)     5694
+TWLT                       463
+Depressed                  419
 
-- `median_width_ft` coverage: 16.8% (city-measured only; not defaulted).
+- `median_width_ft` coverage: 16.3% (city-measured only; not defaulted).
 - **Validation:** of merged divided-road segments (`merged_dual`),
-  76.9% are typed Raised/Depressed by the city — i.e. the
+  55.8% are typed Raised/Depressed by the city — i.e. the
   median data confirms our dual-carriageway merge independently.
 
 ## Notes

@@ -9,23 +9,25 @@ snapping 5 sample points per segment to the nearest city speed line within
 
 | `speed_source` | segments | miles |
 |---|---|---|
-| city (authoritative posted) | 1,332 | 100.0 |
-| osm (OSM had a posted value) | 446 | 44.2 |
-| default_30_local (TX default, local class) | 4,499 | 412.6 |
-| default_30_unposted (TX default, unposted collector/arterial) | 1,104 | 81.0 |
+| city (authoritative posted) | 12,803 | 1153.4 |
+| osm (OSM had a posted value) | 2,529 | 275.5 |
+| default_30_local (TX default, local class) | 48,006 | 4694.7 |
+| default_30_unposted (TX default, unposted collector/arterial) | 11,922 | 1213.0 |
 
 - **`posted_speed_mph` now populated for 100.0% of segments** (was 14% OSM-only).
-- Authoritative (city-posted) coverage: 18.0% of segments, 48.3% of arterials/collectors.
-- Name-agreement on city matches (sanity check on the spatial join): 86.0%.
+- Authoritative (city-posted) coverage: 17.0% of segments, 45.5% of arterials/collectors.
+- Name-agreement on city matches (sanity check on the spatial join): 85.0%.
 - **Diagnostic:** unmatched higher-class segments sit a median ~1,100 ft from any city speed line — genuinely unposted (not a match failure), so they take the TX 30 mph default. `default_30_unposted` is the set to sensitivity-test if posted speed ever feeds a published number.
 
 ## Posted speed distribution (city-matched segments, mph)
 
 posted_speed_mph
-35.0    1152
-40.0     123
-45.0      35
-50.0      22
+30.0      13
+35.0    7952
+40.0    2573
+45.0    1654
+50.0     564
+55.0      47
 
 ## Notes
 

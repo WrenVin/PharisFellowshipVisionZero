@@ -65,7 +65,9 @@ if cache.exists():
 else:
     speed = fetch_layer(
         SPEED_URL,
-        out_fields="STREETNAME,POSTED_SPEED,NO_OF_LANES,AVG_LANE_WIDTH,MEDIAN_TYPE,MTFP_CLASSIFICATION",
+        # incl MEDIAN_WIDTH + DIRECTION so the cached layer also serves
+        # conflate_lanes_width_median (which reads this same cache).
+        out_fields="STREETNAME,POSTED_SPEED,NO_OF_LANES,AVG_LANE_WIDTH,MEDIAN_TYPE,MEDIAN_WIDTH,DIRECTION,MTFP_CLASSIFICATION",
         bbox_4326=BBOX,
         out_sr=2278,
     )

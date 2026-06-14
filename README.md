@@ -1,14 +1,14 @@
-# Vision Zero District C
+# Vision Zero Houston
 
-A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
+A traffic-safety analysis and dashboard for the **City of Houston**, built in partnership with the office of Council Member Joseph Panzarella (District C). This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026). The pipeline is area-agnostic (see *Retargeting* below) — it began on District C and now covers the whole city.
 
 **Two public dashboards (one GitHub Pages site, shared data):**
-- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed, **years of life lost**, seriously injured, city streets only), where it concentrates (6% of streets → 78% of KSI), a travel-mode lens (everyone / driving / walking / biking), and breakdowns **by year (click to drill into a single year's 12 months)**, **by time of day**, and by travel mode — all responding to the lens and selected year. Plus a **shaded-streets / crash-locations toggle** and the City's official High Injury Network as a comparison overlay. Click any street for its crash history and design.
+- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed, **years of life lost**, seriously injured, city streets only), where it concentrates (6% of streets → 71% of KSI citywide), a travel-mode lens (everyone / driving / walking / biking), and breakdowns **by year (click to drill into a single year's 12 months)**, **by time of day**, and by travel mode — all responding to the lens and selected year. Plus a **shaded-streets / crash-locations toggle** and the City's official High Injury Network as a comparison overlay. Click any street for its crash history and design.
 - **🗺️ Street Explorer** (data-first): https://wrenvin.github.io/PharisFellowshipVisionZero/ — every street, **color by any attribute** (design, traffic, demographics, crashes), **stacking filters**, search, click-to-pin info. Mobile-friendly; sources + vintages disclosed in-app.
 
 ## Research question
 
-Does a **feature-based (systemic) risk model** identify dangerous District C streets that Houston's **crash-based High Injury Network (HIN)** misses — and how much risk lies "off the HIN"?
+Does a **feature-based (systemic) risk model** identify dangerous Houston streets that the City's **crash-based High Injury Network (HIN)** misses — and how much risk lies "off the HIN"?
 
 - **Reactive screening (status quo):** the HIN maps where severe crashes have already clustered. It cannot flag a street that is dangerous by design but hasn't yet produced a recorded severe crash, and it inherits police-reporting bias.
 - **Proactive screening (this project):** identify the road-design features that make streets dangerous (lanes, width, speed, missing crossings, land use) and flag every segment carrying those features, crash history or not (per FHWA systemic safety / NCHRP 893).
@@ -40,6 +40,7 @@ src/
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   export_webmap_data.py        # export GeoJSON for the web apps (docs/)
   export_vz_summary.py         # export headline Vision Zero stats (docs/vz_summary.json)
+  export_hin.py                # export the City's official HIN, clipped to the area (docs/hin.geojson)
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # Street Explorer (data-first: color/filter/search)
@@ -86,6 +87,7 @@ python3 -m venv .venv
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
 .venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points
 .venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (toll/trend/HIN)
+.venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
 ```
 
 The web apps are static Leaflet (`docs/index.html`, `docs/vision-zero.html`; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
@@ -109,17 +111,18 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 
 - **Unit of analysis:** intersection-to-intersection road segments (split at junction nodes), undirected — one row per physical street segment.
 - **Scope:** city-controlled surface streets only. Freeways, ramps, **and frontage/feeder roads** (I-610, US-59/I-69 and their feeders) are excluded — TxDOT right-of-way, part of the highway facility, not city-redesignable. Locals are kept. Service roads (alleys, driveways) excluded.
-- **Boundary:** official post-redistricting District C polygon from the City of Houston GIS ArcGIS REST service (`HoustonMap/Administrative_Boundary/MapServer/2`), verified current (lists CM Panzarella).
+- **Boundary:** the City of Houston full-purpose jurisdiction — the 11 official council districts (COH GIS `HoustonMap/Administrative_Boundary/MapServer/2`, current/post-redistricting) dissolved into one polygon. (Swap `AREA` in `config.py` back to `district_c` to rebuild a single district.)
 - **CRS:** EPSG:2278 (Texas State Plane South Central, US survey feet) for all distance work, so buffer distances are honest feet.
 - **Geometry source:** OpenStreetMap as the geometric spine; design/traffic features conflated from City of Houston Public Works (`Traffic_gx`), land use from HCAD parcels, demographics from Census ACS, crashes from TxDOT CRIS.
 
-## Current status (as of 2026-06-13)
+## Current status (as of 2026-06-14) — citywide build
 
-- **Road network:** 7,381 segments / 638 centerline miles (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s).
-- **Predictor set complete** (per segment): posted speed (100%), lane count (98.6%), roadway width (98.6%), median type (82%), traffic volume/ADT (98% of arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (100%); sidewalk presence — OSM (~56% have ≥1 side); adjacent land use — HCAD (79%).
-- **Crash outcome complete:** TxDOT CRIS 2016–2025 (+ partial 2026), **city streets only** (freeway/tollway crashes excluded — they were snapping onto cross-streets). 41,177 crashes; **712 KSI (88 killed, 624 seriously injured)**; mode-tagged; assigned to segments (200-ft buffer, 99.6% assigned, median 4 ft).
-- Both dashboards are live; the Vision Zero page overlays the City's official HIN (2022).
-- **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis.
+- **Road network:** 75,260 segments / 7,337 centerline miles across the whole City of Houston (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s prefixed `H-`).
+- **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (100% assigned, 89% with income); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
+- **Crash outcome:** TxDOT CRIS 2016–2025 (+ partial 2026), **city streets only** (257k freeway/tollway crashes excluded — they snap onto cross-streets). 421,699 crashes; **9,928 KSI (1,687 killed, 8,241 seriously injured)**; ~69,500 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98.2% assigned, median 4 ft).
+- Both dashboards are live and citywide; the Vision Zero page overlays the City's official HIN 2022 (1,261 segments).
+- **Web-app note:** the dashboards load all features client-side; the citywide payload is large (~95 MB: 62 MB segments + 22 MB crash points + 10 MB records). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
+- **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis (now citywide).
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 
@@ -127,13 +130,13 @@ Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `da
 
 | Layer | Source | Status |
 |---|---|---|
-| District C boundary | COH GIS ArcGIS REST | downloaded |
+| City boundary | COH GIS ArcGIS REST (council districts, dissolved) | downloaded |
 | Street network + design features | OpenStreetMap (Overpass) | downloaded |
 | Posted speed limits | Houston Public Works (Traffic_gx) | done |
 | Lanes / width / median | Houston Public Works (Traffic_gx) | done |
 | Traffic volume (ADT) + operating speed | Houston Public Works (Traffic_gx) | done |
 | Demographics (income, poverty, race, vehicles) | Census ACS 2023 5-yr | done |
 | Sidewalk presence | OpenStreetMap footways | done (no official inventory) |
-| Adjacent land use | City of Houston / HCAD parcels | done |
+| Adjacent land use | City of Houston / HCAD parcels | **deferred** — citywide fetch (1.5 M parcels) needs a tiled approach |
 | Crashes | TxDOT CRIS public extracts | done — 2016–2025 + partial 2026, city streets only (freeway excluded) |
-| Official High Injury Network (2022) | City of Houston GIS | done — `docs/hin.geojson`, on the VZ dashboard |
+| Official High Injury Network (2022) | City of Houston GIS (`src/export_hin.py`) | done — `docs/hin.geojson`, on the VZ dashboard |
