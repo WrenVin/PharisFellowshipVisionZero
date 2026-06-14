@@ -40,6 +40,9 @@
   .opt input,.toggle input{margin:0}
   #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   #map{height:480px}
+  #viewing{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;
+    padding:5px 13px;font-size:12px;box-shadow:0 1px 4px rgba(16,24,40,.12)}
   #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
     border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;min-width:188px;max-width:250px}
   #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px;width:100%}
@@ -81,10 +84,10 @@
   <div class="top">
     <div>
       <h1>Vision Zero · District C</h1>
-      <div class="tag">Traffic deaths and serious injuries on Houston District C city streets</div>
+      <div class="tag">Traffic deaths and serious injuries on city streets in Houston City Council District C — the inner loop (Heights, Montrose, Museum District, Meyerland, Braeswood).</div>
     </div>
     <div class="lens">
-      <span class="lab">Show</span>
+      <span class="lab">Travel mode</span>
       <span class="pill on" data-mode="all">Everyone</span>
       <span class="pill" data-mode="ped">Walking</span>
       <span class="pill" data-mode="bike">Biking</span>
@@ -109,13 +112,14 @@
       <div class="grp">
         <h3>Overlay</h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Houston's official 2022 HIN, for comparison</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">The streets the City officially flags as carrying the most severe crashes (2022). Turn on to compare with where crashes actually fall.</div>
       </div>
-      <div style="font-size:11.5px;color:var(--muted)">Click any street for its details. Click a year bar below to view a single year.</div>
+      <div style="font-size:11.5px;color:var(--muted)">Click any street (or crash dot) for its details. Click a year bar below to view a single year.</div>
     </div>
 
     <div id="mapwrap">
       <div id="map"></div>
+      <div id="viewing"></div>
       <div id="legend"></div>
       <div id="info"></div>
       <div id="loading">Loading…</div>
@@ -240,7 +244,16 @@ function render(){
   computeCounts(); restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawLegend(); drawTrend(); drawMode();
+  drawKPIs(); drawLegend(); drawTrend(); drawMode(); drawViewing();
+}
+function drawViewing(){
+  const v=document.getElementById('viewing');
+  if(year!==null){
+    v.innerHTML='Viewing <b>'+year+'</b> · <span style="color:#1d4ed8;cursor:pointer">show all years ✕</span>';
+    v.querySelector('span').onclick=()=>selectYear(year);
+  } else {
+    v.innerHTML='<span style="color:var(--muted)">Tip: click a street or crash dot for details</span>';
+  }
 }
 
 function drawKPIs(){
@@ -251,11 +264,11 @@ function drawKPIs(){
   else {killed=t.bike_killed;ksi=t.bike_ksi;}
   const who=mode==='all'?'on city streets':mode==='ped'?'people walking':'people biking';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
-  const conSub='of KSI on the worst '+vz.hin.pct_streets+'% of streets'+(year===null?'':' (all years)');
+  const conSub='of streets → of KSI'+(year===null?'':' (all years)');
   document.getElementById('kpis').innerHTML=
     kpi('People killed · '+span, fmt(killed), who, false)
-   +kpi('Killed or seriously injured', fmt(ksi), 'people · '+who, false)
-   +kpi('Crash concentration', vz.hin.pct_ksi+'%', conSub, true);
+   +kpi('Killed or seriously injured (KSI)', fmt(ksi), 'people · '+who, false)
+   +kpi('A few streets carry most harm', vz.hin.pct_streets+'% → '+vz.hin.pct_ksi+'%', conSub, true);
 }
 function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
 
