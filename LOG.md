@@ -4,6 +4,24 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Data accuracy: restrict to city-OWNED streets (drop TxDOT roads) + no em dashes
+
+Vincent flagged crashes showing on Alt-90 (S Main/US-90A), Westheimer west of 610, and Highway 6 — roads TxDOT owns, not the city. He was right; we were including ~20% non-city KSI. Two-part fix, both using authoritative ownership sources:
+
+- **Crashes — CRIS `Road_Cls_ID`.** CRIS classifies each crash's roadway; we now keep **only class 5 (City Street)**, dropping Interstate/US-State/FM/County/Tollway (replaces the old freeway-name heuristic, which let at-grade US/SH/FM highways through). `build_crashes.py`.
+- **Road lines — TxDOT roadway inventory.** Fetch TxDOT on-system main lanes (`TxDOT_Roadways`, SYSTEM='On') and drop our segments that run ≥50% within 60 ft of one. This removes SH 6, US-90A/S Main, and FM 1093 (Westheimer **west of ~the Galleria**, confirmed: FM 1093 main lanes end at lon −95.458). `export_webmap_data.py`.
+- **Consistency:** matched the two — a crash whose nearest road is TxDOT-owned is dropped along with that road (no orphan dots), and the year-drilldown only counts city segments. CRIS-class-5 alone disagreed with TxDOT on FM arterials (officers code Westheimer-west as "city"); TxDOT is authoritative for ownership, so we side with it.
+
+**Result:** 73,330 city-owned segments; **349,160 crashes, 7,927 KSI (1,267 K, 6,660 A), ~52,000 YLL** (was 9,928 KSI). That's **52% of all in-city KSI — matching Houston's VZAP (~51% on city-owned streets)**, a strong external validation. Westheimer's city portion (east of the Galleria) stays; downtown Main stays; Highway 6 fully removed.
+
+**HIN nuance (Vincent asked to check the methodology):** the City's official HIN *includes* some TxDOT corridors (most of Westheimer, parts of SH 6) — it flags high-injury streets regardless of ownership. This project scopes tighter to **city-redesignable** streets, so we intentionally diverge from the HIN on TxDOT roads. Noted in README/CODEBOOK.
+
+Also: **removed all em dashes from both dashboards** (per Vincent's standing preference) — replaced with commas/colons/parens; kept en dashes in numeric ranges ($50–100k, 2016–2025).
+
+(Open: TxDOT exclusion is applied at export, not yet baked into the enriched analysis gpkg or `pull_osm` — fine for the dashboard; worth folding upstream before modeling.)
+
+---
+
 ## 2026-06-14 — VZ dashboard: clearer HIN overlay + "Crashes vs. the HIN" stats
 
 The official HIN overlay was muddy (translucent purple over the red shading). Fixed + added a comparison panel:

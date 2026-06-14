@@ -204,17 +204,24 @@ land use, and neighborhood. The foundation is built.
 
 **The crash data has arrived** — the location-stamped records of where people
 have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
-We cleaned it up: removed duplicates and kept the ones with good locations
-inside the city. One important catch here: at first the data was counting
-*freeway* crashes (on US-59 or I-610) as if they happened on the nearby city
-street the freeway crosses over. It turned out **about 40% of the crashes near
-city streets were actually on the freeways** — so we removed them, because
-freeways belong to the state and this project is about streets the *city* can
-fix. The real city-street numbers across all of Houston: **1,687 people killed
-and 9,928 killed or seriously injured** over the decade (about **69,500 years of
-life lost**), with nearly every crash landing right on its street. (When we ran
-just District C, those numbers were 88 killed and 712 injured — the city is
-roughly ten times larger.)
+We cleaned it up and, importantly, kept only crashes on streets the **city
+actually owns**. A big share of crashes in Houston happen on roads the *state*
+(TxDOT) owns and maintains: not just the obvious freeways (I-610, US-59), but
+also at-grade state highways the city can't redesign on its own, like Highway 6,
+S Main / US-90A, and Westheimer west of the Galleria (which is officially the
+state's FM 1093). We left all of those out, two ways: the crash file tags each
+crash's road type (we keep the ones marked "City Street"), and we drop any road
+the state's own inventory lists as theirs. What's left is what the city can fix:
+**1,267 people killed and 7,927 killed or seriously injured** over the decade
+(about **52,000 years of life lost**). A good sanity check: that's 52% of all
+the serious crashes inside the city, almost exactly the City's own published
+figure (~51% of serious crashes are on city-owned streets). (Running just
+District C earlier gave 88 killed and 712 injured; the city is far larger.)
+
+One honest note: the City's own "High Injury Network" actually *includes* some of
+those state roads (it flags dangerous corridors no matter who owns them). We draw
+the line tighter, at streets the city can redesign itself, so we intentionally
+differ from the city's map on those state-owned roads.
 
 We then figured out **which crashes involved people walking or biking** (the
 crash records list everyone involved, so we flagged any crash with a pedestrian

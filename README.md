@@ -110,16 +110,16 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 ## Key data decisions (details in LOG.md)
 
 - **Unit of analysis:** intersection-to-intersection road segments (split at junction nodes), undirected — one row per physical street segment.
-- **Scope:** city-controlled surface streets only. Freeways, ramps, **and frontage/feeder roads** (I-610, US-59/I-69 and their feeders) are excluded — TxDOT right-of-way, part of the highway facility, not city-redesignable. Locals are kept. Service roads (alleys, driveways) excluded.
+- **Scope: streets the City owns/operates (and can redesign).** TxDOT roads are excluded two ways: (1) **crashes** keep only CRIS `Road_Cls_ID == 5` (City Street), dropping Interstate/US-State/FM/County/Tollway crashes; (2) **road lines** on TxDOT's on-system network (from TxDOT's authoritative roadway inventory) are dropped — this removes at-grade state routes like S Main/US-90A, SH 6, and FM 1093 (Westheimer west of ~the Galleria), not just freeways. Result: 52% of all in-city KSI, matching Houston's VZAP figure (~51% of KSI on city-owned streets). Note the City's own **HIN includes some TxDOT corridors** (it flags high-injury streets regardless of ownership); this project scopes tighter to city-redesignable streets, so we diverge from the HIN there by design.
 - **Boundary:** the City of Houston full-purpose jurisdiction — the 11 official council districts (COH GIS `HoustonMap/Administrative_Boundary/MapServer/2`, current/post-redistricting) dissolved into one polygon. (Swap `AREA` in `config.py` back to `district_c` to rebuild a single district.)
 - **CRS:** EPSG:2278 (Texas State Plane South Central, US survey feet) for all distance work, so buffer distances are honest feet.
 - **Geometry source:** OpenStreetMap as the geometric spine; design/traffic features conflated from City of Houston Public Works (`Traffic_gx`), land use from HCAD parcels, demographics from Census ACS, crashes from TxDOT CRIS.
 
 ## Current status (as of 2026-06-14) — citywide build
 
-- **Road network:** 75,260 segments / 7,337 centerline miles across the whole City of Houston (frontage roads excluded, divided roads merged, slivers cleaned, stable `seg_id`s prefixed `H-`).
+- **Road network:** 73,330 **city-owned** segments / ~7,150 centerline miles across the City of Houston (freeways, frontage roads, and TxDOT on-system routes excluded; divided roads merged, slivers cleaned, `seg_id`s prefixed `H-`).
 - **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (100% assigned, 89% with income); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
-- **Crash outcome:** TxDOT CRIS 2016–2025 (+ partial 2026), **city streets only** (257k freeway/tollway crashes excluded — they snap onto cross-streets). 421,699 crashes; **9,928 KSI (1,687 killed, 8,241 seriously injured)**; ~69,500 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98.2% assigned, median 4 ft).
+- **Crash outcome:** TxDOT CRIS 2016–2025 (+ partial 2026), **city-owned streets only** (CRIS Road_Cls_ID==5 + TxDOT on-system roads excluded). 349,160 crashes; **7,927 KSI (1,267 killed, 6,660 seriously injured)**; ~52,000 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, ~99% assigned, median 4 ft). This is 52% of all in-city KSI — matches Houston's VZAP (~51% on city-owned streets).
 - Both dashboards are live and citywide; the Vision Zero page overlays the City's official HIN 2022 (1,261 segments).
 - **Web-app note:** the dashboards load all features client-side; the citywide payload is large (~95 MB: 62 MB segments + 22 MB crash points + 10 MB records). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
 - **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis (now citywide).
@@ -138,5 +138,6 @@ Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `da
 | Demographics (income, poverty, race, vehicles) | Census ACS 2023 5-yr | done |
 | Sidewalk presence | OpenStreetMap footways | done (no official inventory) |
 | Adjacent land use | City of Houston / HCAD parcels | **deferred** — citywide fetch (1.5 M parcels) needs a tiled approach |
-| Crashes | TxDOT CRIS public extracts | done — 2016–2025 + partial 2026, city streets only (freeway excluded) |
+| Roadway ownership (city vs TxDOT) | TxDOT Roadways inventory (on/off-system) | done — drops TxDOT on-system roads from the network |
+| Crashes | TxDOT CRIS public extracts | done — 2016–2025 + partial 2026, city-owned streets only (Road_Cls_ID==5 + TxDOT roads excluded) |
 | Official High Injury Network (2022) | City of Houston GIS (`src/export_hin.py`) | done — `docs/hin.geojson`, on the VZ dashboard |

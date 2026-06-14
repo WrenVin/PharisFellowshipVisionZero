@@ -113,7 +113,7 @@
 <div id="app">
   <div id="panel">
     <h1>Houston Street Explorer</h1>
-    <div class="sub">Every public street in the City of Houston — color, filter, and click any street to inspect it.</div>
+    <div class="sub">Every public street in the City of Houston. Color, filter, and click any street to inspect it.</div>
     <a class="aboutbtn" href="vision-zero.html">→ Vision Zero dashboard</a>
 
     <div class="section">
@@ -181,15 +181,15 @@
       values carry a source tag in its info panel. Source detail and field definitions are in the
       <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank">CODEBOOK</a>.</p>
       <table>
-        <tr><td>Street network &amp; sidewalks</td><td>OpenStreetMap — retrieved June&nbsp;2026 (live snapshot)</td></tr>
-        <tr><td>Speed limits, lanes, width, median</td><td>City of Houston Public Works (Traffic_gx) — retrieved June&nbsp;2026</td></tr>
-        <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations — readings span <b>2012–2026</b>; most recent per location used</td></tr>
-        <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston — retrieved June&nbsp;2026</td></tr>
+        <tr><td>Street network &amp; sidewalks</td><td>OpenStreetMap, retrieved June&nbsp;2026 (live snapshot)</td></tr>
+        <tr><td>Speed limits, lanes, width, median</td><td>City of Houston Public Works (Traffic_gx), retrieved June&nbsp;2026</td></tr>
+        <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations; readings span <b>2012–2026</b>, most recent per location used</td></tr>
+        <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston, retrieved June&nbsp;2026</td></tr>
         <tr><td>Neighborhood demographics</td><td>U.S. Census ACS <b>2023</b> 5-year estimates (covering 2019–2023)</td></tr>
-        <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts — <b>2016–2025 + partial 2026</b>; city streets only (freeway crashes excluded); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
-        <tr><td>District boundary</td><td>City of Houston GIS — current council districts (post-2020 redistricting)</td></tr>
+        <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts, <b>2016–2025 + partial 2026</b>; city streets only (freeway crashes excluded); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
+        <tr><td>District boundary</td><td>City of Houston GIS, current council districts (post-2020 redistricting)</td></tr>
       </table>
-      <p class="note">"No data" means a value isn't recorded in the source — not that the feature is
+      <p class="note">"No data" means a value isn't recorded in the source, not that the feature is
       necessarily absent on the ground (this matters most for sidewalks and posted speeds, which the
       city records mainly on larger streets). Where the city hasn't posted a speed limit, Texas law
       sets a default of 30&nbsp;mph, shown as "TX default".</p>
@@ -205,7 +205,7 @@ const MISSING = '#d9dde2';
 const RAMP = ['#ffffb2','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#b10026'];
 const REDS = ['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'];
 const COUNTZERO = '#e7e9ec';  // segments with no recorded crash of this type
-const yesno = v => v===true?'Yes':v===false?'No':'—';
+const yesno = v => v===true?'Yes':v===false?'No':'n/a';
 const swLabel = {both:'Both sides',one_side:'One side',partial:'Partial',none:'None mapped'};
 
 const FIELDS = {
@@ -229,7 +229,7 @@ const FIELDS = {
   n_bike_severe:{label:'Severe bicycle crashes',group:'Crashes',type:'count'},
   n_ped:{label:'Pedestrian crashes',group:'Crashes',type:'count'},
   n_bike:{label:'Bicycle crashes',group:'Crashes',type:'count'},
-  sidewalk_presence:{label:'Sidewalks',group:'Pedestrian',type:'cat',fmt:v=>swLabel[v]||'—',cats:{
+  sidewalk_presence:{label:'Sidewalks',group:'Pedestrian',type:'cat',fmt:v=>swLabel[v]||'n/a',cats:{
     'both':'#2ca02c','one_side':'#fdae61','partial':'#f46d43','none':'#d73027'}},
   landuse_dominant:{label:'Adjacent land use',group:'Land use',type:'cat',cats:{
     'Residential':'#4e79a7','Commercial':'#e15759','Industrial':'#b07aa1','Institutional':'#76b7b2',
@@ -408,7 +408,7 @@ function drawLegend(){
     el.innerHTML=h;
   } else if(m.type==='count'){
     const mx=maxOf(colorBy);
-    el.innerHTML='<div class="row"><span class="sw" style="background:'+COUNTZERO+'"></span>0 — none recorded</div>'
+    el.innerHTML='<div class="row"><span class="sw" style="background:'+COUNTZERO+'"></span>0 (none recorded)</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+REDS.join(',')+')"></div>'
       +'<div class="gradlab"><span>1</span><span>'+Math.round(mx)+'</span></div>'
       +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2026</div>';
