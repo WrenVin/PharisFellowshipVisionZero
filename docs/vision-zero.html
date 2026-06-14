@@ -127,17 +127,16 @@
         <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
       </div>
       <div class="grp">
-        <h3>Display as <button class="info" aria-label="About display modes">i</button></h3>
+        <h3>Display as <button class="info" onclick="toggleTip(this)" aria-label="About display modes">i</button></h3>
         <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded streets</label>
         <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
         <div class="tip">Shaded streets shade each block by how many crashes occurred on it; crash locations plot every crash as an individual dot.</div>
       </div>
       <div class="grp">
-        <h3>Overlay <button class="info" aria-label="About the High Injury Network">i</button></h3>
+        <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
         <div class="tip">The streets the City officially flags as carrying the most severe crashes (2022). Turn it on to compare with where crashes actually fall.</div>
       </div>
-      <div style="font-size:11.5px;color:var(--muted)">Click any street (or crash dot) for its details. Click a year bar below to view a single year.</div>
     </div>
 
     <div id="mapwrap">
@@ -171,12 +170,12 @@
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
     <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income</h3>
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
       <div class="sub" id="eq-sub">Killed or seriously injured</div>
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:6px">By the median income of the neighborhood (Census block group) around each crash — a property of the area, not the individual.</div>
+      <div class="tip">By the median income of the neighborhood (Census block group) around each crash — a property of the area, not the individual.</div>
     </div>
   </div>
 
@@ -297,6 +296,7 @@ Promise.all([
     }
     if(best && bd<=8) showCrash(best);
   });
+  map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
   try{map.fitBounds(geo.getBounds());}catch(e){}
   document.getElementById('loading').style.display='none';
   render();
@@ -308,12 +308,17 @@ function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
 function buildPoints(){
   if(ptLayer) map.removeLayer(ptLayer);
   const g=L.layerGroup();
-  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
+  // Dot size scales with zoom so the city view isn't one solid blob: small +
+  // semi-transparent when zoomed out (density reads as shading), larger zoomed in.
+  const z=map.getZoom();
+  const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
+  const rSev=base, rOth=Math.max(1, base*0.6);
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier]
     if(year!==null && p[6]!==year) continue;
     if(!modeMatch(p[4], p[5]) || !inDist(p[10])) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
-    L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?4:2.4,stroke:false,
-      fillColor:isSev?'#b30000':'#fb8a5c', fillOpacity:isSev?.85:.4}).addTo(g);
+    L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
+      fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
   }
   ptLayer=g.addTo(map);
 }
@@ -387,7 +392,7 @@ function kpi(ic,l,v,s,neutral,tip){
   const tipDiv = tip ? '<div class="tip ktip">'+tip+'</div>' : '';
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
-function toggleTip(btn){ const t=btn.closest('.kpi').querySelector('.tip'); if(t) t.classList.toggle('show'); }
+function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
 function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])) s+=p[9]||0; } return s; }
 
 function drawLegend(){
@@ -513,13 +518,26 @@ function drawTimeOfDay(){
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
 function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
-function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date]
+const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
+const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
+function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier]
   const sevTxt = p[3] ? 'Killed' : (p[2] ? 'Serious injury' : 'Injury / no-injury crash');
+  const sevCol = p[3] ? '#7a1419' : (p[2] ? '#b4232a' : '#5b6672');
   const modeTxt = p[4] ? 'Pedestrian' : (p[5] ? 'Bicyclist' : 'Vehicle occupant');
   const when = p[7] || (p[6]!=null ? String(p[6]) : 'date unknown');
-  L.popup({closeButton:true}).setLatLng([p[0],p[1]])
-   .setContent('<div style="font:13px/1.5 Inter,sans-serif"><b>'+sevTxt+'</b><br>'+modeTxt+'<br><span style="color:#5b6672">'+when+'</span></div>')
-   .openOn(map);
+  const tm = hourLabel(p[8]);
+  const rows=[];
+  rows.push(['When', when + (tm?' · '+tm:'')]);
+  rows.push(['Mode', modeTxt]);
+  if(p[10]) rows.push(['Council district', p[10]]);
+  if(p[11]!=null) rows.push(['Neighborhood income', INC_LABELS[p[11]]]);
+  if(p[3] && p[9]) rows.push(['Years of life lost', Math.round(p[9])]);
+  let h='<div style="font:13px/1.55 Inter,sans-serif;min-width:185px">'
+    +'<div style="font-weight:700;font-size:14px;color:'+sevCol+';margin-bottom:5px">'+sevTxt+'</div>';
+  for(const [k,v] of rows) h+='<div style="display:flex;justify-content:space-between;gap:16px">'
+    +'<span style="color:#5b6672">'+k+'</span><span style="font-weight:600;text-align:right">'+v+'</span></div>';
+  h+='</div>';
+  L.popup({closeButton:true}).setLatLng([p[0],p[1]]).setContent(h).openOn(map);
 }
 
 function openInfo(p){
@@ -546,10 +564,6 @@ function openInfo(p){
 document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
   document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
   p.classList.add('on'); mode=p.dataset.mode; render();
-});
-document.querySelectorAll('.info').forEach(b=>b.onclick=e=>{
-  e.preventDefault(); const tip=b.closest('.grp').querySelector('.tip');
-  if(tip) tip.classList.toggle('show');
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
 document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});
