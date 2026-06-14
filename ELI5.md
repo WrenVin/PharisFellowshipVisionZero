@@ -235,11 +235,13 @@ model will be compared against.
 We also built a **second, public-friendly dashboard focused purely on safety**
 (a "Vision Zero" view, alongside the data-explorer one). Instead of letting you
 browse every kind of data, it leads with what matters: how many people have been
-killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
-of streets account for ~78% of it), a switch to focus on a single travel mode
-(everyone, driving, walking, or biking), a breakdown of who's being hurt
-(in a vehicle vs. walking vs. biking),
-a year-by-year chart you can click to see any single year on the map, a switch
+killed or seriously hurt, **how many years of life that lost** (a powerful way to
+show a young person's death counts for more than the bare number "1"), *which*
+streets carry almost all of that harm (just 6% of streets account for ~78% of it),
+a switch to focus on a single travel mode (everyone, driving, walking, or biking),
+and breakdowns of who's being hurt (in a vehicle vs. walking vs. biking), of when
+it happens **by time of day**, and **by year — and you can click a year to break
+it down into that year's twelve months**. There's also a switch
 between shaded streets and individual crash dots, and the city's own official
 "most dangerous streets" list (its High Injury Network) laid over the top for
 comparison. It's modeled on how cities like Austin and New York present their

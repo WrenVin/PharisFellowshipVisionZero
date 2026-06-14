@@ -4,6 +4,21 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: Years of Life Lost, by-month + by-time-of-day, KPI icons
+
+Round of Austin-inspired upgrades (Vincent shared Austin's Vision Zero dashboard as the bar to clear):
+
+- **Years of Life Lost KPI.** YPLL before age 75 (CDC convention): Σ max(0, 75 − age) over the people killed, from the CRIS person table. Data caveat fought through: the public extract records a victim age for only ~half of fatal crashes (person detail suppressed on the rest), and the person-level death count (49 in District C) badly undercounts the reliable crash-level K flag (88). So we anchor to the 88 fatal crashes — use recorded ages where present (47 crashes), impute the mean years-lost-per-fatality (~40) to the rest — making YLL an **estimate** (~3,564 yrs), clearly labelled in the methods note. Found two person-file gotchas: `primaryperson` (drivers/non-motorists) and `person` (passengers) reuse `Prsn_Nbr`, so dedupe each type separately then concat (never cross-dedupe).
+- **By time of day** chart — hourly distribution (clear afternoon/evening peak).
+- **By year → by month drill-down** — the yearly chart now stacks killed (dark) over seriously injured (light); click a year and it expands into that year's 12 months. Reuses the existing year-selection state; "‹ Back to all years" to exit.
+- **Icons** on the four KPI cards (heartbeat / hourglass / medkit / bars, color-coded) and the breakdown card titles, like Austin.
+- All new panels respect the travel-mode lens and the selected year (verified: 2024 → 7 killed / 244 YLL / 79 KSI; walking-2024 YLL 81 — all reconcile against an independent client recompute).
+- Legend tidy: dropped "on one street" from the shaded-streets max label.
+
+Pipeline: `build_crashes.py` now also captures `month`, `hour`, and per-crash `yll`; `export_webmap_data.py` adds `hour`+`yll` to `crash_points.json` (now 10 fields/point, 2.1 MB). Verified in-browser (all lenses, year drill, both new charts), no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: "Driving" travel-mode lens + stale-label cleanup
 
 - **Added a Driving lens** to the travel-mode toggle (Everyone / Driving / Walking / Biking). Vehicle-occupant crashes = total − walking − biking; verified exact (0 crashes involve both a pedestrian and a cyclist, so the subtraction never double-counts). Works across all code paths — all-years segment shading, single-year drill-down (records recompute), crash-locations dots, KPIs, and legend — via shared `modeMatch()` / `segCount()` helpers. Driving toll: 57 killed / 500 KSI (vs 712 all, 163 walking, 49 biking). The "By travel mode" breakdown card is unchanged (it always shows the full split). Cleaned the KPI subtitle wording ("people · walking" instead of the doubled "people · people walking").

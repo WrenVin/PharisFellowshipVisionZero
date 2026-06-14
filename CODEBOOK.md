@@ -176,9 +176,11 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 | Variable | Type | Values | Description |
 |---|---|---|---|
 | `Crash_ID` | int | — | TxDOT CRIS crash identifier (unique). |
-| `year`, `date` | int / text | — | Crash year and date (from `Crash_Date`). |
+| `year`, `month`, `date` | int / int / text | — | Crash year, month (1–12), and date (from `Crash_Date`). Month powers the dashboard's by-month drill-down. |
+| `hour` | int | 0–23 | Hour of day (from `Crash_Time`). Powers the by-time-of-day chart. ~99.9% parseable. |
 | `kabco` | text | K / A / B / C / O / UNK | Severity on the KABCO scale (K=fatal, A=serious, B=minor, C=possible, O=none). Decoded from `Crash_Sev_ID` (4=K,1=A,2=B,3=C,5=O,0=UNK), verified against the fatal flag + injury counts. |
 | `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). **712 severe on city streets (88 K + 624 A).** |
+| `yll` | float | years | **Years of Life Lost (estimated)** — YPLL before age 75 (CDC convention): Σ max(0, 75 − age) over the people killed in the crash, from the CRIS person table. The public extract records a victim age for only ~half of fatal crashes (person detail suppressed on the rest), so fatal crashes without a recorded age get the mean (~40 yr/fatality). **Total ≈ 3,564 estimated YLL** on city streets; anchored to the 88 fatal crashes. 0 for non-fatal crashes. |
 | `any_injury` | bool | — | Any injury (Tot_Injry_Cnt > 0). |
 | `mode` | text | pedestrian / bicycle / motor vehicle | Crash mode (pedestrian takes precedence if a crash has both). |
 | `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **802 ped crashes, 163 severe, 24 fatal** (city streets). |

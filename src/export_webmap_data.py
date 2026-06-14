@@ -76,17 +76,21 @@ boundary[["geometry"]].to_file(bpath, driver="GeoJSON", COORDINATE_PRECISION=5)
 print(f"Wrote {len(keep):,} segments -> {out} ({out.stat().st_size/1e6:.1f} MB)")
 print(f"Wrote boundary -> {bpath}")
 
-# crash points for the VZ dashboard "Crash locations" view:
-# [lat, lon, sev, fatal, ped, bike, year, date]
+# crash points for the VZ dashboard "Crash locations" view + the by-month,
+# by-time-of-day, and years-of-life-lost panels:
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll]
 cr = gpd.read_file(PROCESSED / "district_c_crashes.gpkg", layer="crashes").to_crs(4326)
 pts = []
-for g, sv, ft, pd_, bk, yr, dt in zip(cr.geometry, cr.severe, cr.fatal,
-                                      cr.involves_ped, cr.involves_bike, cr.year, cr.date):
+for g, sv, ft, pd_, bk, yr, dt, hr, yl in zip(
+        cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
+        cr.year, cr.date, cr.hour, cr.yll):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
                 int(bool(pd_)), int(bool(bk)), int(yr) if pd.notna(yr) else None,
-                dt if isinstance(dt, str) else None])
+                dt if isinstance(dt, str) else None,
+                int(hr) if pd.notna(hr) else None,
+                round(float(yl), 1) if pd.notna(yl) and yl else 0])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")

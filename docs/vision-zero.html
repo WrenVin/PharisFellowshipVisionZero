@@ -12,8 +12,8 @@
   :root{--ink:#15212b;--muted:#5b6672;--line:#e4e7eb;--panel:#f7f8fa;--accent:#b4232a;
     --sans:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
   body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-  #trend rect.ybar{transition:opacity .12s}
-  #trend rect.ybar:hover{stroke:#7a1419;stroke-width:2;opacity:1}
+  .barhit{fill:transparent;transition:fill .12s}
+  .barhit:hover{fill:rgba(122,20,25,.08)}
   *{box-sizing:border-box}
   html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff}
   a{color:#1d4ed8}
@@ -27,11 +27,17 @@
     background:#fff;color:var(--muted);cursor:pointer;user-select:none}
   .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 16px}
-  .kpi{background:var(--panel);border-radius:10px;padding:14px 16px}
-  .kpi .l{font-size:13px;color:var(--muted)}
+  .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
+  .kpi .ic{position:absolute;top:13px;right:13px}
+  .kpi .ic svg{width:22px;height:22px;display:block}
+  .kpi .l{font-size:13px;color:var(--muted);padding-right:26px}
   .kpi .v{font-size:30px;font-weight:700;color:#7a1419;line-height:1.15;margin-top:2px}
   .kpi.neutral .v{color:var(--ink)}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+  .card h3 .ic{display:inline-flex;vertical-align:-2px;margin-right:6px}
+  .card h3 .ic svg{width:15px;height:15px;display:block}
+  .bleg{display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .bleg span{display:flex;align-items:center;gap:5px}
   .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
   .ctrl{flex:0 0 212px;border:1px solid var(--line);border-radius:12px;padding:14px}
   .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
@@ -129,13 +135,20 @@
 
   <div class="below">
     <div class="card">
-      <h3>Killed or seriously injured, by year</h3>
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:7px" id="trend-note"></div>
+      <div class="bleg" id="trend-leg"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
     <div class="card">
-      <h3>By travel mode</h3>
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day</h3>
+      <div class="sub" id="tod-sub"></div>
+      <div id="tod"></div>
+      <div class="bleg" id="tod-leg"></div>
+    </div>
+    <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
@@ -158,6 +171,12 @@ const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_p
 let mode='all', sev='ksi', year=null, view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
 let records=[], pts=[], activeCounts={}, _breaks=[];
 const fmt=n=>Number(n).toLocaleString();
+const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
+const KICON={
+  killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
+  yll:'<svg viewBox="0 0 24 24" fill="none" stroke="#2f7fb0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3v3.5L12 12 7 17.5V21M17 3v3.5L12 12l5 5.5V21"/></svg>',
+  ksi:'<svg viewBox="0 0 24 24" fill="none" stroke="#e0982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M12 11v5M9.5 13.5h5"/></svg>',
+  conc:'<svg viewBox="0 0 24 24" fill="none" stroke="#3a9e78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="21" x2="5" y2="13"/><line x1="12" y1="21" x2="12" y2="4"/><line x1="19" y1="21" x2="19" y2="9"/></svg>'};
 
 function recMatch(r){ // r=[seg,year,sev,fatal,ped,bike]
   const m = modeMatch(r[4], r[5]);
@@ -259,7 +278,7 @@ function render(){
   computeCounts(); restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawLegend(); drawTrend(); drawMode(); drawViewing();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawViewing();
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
@@ -281,12 +300,15 @@ function drawKPIs(){
   const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
   const conSub='of streets → of KSI'+(year===null?'':' (all years)');
+  const yll=Math.round(yllTotal());
   document.getElementById('kpis').innerHTML=
-    kpi('People killed · '+span, fmt(killed), who, false)
-   +kpi('Killed or seriously injured (KSI)', fmt(ksi), 'people · '+who, false)
-   +kpi('A few streets carry most harm', vz.hin.pct_streets+'% → '+vz.hin.pct_ksi+'%', conSub, true);
+    kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false)
+   +kpi(KICON.yll,'Years of life lost', fmt(yll), 'estimated · '+who, false)
+   +kpi(KICON.ksi,'Killed or seriously injured (KSI)', fmt(ksi), 'people · '+who, false)
+   +kpi(KICON.conc,'A few streets carry most harm', vz.hin.pct_streets+'% → '+vz.hin.pct_ksi+'%', conSub, true);
 }
-function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
+function kpi(ic,l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -304,7 +326,7 @@ function drawLegend(){
     const mx=activeMax();
     h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">Streets shaded by count on each block</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
-      +'<div class="ends"><span>0</span><span>'+Math.round(mx)+' on one street</span></div>';
+      +'<div class="ends"><span>0</span><span>'+Math.round(mx)+'</span></div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
   el.innerHTML=h;
@@ -327,30 +349,66 @@ function drawMode(){
   document.getElementById('modedeaths').innerHTML=t.killed+' people killed — '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
 }
 
-function drawTrend(){
-  const y=vz.ksi_by_year, full=vz.years.filter(v=>v!==2026), partial=vz.years.includes(2026);
-  const vals=full.map(yr=>y[yr]||0), mx=Math.max(...vals), nice=Math.ceil(mx/20)*20;
-  const W=340,H=140,L=30,R=6,T=8,B=20, pw=W-L-R, ph=H-T-B;
-  const n=full.length+(partial?1:0), bw=pw/n*0.7, gap=pw/n;
-  const y2=v=>T+ph-(v/nice)*ph;
+// --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
+function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]); }   // severe + active lens
+function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
+  const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
+function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;
+  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
+function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!modeKSI(p))continue;
+  const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
+
+function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
+function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
+  +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>'; }
+// labels[], fatal[], serious[]; opt:{clickKeys?, fadeIdx?:Set, h?}
+function barChartSVG(labels, fatal, serious, opt){
+  opt=opt||{}; const W=340, H=opt.h||140, L=22, R=6, T=8, B=18;
+  const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
+  const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
+  const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
   let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
-  [0,nice/2,nice].forEach(t=>{const yy=y2(t);
+  [0,nice/2,nice].forEach(t=>{const yy=y(t);
     s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
-      +'<text x="'+(L-5)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3ad">'+t+'</text>';});
-  const bar=(yr,v,x,faded)=>{ const hh=v==null?0:(v/nice)*ph, sel=yr===year;
-    const op = year!==null && !sel ? .35 : (faded?.4:1);
-    let r=(v==null)
-      ? '<rect x="'+x+'" y="'+(T+ph-5)+'" width="'+bw+'" height="5" fill="#dde0e4"/>'
-      : '<rect class="ybar" x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(sel?'#7a1419':'#e0584f')+'" opacity="'+op+'" style="cursor:pointer" onclick="selectYear('+yr+')"><title>'+yr+': '+v+' KSI — click to view</title></rect>';
-    return r+'<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="'+(sel?'#7a1419':'#9aa3ad')+'">’'+String(yr).slice(2)+'</text>'; };
-  full.forEach((yr,i)=>{ s+=bar(yr,y[yr],L+gap*i+(gap-bw)/2,false); });
-  if(partial){ s+=bar(2026,y[2026],L+gap*full.length+(gap-bw)/2,true); }
-  s+='</svg>';
-  document.getElementById('trend').innerHTML=s;
+      +'<text x="'+(L-4)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3ad">'+t+'</text>'; });
+  for(let i=0;i<n;i++){
+    const x=L+gap*i+(gap-bw)/2, se=serious[i]||0, fa=fatal[i]||0;
+    const hSe=(se/nice)*ph, hFa=(fa/nice)*ph, ySe=T+ph-hSe, yFa=ySe-hFa;
+    const op=(opt.fadeIdx&&opt.fadeIdx.has(i))?.45:1;
+    if(se>0) s+='<rect x="'+x+'" y="'+ySe+'" width="'+bw+'" height="'+hSe+'" rx="1" fill="'+SERIOUS_C+'" opacity="'+op+'"/>';
+    if(fa>0) s+='<rect x="'+x+'" y="'+yFa+'" width="'+bw+'" height="'+hFa+'" rx="1" fill="'+FATAL_C+'" opacity="'+op+'"/>';
+    if(opt.clickKeys) s+='<rect class="barhit" x="'+(x-1)+'" y="'+T+'" width="'+(bw+2)+'" height="'+ph+'" style="cursor:pointer" onclick="'+opt.clickKeys[i]+'"><title>'+tot[i]+' KSI — click</title></rect>';
+    if(labels[i]) s+='<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="9" fill="#9aa3ad">'+labels[i]+'</text>';
+  }
+  return s+'</svg>';
+}
+function drawTrend(){
+  let labels=[], fatal=[], serious=[], clickKeys=null, fadeIdx=new Set();
+  if(year===null){
+    const k=yearStacks(); clickKeys=[];
+    vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0);
+      serious.push(k.s[yr]||0); clickKeys.push('selectYear('+yr+')'); if(yr===2026) fadeIdx.add(i); });
+  } else {
+    const k=monthStacks(year), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
+    for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); }
+  }
+  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx});
+  document.getElementById('trend-title').textContent = year===null
+    ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
-    ? 'Click a year to view it on the map above'
-    : 'Showing <b style="color:#7a1419">'+year+'</b> · click the bar again to clear';
-  document.getElementById('trend-note').textContent='Y axis = people killed or seriously injured per year'+(partial?' · 2026 is partial':'');
+    ? 'Click a year to view it on the map and break it down by month'
+    : '<span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>';
+  document.getElementById('trend-leg').innerHTML=stackLegend();
+  document.getElementById('trend-note').textContent =
+    (year===null && vz.years.includes(2026)) ? '2026 is a partial year' : '';
+}
+function drawTimeOfDay(){
+  const k=hourStacks(), labels=[], fatal=[], serious=[];
+  for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
+    labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
+  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:132});
+  document.getElementById('tod-sub').textContent='Hour of day'+(year===null?'':' · '+year);
+  document.getElementById('tod-leg').innerHTML=stackLegend();
 }
 function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
 function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date]
@@ -394,7 +452,7 @@ document.getElementById('hin').onchange=e=>{
   drawLegend();
 };
 document.getElementById('about').onclick=e=>{e.preventDefault();
-  alert('City-street crashes only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). Crashes on freeways, tollways, ramps and frontage roads are excluded — those are TxDOT facilities, not the city streets this project studies — so they are not mis-attributed to nearby cross-streets. Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
+  alert('City-street crashes only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). Crashes on freeways, tollways, ramps and frontage roads are excluded — those are TxDOT facilities, not the city streets this project studies — so they are not mis-attributed to nearby cross-streets. Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. Years of life lost = years before age 75 summed over those killed (CDC YPLL convention); the public extract records a victim age for only about half of fatalities, so the rest are estimated at the average — the YLL total is an estimate. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
 };
 </script>
 </body>
