@@ -66,7 +66,8 @@ COLS = {
     "n_crash": 0, "n_injury": 0, "n_severe": 0, "n_fatal": 0,
     "n_ped": 0, "n_bike": 0, "n_ped_severe": 0, "n_bike_severe": 0,
     "n_signals": 0, "oneway": None, "merged_dual": None, "length_ft": 0,
-    "on_hin": None,  # is this segment on the City's official High Injury Network?
+    "on_hin": None,    # on the City's official High Injury Network?
+    "on_txdot": None,  # TxDOT-owned (state) road vs city-owned?
 }
 
 FRIENDLY_CLASS = {
@@ -120,31 +121,30 @@ if _hpath.exists():
     print(f"on-HIN segments: {int(seg['on_hin'].sum()):,} "
           f"({100*seg['on_hin'].mean():.1f}%)")
 
-# Drop TxDOT-owned roadways from the displayed network: a segment is excluded if
-# >=50% of its length runs within 60 ft of a TxDOT on-system main lane (state/US/
-# FM highways like S Main/US-90A, SH 6, FM 1093). Keeps the network to streets the
-# City owns/operates, consistent with the crash filter (Road_Cls_ID == 5).
+# Label each segment as TxDOT-owned (state) vs city-owned: a segment is on_txdot
+# if >=50% of its length runs within 60 ft of a TxDOT on-system main lane (S Main/
+# US-90A, SH 6, FM 1093, etc.). These at-grade state arterials are KEPT in the
+# network (like the City's HIN and Austin's dashboard) but flagged so the dashboard
+# can show the state-owned share — only limited-access freeways are excluded
+# (upstream, in pull_osm + build_crashes).
 seg["on_txdot"] = False
 try:
     tx = fetch_txdot_onsys(seg.crs)
     tbuf = tx.buffer(60).union_all()
     tfrac = seg.geometry.intersection(tbuf).length / seg.geometry.length
     seg["on_txdot"] = (tfrac >= 0.5).fillna(False).values
-    print(f"TxDOT-owned segments flagged: {int(seg['on_txdot'].sum()):,} "
-          f"({100*seg['on_txdot'].mean():.1f}%) — excluded from the city network + crash points")
+    print(f"TxDOT-owned (state) segments labeled: {int(seg['on_txdot'].sum()):,} "
+          f"({100*seg['on_txdot'].mean():.1f}%) — kept in network, flagged for the ownership view")
 except Exception as e:
     print(f"WARNING: TxDOT tagging skipped ({type(e).__name__}: {e})")
-# NOTE: seg is kept whole here (with on_txdot) so each crash can be matched to its
-# nearest road incl. TxDOT ones; the segment EXPORT and crash points then drop the
-# TxDOT-owned ones so crashes and roads use one consistent ownership signal.
 
-keep = seg[~seg["on_txdot"]][[c for c in COLS if c in seg.columns] + ["road_class", "geometry"]].copy()
+keep = seg[[c for c in COLS if c in seg.columns] + ["road_class", "geometry"]].copy()
 for c, nd in COLS.items():
     if c in keep.columns and nd is not None:
         keep[c] = keep[c].round(nd)
         if nd == 0:
             keep[c] = keep[c].astype("Int64")  # nullable int -> clean JSON
-for c in ("oneway", "merged_dual", "on_hin"):
+for c in ("oneway", "merged_dual", "on_hin", "on_txdot"):
     if c in keep.columns:
         keep[c] = keep[c].astype("boolean")
 
@@ -174,21 +174,18 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, years-of-life-lost, and by-neighborhood-income panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin]
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot]
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
 # nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
-# and whether its road is TxDOT-owned. Match against the FULL network (incl TxDOT)
-# so a crash on a TxDOT road is recognised, then dropped below for consistency
-# with the segment export.
+# and whether its road is TxDOT-owned (state) — the last is a LABEL (for the
+# ownership view), not an exclusion; at-grade state arterials stay in.
 nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "on_hin", "on_txdot", "geometry"]], how="left")
 nj = nj[~nj.index.duplicated()]
 cr["inc_tier"] = pd.Series(pd.to_numeric(nj["median_hh_income"].values,
                                          errors="coerce")).map(inc_tier).values
 cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
-cr["near_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
-n_before = len(cr)
-cr = cr[~cr["near_txdot"]].copy()   # drop crashes whose nearest road is TxDOT-owned
-print(f"Crash points: dropped {n_before-len(cr):,} on TxDOT-owned roads -> {len(cr):,} city-street crashes")
+cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
+print(f"Crash points: {int(cr['on_txdot'].sum()):,} on TxDOT-owned (state) roads (kept, labeled)")
 cr = cr.to_crs(4326)
 if districts_4326 is not None:  # council district per crash, for the per-district filter
     cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
@@ -198,9 +195,9 @@ if districts_4326 is not None:  # council district per crash, for the per-distri
 else:
     cr["district"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -210,7 +207,8 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh in zip(
                 round(float(yl), 1) if pd.notna(yl) and yl else 0,
                 dist if isinstance(dist, str) else None,
                 int(it) if pd.notna(it) else None,
-                1 if oh else 0])
+                1 if oh else 0,
+                1 if otx else 0])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")

@@ -204,24 +204,26 @@ land use, and neighborhood. The foundation is built.
 
 **The crash data has arrived** — the location-stamped records of where people
 have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
-We cleaned it up and, importantly, kept only crashes on streets the **city
-actually owns**. A big share of crashes in Houston happen on roads the *state*
-(TxDOT) owns and maintains: not just the obvious freeways (I-610, US-59), but
-also at-grade state highways the city can't redesign on its own, like Highway 6,
-S Main / US-90A, and Westheimer west of the Galleria (which is officially the
-state's FM 1093). We left all of those out, two ways: the crash file tags each
-crash's road type (we keep the ones marked "City Street"), and we drop any road
-the state's own inventory lists as theirs. What's left is what the city can fix:
-**1,267 people killed and 7,927 killed or seriously injured** over the decade
-(about **52,000 years of life lost**). A good sanity check: that's 52% of all
-the serious crashes inside the city, almost exactly the City's own published
-figure (~51% of serious crashes are on city-owned streets). (Running just
-District C earlier gave 88 killed and 712 injured; the city is far larger.)
+We cleaned it up and kept the crashes on **streets** (not freeways). The one
+clear cut: we drop limited-access freeways and tollways (I-610, US-59, the
+Sam Houston Tollway), because those are a different kind of road, the state runs
+them, and crashes on them tend to get mis-pinned onto the city street running
+underneath. But we **keep the at-grade big streets even when the state owns
+them** — like Highway 6, S Main / US-90A, and Westheimer (which out west is
+officially the state's FM 1093). That's deliberate: this is how Austin's Vision
+Zero dashboard and Houston's own High Injury Network do it, because a huge share
+of the deaths happen on exactly those state-owned arterials, and ignoring them
+would hide the problem. The decade's toll on city streets: **1,687 people killed
+and 9,928 killed or seriously injured** (about **69,500 years of life lost**).
 
-One honest note: the City's own "High Injury Network" actually *includes* some of
-those state roads (it flags dangerous corridors no matter who owns them). We draw
-the line tighter, at streets the city can redesign itself, so we intentionally
-differ from the city's map on those state-owned roads.
+What we *do* do is **label** every street and crash as city-owned or
+state-owned (TxDOT), so the dashboard can say plainly that about **1 in 6 of the
+serious crashes on these streets are on state-owned arterials** — the ones the
+City can't fix alone and has to push TxDOT to redesign. (If you also counted the
+freeways we leave out, state-owned roads are closer to half of all the city's
+serious crashes.) That's an honest, useful point rather than quietly dropping
+those roads. (Running just District C earlier gave 88 killed
+and 712 injured; the whole city is far larger.)
 
 We then figured out **which crashes involved people walking or biking** (the
 crash records list everyone involved, so we flagged any crash with a pedestrian

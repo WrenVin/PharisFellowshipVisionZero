@@ -34,7 +34,9 @@
   .tip.show{display:block}
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
     box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 16px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 8px}
+  #ownership{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.45}
+  #ownership b{color:#6a3d9a}
   .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
   .kpi .ic{position:absolute;top:13px;right:13px}
   .kpi .ic svg{width:22px;height:22px;display:block}
@@ -105,6 +107,7 @@
   </div>
 
   <div class="kpis" id="kpis"></div>
+  <div id="ownership"></div>
 
   <div class="main">
     <div class="ctrl">
@@ -189,7 +192,7 @@
 
   <div class="foot">
     <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
-    <span><a href="#" id="about">Data &amp; methods</a> · city-owned streets only; TxDOT roads excluded</span>
+    <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
   </div>
 </div>
 
@@ -338,7 +341,7 @@ function render(){
   computeCounts(); restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawHIN(); drawViewing();
+  drawKPIs(); drawOwnership(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawHIN(); drawViewing();
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
@@ -468,6 +471,19 @@ function drawEquity(){
     +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
 }
 
+// --- ownership: share of KSI on TxDOT-owned (state) roads vs city-owned ---
+function drawOwnership(){
+  let on=0, tot=0;
+  for(const p of pts){ if(year!==null && p[6]!==year) continue;
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI
+    tot++; if(p[13]===1) on++; }
+  const el=document.getElementById('ownership');
+  if(tot<=0){ el.innerHTML=''; return; }
+  const pct=Math.round(100*on/tot);
+  el.innerHTML='<b>'+pct+'%</b> of these killed or seriously injured are on <b>TxDOT-owned (state) roads</b> '
+    +'(state highways and FM arterials within the city); the City must partner with the state to redesign those. '
+    +'The other '+(100-pct)+'% are on city-owned streets. Limited-access freeways are excluded entirely.';
+}
 // --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
 function drawHIN(){
   let on=0, off=0;
@@ -609,7 +625,7 @@ document.getElementById('hin').onchange=e=>{
   drawLegend();
 };
 document.getElementById('about').onclick=e=>{e.preventDefault();
-  alert('City-OWNED streets only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). We keep only crashes the state classifies as on a City Street (CRIS Road_Cls_ID = 5) and drop roads on TxDOT\'s on-system network (Interstates, US/State highways like S Main/US-90A and SH 6, FM roads like Westheimer west of the Galleria, tollways). This is about 52% of all in-city KSI, matching the City\'s VZAP figure (~51% on city-owned streets). Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. Years of life lost = years before age 75 summed over those killed (CDC YPLL convention); the public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the YLL total an estimate. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
+  alert('Surface streets citywide. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). We exclude limited-access freeways, tollways, ramps and frontage roads (a different facility type, and they snap onto nearby streets), but KEEP at-grade arterials regardless of owner, including state-owned ones like S Main/US-90A, SH 6, and Westheimer/FM 1093. This matches Austin\'s Vision Zero dashboard and the City\'s own High Injury Network, which include state arterials. Each street and crash is labeled city-owned vs TxDOT-owned (from TxDOT\'s roadway inventory) so the dashboard can show the state-owned share; the City must partner with TxDOT to redesign those. Each crash is assigned to its nearest street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. Years of life lost = years before age 75 summed over those killed (CDC YPLL convention); the public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the YLL total an estimate. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
 };
 </script>
 </body>

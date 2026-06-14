@@ -5,40 +5,40 @@ segment within 200 ft (Dumbaugh/Rae/Wunneburger buffer); divided-road
 halves searched too and credited to the representative segment.
 
 ## Assignment
-- Crashes assigned: **379,544 / 381,322 (99.5%)**
-- Unassigned (> 200 ft from any city street): 1,778 — expected
+- Crashes assigned: **413,899 / 421,699 (98.2%)**
+- Unassigned (> 200 ft from any city street): 7,800 — expected
   (freeway/feeder crashes on excluded roads, plus geocoding error).
-- Distance to assigned segment (ft): median 4, p90 12, p99 59.
+- Distance to assigned segment (ft): median 4, p90 15, p99 106.
 
 ## Count integrity (each crash counted once → sums match)
-- n_crash: per-segment sum 379,544 vs assigned total 379,544  OK
-- n_severe: per-segment sum 8,788 vs assigned total 8,788  OK
-- n_ped: per-segment sum 8,269 vs assigned total 8,269  OK
+- n_crash: per-segment sum 413,899 vs assigned total 413,899  OK
+- n_severe: per-segment sum 9,727 vs assigned total 9,727  OK
+- n_ped: per-segment sum 8,718 vs assigned total 8,718  OK
 
 ## Per-segment outcome columns added
 `n_crash`, `n_injury`, `n_severe` (K+A — the model outcome), `n_fatal`,
 `n_ped`, `n_bike`, `n_ped_severe`, `n_bike_severe`.
 
-- Segments with ≥1 severe crash: 5,901 of 75,260
-  (7.8%) — most segments have zero, confirming the
+- Segments with ≥1 severe crash: 6,169 of 75,260
+  (8.2%) — most segments have zero, confirming the
   overdispersed/zero-heavy pattern the negative binomial is built for.
-- Max severe crashes on one segment: 11.
+- Max severe crashes on one segment: 16.
 
 ## Top corridors by severe crashes (sanity check)
 
 name
-Westheimer Road       222
-Bissonnet Street      142
-Richmond Avenue       138
-Tidwell Road          105
-Beechnut Street       101
-Fondren Road           95
-Bellaire Boulevard     92
-Westpark Drive         88
-Homestead Road         87
-Bellfort Street        85
-Scott Street           80
-Telephone Road         78
+Westheimer Road       264
+Bissonnet Street      148
+Richmond Avenue       140
+Main Street           126
+Tidwell Road          107
+Beechnut Street       105
+Fondren Road          101
+Bellfort Street        94
+Bellaire Boulevard     94
+Westpark Drive         92
+Homestead Road         91
+Telephone Road         88
 
 ## Notes
 - Intersection crashes are credited to the nearest leg (count-preserving). A

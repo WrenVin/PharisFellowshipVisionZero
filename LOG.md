@@ -4,6 +4,24 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Scope decision (revised): keep state arterials, LABEL ownership (don't exclude)
+
+Reconsidered the previous "drop all TxDOT roads" change — Vincent felt conflicted because the City's HIN includes TxDOT arterials. Researched peer practice and concluded he was right; **reverted to keeping at-grade state arterials, excluding only limited-access freeways, and labeling ownership instead.**
+
+Findings:
+- **Austin's Vision Zero Viewer** includes ALL crashes in the city's full-purpose jurisdiction, state-owned roads included — Austin explicitly notes *state-owned roadways are most of its traffic fatalities.*
+- **Vision Zero best practice** (Vision Zero Network / standard HIN methodology): exclude **limited-access freeways** (different facility, state DOT process, skew thresholds) but **include state-owned arterials** that serve the community.
+- **Houston's own HIN** includes state arterials (our `hin.geojson` covers SH 6 and most of Westheimer). So excluding them would make us *diverge* from the City, not match it.
+
+So the city-owned-only filter (Road_Cls_ID==5 + dropping TxDOT road lines) was too narrow. Reverted:
+- `build_crashes.py`: back to the limited-access-freeway filter (keep at-grade arterials incl. state-owned). → 421,699 crashes, **9,928 KSI (1,687 K, 8,241 A), ~69,500 YLL**.
+- `export_webmap_data.py`: keep TxDOT segments/crashes; the `on_txdot` flag is now a **label** (segment attribute + crash field), not an exclusion.
+- Dashboard: new one-line **ownership view** under the KPIs — "~16% of these KSI are on TxDOT-owned (state) arterials; the City must partner with the state to redesign them." (Freeways, which are state-owned and ~half of all in-city KSI, are excluded entirely, so within the surface streets shown the TxDOT share is ~1 in 6.) Turns the TxDOT work into Austin's framing.
+
+Net: the data matches the City/Austin scope, and the ownership question is surfaced transparently rather than resolved by deletion. The earlier entry below (drop-TxDOT) is superseded.
+
+---
+
 ## 2026-06-14 — Data accuracy: restrict to city-OWNED streets (drop TxDOT roads) + no em dashes
 
 Vincent flagged crashes showing on Alt-90 (S Main/US-90A), Westheimer west of 610, and Highway 6 — roads TxDOT owns, not the city. He was right; we were including ~20% non-city KSI. Two-part fix, both using authoritative ownership sources:
