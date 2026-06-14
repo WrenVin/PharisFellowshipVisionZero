@@ -171,18 +171,18 @@ Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segme
 
 ## Crash points — `district_c_crashes.gpkg` (separate file, not a segment column yet)
 
-TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to District C (EPSG:2278). 57,848 crashes (2016–2024 + partial 2026; 2020 & 2025 pending). See `reports/crash_build_report.md`. **Not yet joined to segments** — that's the next step.
+TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to District C (EPSG:2278). **41,177 city-street crashes** (2016–2025 + partial 2026). **Freeway/tollway-facility crashes are excluded** (28,336 dropped — Road_Cls_ID Interstate/Tollway, any service-road/ramp/connector road part, or class-2 US/State highways with a freeway street name) because they were being snapped onto nearby city cross-streets; they are TxDOT facilities, not the city streets this project studies. See `reports/crash_build_report.md`.
 
 | Variable | Type | Values | Description |
 |---|---|---|---|
 | `Crash_ID` | int | — | TxDOT CRIS crash identifier (unique). |
 | `year`, `date` | int / text | — | Crash year and date (from `Crash_Date`). |
 | `kabco` | text | K / A / B / C / O / UNK | Severity on the KABCO scale (K=fatal, A=serious, B=minor, C=possible, O=none). Decoded from `Crash_Sev_ID` (4=K,1=A,2=B,3=C,5=O,0=UNK), verified against the fatal flag + injury counts. |
-| `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). 1,039 severe (138 K + 901 A). |
+| `fatal`, `serious`, `severe` | bool | — | `severe` = K or A — the negative-binomial **outcome** (matches the HIN definition). **712 severe on city streets (88 K + 624 A).** |
 | `any_injury` | bool | — | Any injury (Tot_Injry_Cnt > 0). |
 | `mode` | text | pedestrian / bicycle / motor vehicle | Crash mode (pedestrian takes precedence if a crash has both). |
-| `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **755 ped crashes, 171 severe, 42 fatal.** |
-| `involves_bike` | bool | — | Any pedalcyclist (Unit_Desc_ID=3 / Prsn_Type_ID=3). **437 bike crashes, 50 severe, 7 fatal.** |
+| `involves_ped` | bool | — | Any pedestrian in the crash (CRIS `unit` Unit_Desc_ID=4, union with `person` Prsn_Type_ID=4). **802 ped crashes, 163 severe, 24 fatal** (city streets). |
+| `involves_bike` | bool | — | Any pedalcyclist (Unit_Desc_ID=3 / Prsn_Type_ID=3). **479 bike crashes, 49 severe, 7 fatal** (city streets). |
 | `Crash_Sev_ID` | int | 0–5 | Raw CRIS severity code (see `kabco`). |
 | `speed_limit` | float | mph | Crash-record posted speed limit (`Crash_Speed_Limit`). |
 | `coord_source` | text | cris / reported | CRIS-geocoded lat/long, or officer-reported fallback. |
@@ -197,12 +197,12 @@ Added by `src/assign_crashes.py`: each crash credited to its single nearest segm
 |---|---|---|
 | `n_crash` | int | All assigned crashes on the segment. |
 | `n_injury` | int | Crashes with any injury. |
-| `n_severe` | int | **Severe (K+A) crashes — the negative-binomial outcome.** 539 segments (7.3%) have ≥1; max 11. |
+| `n_severe` | int | **Severe (K+A) crashes — the negative-binomial outcome.** 526 segments (7.1%) have ≥1; max 9. City streets only. |
 | `n_fatal` | int | Fatal (K) crashes. |
 | `n_ped`, `n_bike` | int | Crashes involving a pedestrian / cyclist. |
 | `n_ped_severe`, `n_bike_severe` | int | Severe ped / bike crashes (the policy-relevant vulnerable-user outcome). |
 
-> 82.9% of District C crashes assigned (median 5 ft to segment); ~17% unassigned are >200 ft from any city street — freeway/feeder crashes on excluded roads + geocoding error. Intersection crashes go to the nearest leg (count-preserving simplification).
+> 99.6% of city-street crashes assigned (median 4 ft to segment) now that freeway crashes are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 113 segments / 43 mi — distinct from these CRIS-derived counts.
 
 ## Intersection context (tier 1 — computed from the street graph)
 

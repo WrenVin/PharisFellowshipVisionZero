@@ -4,6 +4,26 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Major data fix (freeway crashes) + 2020/25 + VZ dashboard rebuild
+
+**Freeway-crash contamination (Vincent spotted it).** Crashes physically on I-610 / US-59 etc. were being snapped onto nearby city cross-streets by the 200-ft buffer. Diagnosed: of 69,513 geocoded District C crashes, **28,336 (41%) were on freeway/tollway facilities** (Road_Cls_ID Interstate/Tollway, service-road/ramp/connector road parts, or class-2 US/State-hwy with a freeway street name — careful to KEEP class-2 surface arterials like Shepherd/Kirby/Braeswood). Added the filter to `build_crashes.py` and excluded them. Impact: **deaths 138→88, KSI 1,039→712** (the removed ones were genuinely on freeways); assignment jumped to **99.6%** (median crash now 4 ft from its street) — confirming the remainder really are on city streets. Also fixed the inflated all-crashes max (693→401).
+
+**2020 & 2025 added** (Vincent dropped the folders) — picked up automatically by the year-agnostic pipeline. Now 2016–2025 + partial 2026; 2020 shows the COVID dip (42).
+
+**Official High Injury Network.** Vincent asked whether the HIN was ours or the city's. Pulled the **City of Houston's official Vision Zero HIN 2022** (COH Transportation layer 20), clipped to District C (`docs/hin.geojson`, 113 seg / 43 mi). It's now a distinct purple overlay on the VZ dashboard — answers the source question and is the authoritative comparison network.
+
+**VZ dashboard rebuilt** per the rest of the review:
+- Crash colors were near-white/invisible → OrRd ramp visible at 1 KSI + thickness scaled with severity (fixed earlier, retained).
+- Removed the equity overlay/card (District C too affluent — $147k median; "skews lower-income" read absurdly). Replaced with a **mode breakdown** card: KSI by vehicle / walking / biking (70% / 23% / 7%).
+- "Isolate HIN" (ineffective) → replaced by the official-HIN overlay toggle.
+- Info-panel header "THE STREET DESIGN THAT DRIVES RISK" → neutral "Street design" (no claim).
+- Trend chart **given a real Y axis** (gridlines + labels), bars 2016–2025 + faded partial 2026.
+- Fixed the "none693" legend spacing bug.
+
+**Street Explorer** unchanged content-wise (already renamed + linked last commit). All re-verified in-browser, no console errors.
+
+---
+
 ## 2026-06-13 — Dashboard polish (both pages) from Vincent's review
 
 **Street Explorer (`index.html`):** renamed "Vision Zero · District C" → "District C Street Explorer" (the Vision Zero name belongs to the other page); added a "→ Vision Zero dashboard" link; moved the "Data sources & dates" trigger to the bottom of the panel.

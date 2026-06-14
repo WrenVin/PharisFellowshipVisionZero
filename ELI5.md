@@ -233,13 +233,24 @@ handful of big roads light up red. That grey-vs-red map is basically the city's
 current "where crashes happened" view — and it's exactly what our design-based
 model will be compared against.
 
+**An important catch:** at first our map was counting freeway crashes as if they
+happened on nearby city streets — when a crash on US-59 or I-610 got pinned to
+the overpass crossing it. We caught this (it turned out **about 40% of the
+"District C" crashes were actually on the freeways**), and removed them, since
+the freeways belong to the state and this project is about streets the *city*
+can fix. After the cleanup the real city-street numbers are **88 people killed
+and 712 killed-or-seriously-injured** over 2016–2025 — and nearly every crash
+now lands right on its street (within a few feet). We also added the two missing
+years (2020, 2025).
+
 We also built a **second, public-friendly dashboard focused purely on safety**
 (a "Vision Zero" view, alongside the data-explorer one). Instead of letting you
 browse every kind of data, it leads with what matters: how many people have been
 killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
-of streets account for 82% of it), a switch to focus on people walking or
-biking, whether the harm falls more on lower-income neighborhoods, and whether
-things are getting better year to year (they aren't). It's modeled on how cities
+of streets account for ~78% of it), a switch to focus on people walking or
+biking, a breakdown of who's being hurt (in a vehicle vs. walking vs. biking),
+the city's own official "most dangerous streets" list for comparison, and
+whether things are getting better year to year (they aren't). It's modeled on how cities
 like Austin and New York present their traffic-safety data to the public — it
 shows what has actually happened, and stays out of conclusions we haven't proven
 yet.

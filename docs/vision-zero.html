@@ -20,26 +20,26 @@
   .pill{font-size:13px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);
     background:#fff;color:var(--muted);cursor:pointer;user-select:none}
   .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0 10px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 16px}
   .kpi{background:var(--panel);border-radius:10px;padding:14px 16px}
   .kpi .l{font-size:13px;color:var(--muted)}
   .kpi .v{font-size:30px;font-weight:700;color:#7a1419;line-height:1.15;margin-top:2px}
   .kpi.neutral .v{color:var(--ink)}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
-  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-top:6px}
-  .ctrl{flex:0 0 210px;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+  .ctrl{flex:0 0 212px;border:1px solid var(--line);border-radius:12px;padding:14px}
   .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
   .ctrl .grp{margin-bottom:16px}
-  .opt{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
-  .opt input{margin:0}
-  .toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;cursor:pointer}
+  .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
+  .opt input,.toggle input{margin:0}
   select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#fff}
   #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   #map{height:480px}
-  #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.93);
-    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;max-width:230px}
+  #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
+    border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;max-width:250px}
   #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px}
   #legend .ends{display:flex;justify-content:space-between;color:var(--muted)}
+  #legend .key{display:flex;align-items:center;gap:6px;margin-top:7px}
   #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
     background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none}
   #info .hd{padding:11px 13px 8px;border-bottom:1px solid var(--line)}
@@ -52,17 +52,15 @@
   #info .kv .k{color:var(--muted)}
   #info .kv .v{font-weight:600;text-align:right}
   #info .kv .v.bad{color:#7a1419}
-  .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+  .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
   .card h3{font-size:14px;margin:0 0 1px;font-weight:700}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
-  .bars{display:flex;align-items:flex-end;gap:5px;height:96px}
-  .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
-  .bars .bar{width:100%;background:#e24b4a;border-radius:2px 2px 0 0}
-  .bars .bar.hi{background:#7a1419}
-  .bars .bar.gap{background:#dcdfe3}
-  .bars .yl{font-size:10px;color:var(--muted);margin-top:3px}
-  .eqbar{display:flex;height:28px;border-radius:7px;overflow:hidden;font-size:11.5px;margin-top:6px}
+  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
+  .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legrow span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
   .foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
@@ -73,12 +71,12 @@
 </head>
 <body>
 <div class="wrap">
-  <h2 class="sr-only">Vision Zero dashboard for Houston Council District C: traffic deaths and serious injuries, the High Injury Network, and street design.</h2>
+  <h2 class="sr-only">Vision Zero dashboard for Houston Council District C: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
   <div class="top">
     <div>
       <h1>Vision Zero · District C</h1>
-      <div class="tag">Working toward zero traffic deaths and serious injuries in Houston's District C</div>
+      <div class="tag">Traffic deaths and serious injuries on Houston District C city streets</div>
     </div>
     <div class="lens">
       <span class="lab">Show</span>
@@ -98,9 +96,9 @@
         <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
       </div>
       <div class="grp">
-        <h3>Focus</h3>
-        <label class="toggle"><input type="checkbox" id="hin"> Isolate the High Injury Network</label>
-        <label class="toggle"><input type="checkbox" id="equity"> Equity overlay (income)</label>
+        <h3>Overlay</h3>
+        <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Houston's official 2022 HIN, for comparison</div>
       </div>
       <div class="grp">
         <h3>Basemap</h3>
@@ -109,7 +107,7 @@
           <option value="satellite">Satellite</option>
         </select>
       </div>
-      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and the design that drives the risk.</div>
+      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and design.</div>
     </div>
 
     <div id="mapwrap">
@@ -124,59 +122,44 @@
     <div class="card">
       <h3>Killed or seriously injured, by year</h3>
       <div class="sub" id="trend-sub">A decade in, the trend isn't falling</div>
-      <div class="bars" id="trend"></div>
+      <div id="trend"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:7px" id="trend-note"></div>
     </div>
     <div class="card">
-      <h3>Who bears the harm</h3>
-      <div class="sub" id="eq-sub"></div>
-      <div class="eqbar" id="eqbar"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:12px" id="eq-mode"></div>
+      <h3>Who is being hurt</h3>
+      <div class="sub">Killed or seriously injured, by how they were travelling</div>
+      <div class="stack" id="modebar"></div>
+      <div class="legrow" id="modeleg"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
   </div>
 
   <div class="foot">
     <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
-    <span><a href="#" id="about">Data &amp; methods</a> · TxDOT CRIS 2016–2024 (+ partial 2026), City of Houston, U.S. Census</span>
+    <span><a href="#" id="about">Data &amp; methods</a> · city streets only; freeway crashes excluded (TxDOT)</span>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
-const ZERO='#c9ccd1', MISSING='#dfe2e6';
-const INCOME=['#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#084594'];
-// metric field per (mode, severity)
+const ZERO='#c9ccd1', MISSING='#dfe2e6', HINCOLOR='#6a3d9a';
 const METRIC={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', equity=false, hinOnly=false, vz=null, geo=null, hot=null, selId=null;
-
+let mode='all', sev='ksi', vz=null, geo=null, hinLayer=null, selId=null;
 const fmt=n=>Number(n).toLocaleString();
-function metricField(){ return equity?'median_hh_income':METRIC[mode][sev]; }
-function maxOf(f){if(!geo)return 0;let m=0;geo.eachLayer(l=>{const v=l.feature.properties[f];if(v!=null&&v>m)m=v;});return m;}
-function minOf(f){if(!geo)return 0;let m=Infinity;geo.eachLayer(l=>{const v=l.feature.properties[f];if(v!=null&&v<m)m=v;});return m===Infinity?0:m;}
-function rampIdx(f,v){const b=countBreaks(f);let i=0;while(i<b.length&&v>b[i])i++;return i;}
+function metricField(){ return METRIC[mode][sev]; }
+
 const breaks={};
+function maxOf(f){if(!geo)return 0;let m=0;geo.eachLayer(l=>{const v=l.feature.properties[f];if(v!=null&&v>m)m=v;});return m;}
 function countBreaks(f){ if(breaks[f])return breaks[f]; const mx=Math.max(maxOf(f),2),b=[];
   for(let i=1;i<REDS.length;i++)b.push(Math.pow(mx,i/REDS.length)); breaks[f]=b; return b; }
-function incBreaks(){ if(breaks._inc)return breaks._inc; const v=[];geo.eachLayer(l=>{const x=l.feature.properties.median_hh_income;if(x!=null)v.push(x);});
-  v.sort((a,b)=>a-b); const b=[];for(let i=1;i<INCOME.length;i++)b.push(v[Math.floor(i/INCOME.length*v.length)]); breaks._inc=b; return b; }
+function rampIdx(f,v){const b=countBreaks(f);let i=0;while(i<b.length&&v>b[i])i++;return i;}
 function styleFor(f){
-  const p=f.properties, sel=p.seg_id===selId;
-  if(equity){  // colour every street by neighbourhood income (thin); red KSI rides on top
-    const v=p.median_hh_income; if(v==null) return {color:MISSING,weight:1.5,opacity:.45};
-    const b=incBreaks();let i=0;while(i<b.length&&v>b[i])i++;
-    return {color:INCOME[i],weight:2.6,opacity:.85};
-  }
-  const v=p[metricField()];
-  if(hinOnly && !(v>0)) return {opacity:0,weight:0};
-  if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};   // faint context
+  const p=f.properties, v=p[metricField()], sel=p.seg_id===selId;
+  if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
   const i=rampIdx(metricField(),v);
-  return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};  // darker = thicker
-}
-function hotStyle(f){  // red KSI overlay used in the equity view
-  const v=f.properties.n_severe; if(!(v>0)) return {opacity:0,weight:0};
-  const i=rampIdx('n_severe',v); return {color:REDS[Math.max(i,2)], weight:2.8+i*0.9, opacity:.97};
+  return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
 }
 
 const renderer=L.canvas({tolerance:8});
@@ -189,79 +172,91 @@ let base=bases.light.addTo(map);
 Promise.all([
   fetch('vz_summary.json').then(r=>r.json()),
   fetch('boundary.geojson').then(r=>r.json()),
-  fetch('segments.geojson').then(r=>r.json())
-]).then(([summary,bnd,seg])=>{
+  fetch('segments.geojson').then(r=>r.json()),
+  fetch('hin.geojson').then(r=>r.json())
+]).then(([summary,bnd,seg,hin])=>{
   vz=summary;
-  L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.65}}).addTo(map);
+  L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
+  hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});  // added on toggle
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
   }}).addTo(map);
-  hot=L.geoJSON(seg,{renderer,interactive:false});  // KSI red overlay for equity view (added on toggle)
   try{map.fitBounds(geo.getBounds());}catch(e){}
   document.getElementById('loading').style.display='none';
-  buildTrend(); render();  // render() applies styleFor now that geo exists
+  buildTrend(); buildBreakdown(); render();
 });
 
 function restyle(){ geo.setStyle(styleFor); }
-function render(){ breaks._inc=null; restyle(); drawKPIs(); drawLegend(); drawEquity(); }
+function render(){ restyle(); drawKPIs(); drawLegend(); }
 
 function drawKPIs(){
   const t=vz.toll, m=vz.mode;
-  let killed,ksi,k3l,k3v,k3s;
+  let killed,ksi;
   if(mode==='all'){killed=t.killed;ksi=t.ksi;}
   else if(mode==='ped'){killed=m.ped_killed;ksi=m.ped_ksi;}
   else {killed=m.bike_killed;ksi=m.bike_ksi;}
-  const lab=mode==='all'?'people':mode==='ped'?'people walking':'people biking';
+  const who=mode==='all'?'on city streets':mode==='ped'?'people walking':'people biking';
   const span=vz.years[0]+'–'+vz.years[vz.years.length-2];
   document.getElementById('kpis').innerHTML=
-    kpiCard('People killed · '+span, fmt(killed), mode==='all'?vz.mode.vuln_killed_share+'% were walking or biking':'in District C')
-   +kpiCard('Killed or seriously injured', fmt(ksi), 'KSI — '+lab)
-   +kpiCard('High Injury Network', vz.hin.pct_streets+'% <span style="color:#9aa3ad">→</span> '+vz.hin.pct_ksi+'%', 'of streets carry '+vz.hin.pct_ksi+'% of KSI', true);
+    kpi('People killed · '+span, fmt(killed), who, false)
+   +kpi('Killed or seriously injured', fmt(ksi), 'people · '+who, false)
+   +kpi('Crash concentration', vz.hin.pct_ksi+'%', 'of KSI on the worst '+vz.hin.pct_streets+'% of streets', true);
 }
-function kpiCard(l,v,s,neutral){
-  return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
-}
+function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
+
 function drawLegend(){
-  const el=document.getElementById('legend');
-  if(equity){
-    const lo=minOf('median_hh_income'), hi=maxOf('median_hh_income');
-    el.innerHTML='<div style="font-weight:600;margin-bottom:3px">Median household income</div>'
-      +'<div class="grad" style="background:linear-gradient(90deg,'+INCOME.join(',')+')"></div>'
-      +'<div class="ends"><span>$'+Math.round(lo/1000)+'k</span><span>$'+Math.round(hi/1000)+'k</span></div>'
-      +'<div style="display:flex;align-items:center;gap:6px;margin-top:8px">'
-        +'<span style="display:inline-block;width:22px;height:4px;border-radius:2px;background:#b30000"></span>killed or seriously injured</div>'
-      +'<div style="color:#5b6672;margin-top:4px">Where do the red lines fall?</div>';
-    return;
-  }
-  const mx=maxOf(metricField());
-  const what = sev==='all' ? 'crashes' : 'killed or seriously injured';
-  el.innerHTML='<div style="font-weight:600;margin-bottom:3px">'+(mode==='all'?'':mode==='ped'?'Walking: ':'Biking: ')+what+'</div>'
-    +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></div>'
-    +'<div class="ends"><span>none</span><span>'+Math.round(mx)+' on one street</span></div>'
-    +(hinOnly?'<div style="color:#5b6672;margin-top:5px">Showing only streets with a recorded KSI.</div>':'');
+  const el=document.getElementById('legend'), mx=maxOf(metricField());
+  const what=sev==='all'?'crashes':'killed or seriously injured';
+  const pre=mode==='all'?'':mode==='ped'?'Walking — ':'Biking — ';
+  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+what+'</div>'
+    +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
+    +'<div class="ends"><span>none</span><span>'+Math.round(mx)+' on one street</span></div>';
+  if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
+  el.innerHTML=h;
 }
-function drawEquity(){
-  document.getElementById('eq-sub').textContent='Within District C (median income $'+fmt(vz.equity.median_income)+'), KSI skews lower-income';
-  const lo=vz.equity.ksi_lower_income_pct, hi=100-lo;
-  document.getElementById('eqbar').innerHTML=
-    '<div style="width:'+lo+'%;background:#a32d2d;color:#fce8e8;display:flex;align-items:center;justify-content:center">'+lo+'% lower-income half</div>'
-    +'<div style="width:'+hi+'%;background:#f0997b;color:#4a1b0c;display:flex;align-items:center;justify-content:center">'+hi+'%</div>';
-  const m=vz.mode;
-  document.getElementById('eq-mode').innerHTML='Of '+vz.toll.killed+' people killed, <b>'+m.ped_killed+' were walking</b> and '+m.bike_killed+' biking.';
+
+function buildBreakdown(){
+  const t=vz.toll, m=vz.mode;
+  const ped=m.ped_ksi, bike=m.bike_ksi, veh=t.ksi-ped-bike;
+  const pct=x=>Math.round(100*x/t.ksi);
+  document.getElementById('modebar').innerHTML=
+    '<div style="width:'+pct(veh)+'%;background:#9aa3ad">'+pct(veh)+'%</div>'
+   +'<div style="width:'+pct(ped)+'%;background:#d7301f">'+pct(ped)+'%</div>'
+   +'<div style="width:'+pct(bike)+'%;background:#fc8d59">'+pct(bike)+'%</div>';
+  document.getElementById('modeleg').innerHTML=
+    '<span><span class="dot" style="background:#9aa3ad"></span>In a vehicle ('+fmt(veh)+')</span>'
+   +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
+   +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
+  document.getElementById('modedeaths').innerHTML='Of '+t.killed+' people killed, '+m.ped_killed
+    +' were walking and '+m.bike_killed+' biking ('+m.vuln_killed_share+'% of deaths).';
 }
+
 function buildTrend(){
-  const y=vz.ksi_by_year, allY=[]; for(let yr=vz.years[0];yr<=vz.years[vz.years.length-1];yr++) allY.push(yr);
-  const full=allY.filter(yr=>yr<2026); // drop partial current year from the bar chart
-  const mx=Math.max(...full.map(yr=>y[yr]||0));
-  const worst=full.reduce((a,b)=>(y[b]||0)>(y[a]||0)?b:a, full[0]);
-  document.getElementById('trend').innerHTML=full.map(yr=>{
-    const v=y[yr];
-    if(v==null) return '<div class="b"><div class="bar gap" style="height:12px"></div><div class="yl">·'+String(yr).slice(2)+'</div></div>';
-    const h=Math.round(20+v/mx*70);
-    return '<div class="b"><div class="bar'+(yr===worst?' hi':'')+'" style="height:'+h+'px" title="'+yr+': '+v+'"></div><div class="yl">'+String(yr).slice(2)+'</div></div>';
-  }).join('');
-  document.getElementById('trend-note').textContent='2020 & 2025 pending · worst year so far: '+worst+' ('+y[worst]+' KSI)';
+  const y=vz.ksi_by_year, last=vz.years[vz.years.length-1];
+  const yrs=vz.years.filter(v=>v<last||y[last]>=60); // keep full years; drop a clearly-partial current year
+  const full=vz.years.filter(v=>v!==2026); const partial=vz.years.includes(2026);
+  const vals=full.map(yr=>y[yr]||0), mx=Math.max(...vals), nice=Math.ceil(mx/20)*20;
+  const W=340,H=140,L=30,R=6,T=8,B=20, pw=W-L-R, ph=H-T-B;
+  const n=full.length+(partial?1:0), bw=pw/n*0.7, gap=pw/n;
+  const y2=v=>T+ph-(v/nice)*ph;
+  let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
+  [0,nice/2,nice].forEach(t=>{const yy=y2(t);
+    s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
+      +'<text x="'+(L-5)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3ad">'+t+'</text>';});
+  full.forEach((yr,i)=>{const v=y[yr]; const x=L+gap*i+(gap-bw)/2;
+    if(v==null){ s+='<rect x="'+x+'" y="'+(T+ph-6)+'" width="'+bw+'" height="6" fill="#dde0e4"/>'; }
+    else { const hh=(v/nice)*ph, worst=v===mx; s+='<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(worst?'#7a1419':'#e0584f')+'"><title>'+yr+': '+v+'</title></rect>'; }
+    s+='<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="#9aa3ad">’'+String(yr).slice(2)+'</text>';});
+  if(partial){const i=full.length, x=L+gap*i+(gap-bw)/2, v=y[2026]||0, hh=(v/nice)*ph;
+    s+='<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="#e0584f" opacity=".4"><title>2026 (partial): '+v+'</title></rect>'
+      +'<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="#c2c6cc">’26</text>';}
+  s+='</svg>';
+  document.getElementById('trend').innerHTML=s;
+  const worstYr=full.reduce((a,b)=>(y[b]||0)>(y[a]||0)?b:a,full[0]);
+  document.getElementById('trend-note').textContent='Y axis = people killed or seriously injured per year'
+    +(partial?' · 2026 partial':'')+' · worst: '+worstYr+' ('+y[worstYr]+')';
 }
+
 function openInfo(p){
   const I=document.getElementById('info');
   const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'—';
@@ -274,7 +269,7 @@ function openInfo(p){
       +row('Severe — walking',(p.n_ped_severe||0))
       +row('Severe — biking',(p.n_bike_severe||0))
       +row('All crashes',(p.n_crash||0))+'</div>'
-    +'<div class="g"><h4>The street design that drives risk</h4>'
+    +'<div class="g"><h4>Street design</h4>'
       +row('Lanes',(p.lanes_final!=null?p.lanes_final:'—'))
       +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'—'))
       +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'—'))
@@ -283,22 +278,19 @@ function openInfo(p){
   I.style.display='block';
 }
 
-// controls
 document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
   document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
   p.classList.add('on'); mode=p.dataset.mode; render();
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
-document.getElementById('hin').onchange=e=>{hinOnly=e.target.checked; render();};
-document.getElementById('equity').onchange=e=>{
-  equity=e.target.checked;
-  if(equity){ if(!map.hasLayer(hot)) hot.addTo(map); hot.setStyle(hotStyle); hot.bringToFront(); }
-  else if(map.hasLayer(hot)) map.removeLayer(hot);
-  render();
+document.getElementById('hin').onchange=e=>{
+  if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
+  drawLegend();
 };
 document.getElementById('basemap').onchange=e=>{map.removeLayer(base); base=bases[e.target.value].addTo(map); base.bringToBack();};
-document.getElementById('about').onclick=e=>{e.preventDefault(); sendAbout();};
-function sendAbout(){ alert('Crashes: TxDOT CRIS public extracts, 2016–2024 + partial 2026 (2020 & 2025 pending), each assigned to its nearest city street within 200 ft. Street design & traffic: City of Houston / HCAD. Demographics: U.S. Census ACS 2023 5-year. "Killed or seriously injured" = KABCO K+A. Full methods in the project CODEBOOK on GitHub.'); }
+document.getElementById('about').onclick=e=>{e.preventDefault();
+  alert('City-street crashes only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). Crashes on freeways, tollways, ramps and frontage roads are excluded — those are TxDOT facilities, not the city streets this project studies — and were removed so they are not mis-attributed to nearby cross-streets. Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design & traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
+};
 </script>
 </body>
 </html>

@@ -5,40 +5,40 @@ segment within 200 ft (Dumbaugh/Rae/Wunneburger buffer); divided-road
 halves searched too and credited to the representative segment.
 
 ## Assignment
-- Crashes assigned: **47,929 / 57,848 (82.9%)**
-- Unassigned (> 200 ft from any city street): 9,919 — expected
+- Crashes assigned: **40,997 / 41,177 (99.6%)**
+- Unassigned (> 200 ft from any city street): 180 — expected
   (freeway/feeder crashes on excluded roads, plus geocoding error).
-- Distance to assigned segment (ft): median 5, p90 99, p99 189.
+- Distance to assigned segment (ft): median 4, p90 11, p99 50.
 
 ## Count integrity (each crash counted once → sums match)
-- n_crash: per-segment sum 47,929 vs assigned total 47,929  OK
-- n_severe: per-segment sum 832 vs assigned total 832  OK
-- n_ped: per-segment sum 730 vs assigned total 730  OK
+- n_crash: per-segment sum 40,997 vs assigned total 40,997  OK
+- n_severe: per-segment sum 709 vs assigned total 709  OK
+- n_ped: per-segment sum 799 vs assigned total 799  OK
 
 ## Per-segment outcome columns added
 `n_crash`, `n_injury`, `n_severe` (K+A — the model outcome), `n_fatal`,
 `n_ped`, `n_bike`, `n_ped_severe`, `n_bike_severe`.
 
-- Segments with ≥1 severe crash: 539 of 7,381
-  (7.3%) — most segments have zero, confirming the
+- Segments with ≥1 severe crash: 526 of 7,381
+  (7.1%) — most segments have zero, confirming the
   overdispersed/zero-heavy pattern the negative binomial is built for.
-- Max severe crashes on one segment: 11.
+- Max severe crashes on one segment: 9.
 
 ## Top corridors by severe crashes (sanity check)
 
 name
-Memorial Drive               23
-Washington Avenue            21
-Montrose Boulevard           20
-Westpark Drive               20
-Kirby Drive                  20
-North Braeswood Boulevard    19
-Yale Street                  19
-Westheimer Road              19
-West 34th Street             18
-West Dallas Street           17
-Durham Drive                 17
-Richmond Avenue              17
+Memorial Drive        27
+Washington Avenue     25
+Bissonnet Street      22
+Westheimer Road       19
+Montrose Boulevard    19
+West 34th Street      18
+West Dallas Street    17
+Yale Street           16
+Richmond Avenue       16
+Durham Drive          16
+West Gray Street      16
+Westpark Drive        14
 
 ## Notes
 - Intersection crashes are credited to the nearest leg (count-preserving). A
