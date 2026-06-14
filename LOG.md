@@ -9,6 +9,7 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 - **Travel-mode selector moved into the left control panel** (with Map shows / Display as / Overlay), freeing the header — pills wrap within the sidebar.
 - **Display-mode and HIN explanations tucked behind ⓘ buttons** (click to reveal) instead of always-on paragraphs, decluttering the panel.
 - **Bigger, darker chart axis labels** — years, counts, and hours were too small/faint; bumped to 12 px and a darker gray, taller chart canvas, so the by-year and by-time-of-day charts read easily.
+- **KPI refinements:** added an ⓘ on the Years-of-Life-Lost card explaining the YPLL-before-75 calc (and the age-imputation estimate), so the "estimated" qualifier could come off the subtitle; changed the 3rd KPI from "Killed or seriously injured" to **"Seriously injured"** (624) since deaths are already the 1st card. (KSI remains the underlying metric for the map, charts, and concentration stat.)
 
 Verified in-browser, no console errors.
 

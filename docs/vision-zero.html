@@ -32,6 +32,8 @@
   .tip{display:none;font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;
     background:var(--panel);border-radius:6px;padding:7px 9px}
   .tip.show{display:block}
+  .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
+    box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 16px}
   .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
   .kpi .ic{position:absolute;top:13px;right:13px}
@@ -308,14 +310,20 @@ function drawKPIs(){
   const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
   const conSub='of streets → of KSI'+(year===null?'':' (all years)');
-  const yll=Math.round(yllTotal());
+  const yll=Math.round(yllTotal()), serious=ksi-killed;
+  const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average — so the total is an estimate.';
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false)
-   +kpi(KICON.yll,'Years of life lost', fmt(yll), 'estimated · '+who, false)
-   +kpi(KICON.ksi,'Killed or seriously injured (KSI)', fmt(ksi), 'people · '+who, false)
+   +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip)
+   +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false)
    +kpi(KICON.conc,'A few streets carry most harm', vz.hin.pct_streets+'% → '+vz.hin.pct_ksi+'%', conSub, true);
 }
-function kpi(ic,l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
+function kpi(ic,l,v,s,neutral,tip){
+  const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
+  const tipDiv = tip ? '<div class="tip ktip">'+tip+'</div>' : '';
+  return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
+}
+function toggleTip(btn){ const t=btn.closest('.kpi').querySelector('.tip'); if(t) t.classList.toggle('show'); }
 function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])) s+=p[9]||0; } return s; }
 
 function drawLegend(){
