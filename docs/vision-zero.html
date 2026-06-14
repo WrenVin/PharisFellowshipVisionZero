@@ -21,11 +21,17 @@
   .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
   h1{font-size:21px;margin:0;font-weight:700}
   .tag{font-size:13px;color:var(--muted);margin-top:3px}
-  .lens{display:flex;gap:6px;align-items:center}
-  .lens .lab{font-size:12px;color:var(--muted);margin-right:2px}
-  .pill{font-size:13px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);
+  .lens{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);
     background:#fff;color:var(--muted);cursor:pointer;user-select:none}
   .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
+  .info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+    border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);
+    font:italic 700 10px/1 Georgia,serif;cursor:pointer;margin-left:5px;vertical-align:middle;padding:0}
+  .info:hover{border-color:var(--accent);color:var(--accent)}
+  .tip{display:none;font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;
+    background:var(--panel);border-radius:6px;padding:7px 9px}
+  .tip.show{display:block}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 16px}
   .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
   .kpi .ic{position:absolute;top:13px;right:13px}
@@ -92,13 +98,6 @@
       <h1>Vision Zero · District C</h1>
       <div class="tag">Traffic deaths and serious injuries on city streets in Houston City Council District C.</div>
     </div>
-    <div class="lens">
-      <span class="lab">Travel mode</span>
-      <span class="pill on" data-mode="all">Everyone</span>
-      <span class="pill" data-mode="veh">Driving</span>
-      <span class="pill" data-mode="ped">Walking</span>
-      <span class="pill" data-mode="bike">Biking</span>
-    </div>
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -106,20 +105,29 @@
   <div class="main">
     <div class="ctrl">
       <div class="grp">
+        <h3>Travel mode</h3>
+        <div class="lens">
+          <span class="pill on" data-mode="all">Everyone</span>
+          <span class="pill" data-mode="veh">Driving</span>
+          <span class="pill" data-mode="ped">Walking</span>
+          <span class="pill" data-mode="bike">Biking</span>
+        </div>
+      </div>
+      <div class="grp">
         <h3>Map shows</h3>
         <label class="opt"><input type="radio" name="sev" value="ksi" checked> Killed or seriously injured</label>
         <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
       </div>
       <div class="grp">
-        <h3>Display as</h3>
+        <h3>Display as <button class="info" aria-label="About display modes">i</button></h3>
         <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded streets</label>
         <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Streets shade by how many crashes occurred on each block; locations plot each crash as a dot.</div>
+        <div class="tip">Shaded streets shade each block by how many crashes occurred on it; crash locations plot every crash as an individual dot.</div>
       </div>
       <div class="grp">
-        <h3>Overlay</h3>
+        <h3>Overlay <button class="info" aria-label="About the High Injury Network">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">The streets the City officially flags as carrying the most severe crashes (2022). Turn on to compare with where crashes actually fall.</div>
+        <div class="tip">The streets the City officially flags as carrying the most severe crashes (2022). Turn it on to compare with where crashes actually fall.</div>
       </div>
       <div style="font-size:11.5px;color:var(--muted)">Click any street (or crash dot) for its details. Click a year bar below to view a single year.</div>
     </div>
@@ -363,14 +371,14 @@ function stackLegend(){ return '<span><span class="dot" style="background:'+FATA
   +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>'; }
 // labels[], fatal[], serious[]; opt:{clickKeys?, fadeIdx?:Set, h?}
 function barChartSVG(labels, fatal, serious, opt){
-  opt=opt||{}; const W=340, H=opt.h||140, L=22, R=6, T=8, B=18;
+  opt=opt||{}; const W=340, H=opt.h||156, L=30, R=6, T=10, B=26;
   const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
   const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
   const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
   let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
   [0,nice/2,nice].forEach(t=>{const yy=y(t);
     s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
-      +'<text x="'+(L-4)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3ad">'+t+'</text>'; });
+      +'<text x="'+(L-5)+'" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#5b6672">'+t+'</text>'; });
   for(let i=0;i<n;i++){
     const x=L+gap*i+(gap-bw)/2, se=serious[i]||0, fa=fatal[i]||0;
     const hSe=(se/nice)*ph, hFa=(fa/nice)*ph, ySe=T+ph-hSe, yFa=ySe-hFa;
@@ -378,7 +386,7 @@ function barChartSVG(labels, fatal, serious, opt){
     if(se>0) s+='<rect x="'+x+'" y="'+ySe+'" width="'+bw+'" height="'+hSe+'" rx="1" fill="'+SERIOUS_C+'" opacity="'+op+'"/>';
     if(fa>0) s+='<rect x="'+x+'" y="'+yFa+'" width="'+bw+'" height="'+hFa+'" rx="1" fill="'+FATAL_C+'" opacity="'+op+'"/>';
     if(opt.clickKeys) s+='<rect class="barhit" x="'+(x-1)+'" y="'+T+'" width="'+(bw+2)+'" height="'+ph+'" style="cursor:pointer" onclick="'+opt.clickKeys[i]+'"><title>'+tot[i]+' KSI — click</title></rect>';
-    if(labels[i]) s+='<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="9" fill="#9aa3ad">'+labels[i]+'</text>';
+    if(labels[i]) s+='<text x="'+(x+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-size="12" font-weight="500" fill="#5b6672">'+labels[i]+'</text>';
   }
   return s+'</svg>';
 }
@@ -406,7 +414,7 @@ function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:132});
+  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:150});
   document.getElementById('tod-sub').textContent='Hour of day'+(year===null?'':' · '+year);
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
@@ -444,6 +452,10 @@ function openInfo(p){
 document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
   document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
   p.classList.add('on'); mode=p.dataset.mode; render();
+});
+document.querySelectorAll('.info').forEach(b=>b.onclick=e=>{
+  e.preventDefault(); const tip=b.closest('.grp').querySelector('.tip');
+  if(tip) tip.classList.toggle('show');
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
 document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});

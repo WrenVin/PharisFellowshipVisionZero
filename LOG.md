@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: layout & legibility polish
+
+- **Travel-mode selector moved into the left control panel** (with Map shows / Display as / Overlay), freeing the header — pills wrap within the sidebar.
+- **Display-mode and HIN explanations tucked behind ⓘ buttons** (click to reveal) instead of always-on paragraphs, decluttering the panel.
+- **Bigger, darker chart axis labels** — years, counts, and hours were too small/faint; bumped to 12 px and a darker gray, taller chart canvas, so the by-year and by-time-of-day charts read easily.
+
+Verified in-browser, no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: Years of Life Lost, by-month + by-time-of-day, KPI icons
 
 Round of Austin-inspired upgrades (Vincent shared Austin's Vision Zero dashboard as the bar to clear):
