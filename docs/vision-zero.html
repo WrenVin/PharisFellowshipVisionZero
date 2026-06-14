@@ -94,6 +94,22 @@
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
   #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
     justify-content:center;color:var(--muted);z-index:700}
+  /* Data & methods modal */
+  #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
+    background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
+  #modal.show{display:flex}
+  .sheet{background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(16,24,40,.3)}
+  .sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+  .sheet .shd h2{font-size:18px;margin:0;font-weight:700}
+  .sheet .shd .x{border:none;background:none;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;padding:0 2px}
+  .sheet .sbody{padding:6px 22px 20px}
+  .sheet section{padding:13px 0;border-bottom:1px solid var(--panel)}
+  .sheet section:last-child{border-bottom:none}
+  .sheet section h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 5px;font-weight:700}
+  .sheet section p{font-size:13px;line-height:1.55;color:var(--ink);margin:0 0 6px}
+  .sheet section p:last-child{margin-bottom:0}
+  .sheet section .lbl{font-weight:600}
+  .sheet a{color:#1d4ed8}
   @media(max-width:680px){.ctrl{flex-basis:100%}}
 </style>
 </head>
@@ -215,6 +231,39 @@
   <div class="foot">
     <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
     <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
+  </div>
+</div>
+
+<div id="modal" role="dialog" aria-modal="true" aria-label="Data and methods">
+  <div class="sheet">
+    <div class="shd"><h2>Data &amp; methods</h2><button class="x" id="modal-x" aria-label="Close">×</button></div>
+    <div class="sbody">
+      <section>
+        <h3>What's shown</h3>
+        <p>Traffic deaths and serious injuries on <span class="lbl">surface streets across the City of Houston</span>, 2016–2025 plus a partial 2026. Source: TxDOT CRIS public crash extracts.</p>
+      </section>
+      <section>
+        <h3>Which roads</h3>
+        <p>We <span class="lbl">exclude limited-access freeways, tollways, ramps and frontage roads</span> (a different facility type, and their crashes snap onto nearby streets), but <span class="lbl">keep at-grade arterials regardless of owner</span>, including state-owned ones like S Main / US-90A, SH 6, and Westheimer / FM 1093. This matches Austin's Vision Zero dashboard and the City's own High Injury Network, which include state arterials.</p>
+      </section>
+      <section>
+        <h3>Road ownership</h3>
+        <p>Each street and crash is labeled <span class="lbl">city-owned vs TxDOT-owned</span> (from TxDOT's roadway inventory) so the dashboard can show the state-owned share; the City must partner with TxDOT to redesign those. A street is counted as TxDOT-owned only where it runs <span class="lbl">parallel to</span> a state roadway, so a city street that merely bridges over a freeway is not mislabeled.</p>
+      </section>
+      <section>
+        <h3>How crashes map to streets</h3>
+        <p>Each crash is assigned to its <span class="lbl">nearest street within 200 ft</span> (median 4 ft).</p>
+      </section>
+      <section>
+        <h3>Definitions</h3>
+        <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
+        <p><span class="lbl">Years of life lost</span> = years before age 75 summed over those killed (CDC YPLL convention). The public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the total an estimate.</p>
+      </section>
+      <section>
+        <h3>Overlays &amp; sources</h3>
+        <p>The <span class="lbl">High Injury Network</span> overlay is the City of Houston's official Vision Zero HIN (2022). Street design and traffic volume: City of Houston / HCAD. Full methods are in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -735,9 +784,14 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend();
 };
-document.getElementById('about').onclick=e=>{e.preventDefault();
-  alert('Surface streets citywide. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). We exclude limited-access freeways, tollways, ramps and frontage roads (a different facility type, and they snap onto nearby streets), but KEEP at-grade arterials regardless of owner, including state-owned ones like S Main/US-90A, SH 6, and Westheimer/FM 1093. This matches Austin\'s Vision Zero dashboard and the City\'s own High Injury Network, which include state arterials. Each street and crash is labeled city-owned vs TxDOT-owned (from TxDOT\'s roadway inventory) so the dashboard can show the state-owned share; the City must partner with TxDOT to redesign those. Each crash is assigned to its nearest street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. Years of life lost = years before age 75 summed over those killed (CDC YPLL convention); the public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the YLL total an estimate. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
-};
+(()=>{ const m=document.getElementById('modal');
+  const open=e=>{e.preventDefault(); m.classList.add('show');};
+  const close=()=>m.classList.remove('show');
+  document.getElementById('about').onclick=open;
+  document.getElementById('modal-x').onclick=close;
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });   // click backdrop to dismiss
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
 </script>
 </body>
 </html>
