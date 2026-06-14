@@ -191,7 +191,7 @@ TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, 
 
 ## Crash outcome counts (per segment — assigned from CRIS)
 
-Added by `src/assign_crashes.py`: each crash credited to its single nearest segment within 200 ft (divided-road halves searched too, credited to the representative segment). Counts sum back to the assigned-crash total (each crash counted once). Reflects whatever years are in `data/raw/CRIS/` (currently 2016–2024 + partial 2026). See `reports/crash_assignment_report.md`.
+Added by `src/assign_crashes.py`: each crash credited to its single nearest segment within 200 ft (divided-road halves searched too, credited to the representative segment). Counts sum back to the assigned-crash total (each crash counted once). Reflects whatever years are in `data/raw/CRIS/` (currently 2016–2025 + partial 2026). See `reports/crash_assignment_report.md`.
 
 | Variable | Type | Description |
 |---|---|---|
@@ -231,4 +231,4 @@ Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparal
 2. **Merged divided-road geometry is one half's line**, not the true median axis — fine for analysis and mapping, but don't measure median widths from it.
 3. **Sliver cleanup applied** (p5 length now 145 ft). 31 named short segments without a same-named neighbor were conservatively kept; `*_link` turn lanes live in `removed_slivers`, not the network.
 4. **`maxspeed` is posted speed**, not the operating speed that mediates crash severity in the causal model.
-5. Crash counts, AADT (traffic volume), land use, and demographics are **not in this dataset yet** — they arrive with tier-3 conflation and the CRIS extract.
+5. **Operating speed is sparse** (`op_speed_85_mph`, ~4% coverage) — the design→severity mediator is measured at only a handful of count stations, so any analysis using it leans on those few segments. ADT, land use, demographics, and crash counts are all now conflated in (see sections above).

@@ -102,6 +102,8 @@ dist = near.loc[near["target"].notna(), "dist_ft"]
 top = (seg[seg["name"].notna()].groupby("name")["n_severe"].sum()
        .sort_values(ascending=False).head(12))
 unassigned = n_total - n_assigned
+yrs = sorted(int(y) for y in crashes["year"].dropna().unique())
+yr_range = f"{yrs[0]}–{yrs[-1]}" if yrs else "n/a"
 
 report = f"""# Crash Assignment Report (Step 3)
 
@@ -134,9 +136,8 @@ halves searched too and credited to the representative segment.
 ## Notes
 - Intersection crashes are credited to the nearest leg (count-preserving). A
   finer intersection-influence assignment is possible later if needed.
-- Counts reflect the years currently in data/raw/CRIS/ (2016–2024 + partial
-  2026; 2020/2025 pending). Rerun build_crashes.py then assign_crashes.py to
-  refresh when those arrive.
+- Counts reflect the years currently in data/raw/CRIS/ ({yr_range}). Rerun
+  build_crashes.py then assign_crashes.py to refresh when new years arrive.
 """
 REPORTS.mkdir(exist_ok=True)
 (REPORTS / "crash_assignment_report.md").write_text(report)

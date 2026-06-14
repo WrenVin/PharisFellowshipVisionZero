@@ -43,6 +43,5 @@ Westpark Drive        14
 ## Notes
 - Intersection crashes are credited to the nearest leg (count-preserving). A
   finer intersection-influence assignment is possible later if needed.
-- Counts reflect the years currently in data/raw/CRIS/ (2016–2024 + partial
-  2026; 2020/2025 pending). Rerun build_crashes.py then assign_crashes.py to
-  refresh when those arrive.
+- Counts reflect the years currently in data/raw/CRIS/ (2016–2026). Rerun
+  build_crashes.py then assign_crashes.py to refresh when new years arrive.

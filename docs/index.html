@@ -186,7 +186,7 @@
         <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations — readings span <b>2012–2026</b>; most recent per location used</td></tr>
         <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston — retrieved June&nbsp;2026</td></tr>
         <tr><td>Neighborhood demographics</td><td>U.S. Census ACS <b>2023</b> 5-year estimates (covering 2019–2023)</td></tr>
-        <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts — <b>2016–2024 + partial 2026</b> (2020 &amp; 2025 pending); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
+        <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts — <b>2016–2025 + partial 2026</b>; city streets only (freeway crashes excluded); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
         <tr><td>District boundary</td><td>City of Houston GIS — current council districts (post-2020 redistricting)</td></tr>
       </table>
       <p class="note">"No data" means a value isn't recorded in the source — not that the feature is
@@ -411,7 +411,7 @@ function drawLegend(){
     el.innerHTML='<div class="row"><span class="sw" style="background:'+COUNTZERO+'"></span>0 — none recorded</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+REDS.join(',')+')"></div>'
       +'<div class="gradlab"><span>1</span><span>'+Math.round(mx)+'</span></div>'
-      +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2026 (2020/25 pending)</div>';
+      +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2026</div>';
   } else {
     const br=quantileBreaks(colorBy);
     const fmt=v=> m.money?'$'+Math.round(v).toLocaleString():Math.round(v).toLocaleString()+(m.unit||'');
