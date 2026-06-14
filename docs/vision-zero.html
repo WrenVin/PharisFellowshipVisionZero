@@ -35,8 +35,6 @@
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
     box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 8px}
-  #ownership{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.45}
-  #ownership b{color:#6a3d9a}
   .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
   .kpi .ic{position:absolute;top:13px;right:13px}
   .kpi .ic svg{width:22px;height:22px;display:block}
@@ -107,7 +105,6 @@
   </div>
 
   <div class="kpis" id="kpis"></div>
-  <div id="ownership"></div>
 
   <div class="main">
     <div class="ctrl">
@@ -123,6 +120,13 @@
           <span class="pill" data-mode="ped">Walking</span>
           <span class="pill" data-mode="bike">Biking</span>
         </div>
+      </div>
+      <div class="grp">
+        <h3>Road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
+        <label class="opt"><input type="radio" name="owner" value="all" checked> All roads</label>
+        <label class="opt"><input type="radio" name="owner" value="city"> City-owned only</label>
+        <label class="opt"><input type="radio" name="owner" value="txdot"> TxDOT (state) only</label>
+        <div class="tip">Whether the City or TxDOT owns each road (from TxDOT's roadway inventory). The City can only redesign its own streets; it must partner with the state on TxDOT-owned arterials. Limited-access freeways are excluded from this dashboard entirely.</div>
       </div>
       <div class="grp">
         <h3>Map shows</h3>
@@ -181,6 +185,14 @@
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
     </div>
     <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
+      <div class="sub" id="own-sub">Killed or seriously injured</div>
+      <div class="stack" id="ownbar"></div>
+      <div class="legrow" id="ownleg"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="ownnote"></div>
+      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The City can redesign its own streets directly; TxDOT-owned arterials (state highways, FM roads) need state coordination. Limited-access freeways are excluded entirely.</div>
+    </div>
+    <div class="card" id="hin-card" style="display:none">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 6H15a3 3 0 0 1 3 3v6.5"/></svg></span>Crashes vs. the High Injury Network <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
       <div class="sub" id="hin-sub">Killed or seriously injured</div>
       <div class="stack" id="hinbar"></div>
@@ -202,10 +214,11 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
-let records=[], pts=[], activeCounts={}, _breaks=[], seg2dist={}, distLayer=null, distFeats=[];
+let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
+let records=[], pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
+const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
@@ -233,15 +246,15 @@ function segCount(pr){
 }
 function computeCounts(){
   activeCounts={};
-  if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district)) activeCounts[p.seg_id]=segCount(p);}); }
-  else { for(const r of records){ if(r[1]===year && recMatch(r) && (r[0] in seg2dist) && inDist(seg2dist[r[0]])) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
+  if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
+  else { for(const r of records){ if(r[1]===year && recMatch(r) && (r[0] in seg2dist) && inDist(seg2dist[r[0]]) && ownerOk(seg2tx[r[0]])) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
   let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
   _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
 }
 function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=activeCounts[k];return m;}
 function rampIdx(v){let i=0;while(i<_breaks.length&&v>_breaks[i])i++;return i;}
 function styleFor(f){
-  if(!inDist(f.properties.district)) return {opacity:0, weight:0};   // hide other districts
+  if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
   const v=activeCounts[f.properties.seg_id]||0, sel=f.properties.seg_id===selId;
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
   const i=rampIdx(v); return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
@@ -251,7 +264,7 @@ function styleFor(f){
 // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
-  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10])) continue;
+  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13])) continue;
     const s=p[2],f=p[3],pe=p[4],bi=p[5];
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi};
@@ -259,7 +272,7 @@ function tally(y){
 // HIN-style concentration within the active district: top 6% of street-miles by KSI -> % of KSI
 function concentration(){
   const rows=[];
-  geo.eachLayer(l=>{const p=l.feature.properties; if(!inDist(p.district)) return;
+  geo.eachLayer(l=>{const p=l.feature.properties; if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;
     rows.push([p.n_severe||0, (p.length_ft||0)/5280]);});
   rows.sort((a,b)=>b[0]-a[0]);
   let totSev=0, totMi=0; for(const r of rows){totSev+=r[0]; totMi+=r[1];}
@@ -287,7 +300,7 @@ Promise.all([
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,recs,points,dists])=>{
   vz=summary; records=recs; pts=points;
-  for(const f of seg.features) seg2dist[f.properties.seg_id]=f.properties.district;  // seg -> district lookup
+  for(const f of seg.features){ seg2dist[f.properties.seg_id]=f.properties.district; seg2tx[f.properties.seg_id]=!!f.properties.on_txdot; }  // seg -> district + ownership
   if(dists && dists.features && dists.features.length) setupDistricts(dists);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   // white casing under a crisp purple core so the HIN reads clearly over the shaded streets
@@ -304,7 +317,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5]) || !inDist(p[10])) continue;
+      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -317,7 +330,7 @@ Promise.all([
   render();
 });
 
-function faintStyle(f){ if(!inDist(f.properties.district)) return {opacity:0, weight:0};
+function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
   return {color:ZERO, weight:1, opacity:.35}; }
 function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
 function buildPoints(){
@@ -330,7 +343,7 @@ function buildPoints(){
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier]
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inDist(p[10])) continue;
+    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -341,7 +354,7 @@ function render(){
   computeCounts(); restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawOwnership(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawHIN(); drawViewing();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing();
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
@@ -408,7 +421,7 @@ function kpi(ic,l,v,s,neutral,tip){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -455,7 +468,7 @@ const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
@@ -471,18 +484,25 @@ function drawEquity(){
     +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
 }
 
-// --- ownership: share of KSI on TxDOT-owned (state) roads vs city-owned ---
+// --- by road owner: KSI on city-owned vs TxDOT-owned roads (mode/year/district aware) ---
+const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
-  let on=0, tot=0;
+  let cityN=0, txN=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI
-    tot++; if(p[13]===1) on++; }
-  const el=document.getElementById('ownership');
-  if(tot<=0){ el.innerHTML=''; return; }
-  const pct=Math.round(100*on/tot);
-  el.innerHTML='<b>'+pct+'%</b> of these killed or seriously injured are on <b>TxDOT-owned (state) roads</b> '
-    +'(state highways and FM arterials within the city); the City must partner with the state to redesign those. '
-    +'The other '+(100-pct)+'% are on city-owned streets. Limited-access freeways are excluded entirely.';
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+    if(p[13]===1) txN++; else cityN++; }
+  const tot=cityN+txN;
+  document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
+  if(tot<=0){ document.getElementById('ownbar').innerHTML=''; document.getElementById('ownleg').innerHTML='';
+    document.getElementById('ownnote').textContent='No KSI for this view.'; return; }
+  const pct=x=>Math.round(100*x/tot);
+  document.getElementById('ownbar').innerHTML=
+    '<div style="width:'+pct(cityN)+'%;background:'+OWN_COL.city+'">'+(pct(cityN)>=8?pct(cityN)+'%':'')+'</div>'
+   +'<div style="width:'+pct(txN)+'%;background:'+OWN_COL.txdot+'">'+(pct(txN)>=8?pct(txN)+'%':'')+'</div>';
+  document.getElementById('ownleg').innerHTML=
+    '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
+   +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
+  document.getElementById('ownnote').innerHTML='<b>'+pct(txN)+'%</b> are on TxDOT-owned (state) arterials; the City must partner with the state to redesign those.';
 }
 // --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
 function drawHIN(){
@@ -510,7 +530,7 @@ function drawHIN(){
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]); }   // severe + lens + district
+function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]) && ownerOk(p[13]); }   // severe + lens + district + owner
 function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
 function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;
@@ -620,6 +640,7 @@ document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
 document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});
+document.querySelectorAll('input[name=owner]').forEach(r=>r.onchange=()=>{owner=document.querySelector('input[name=owner]:checked').value; render();});
 document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend();

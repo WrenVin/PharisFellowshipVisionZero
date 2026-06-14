@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Ownership as a filterable dimension; hide the HIN card
+
+Per Vincent: turned road ownership from a static text disclaimer into a proper, interactive part of the dashboard, and hid the HIN-comparison card.
+
+- **Hid** the "Crashes vs. the High Injury Network" card (`display:none`, kept in the HTML + `drawHIN` for easy re-enable; `drawHIN` dropped from `render`). The HIN map overlay toggle stays.
+- **Removed** the top-of-page ownership text note; added a **"By road owner" card** (stacked bar: city-owned vs TxDOT/state KSI, mode/year/district aware) alongside the other breakdowns. Citywide: 84% city / 16% TxDOT.
+- **Added a "Road owner" filter** to the control panel (All roads / City-owned only / TxDOT (state) only). It filters everything — map, KPIs, all charts, concentration, crash dots — via an `on_txdot` flag on segments (`seg2tx` lookup) and crash points (field 13). The "By road owner" card itself shows the full split regardless of the filter (it IS the split).
+
+Verified in-browser (all three owner modes; TxDOT-only isolates the state arterials on the map; KPIs reconcile), no console errors.
+
+---
+
 ## 2026-06-14 — Scope decision (revised): keep state arterials, LABEL ownership (don't exclude)
 
 Reconsidered the previous "drop all TxDOT roads" change — Vincent felt conflicted because the City's HIN includes TxDOT arterials. Researched peer practice and concluded he was right; **reverted to keeping at-grade state arterials, excluding only limited-access freeways, and labeling ownership instead.**
