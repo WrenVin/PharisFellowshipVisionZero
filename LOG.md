@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: whole-street selection, modal, filter-aware KPI, legend fix
+
+Four review fixes (each its own commit):
+- **Data & methods** is now an organized modal (sectioned: what's shown, which roads, ownership, crash assignment, definitions, sources) instead of one run-on `alert()`.
+- **Select a street selects the whole street.** Clicking a segment or searching now selects every in-filter segment of that street name, highlights the entire corridor in blue, and the info panel SUMS crash counts across the blocks (KSI, killed, severe walking/biking, all crashes) with design shown as ranges (lanes, width, speed, traffic) plus block count and total miles. The selection is filter-aware: changing district or owner re-derives it to just the part within the filter (e.g. Westheimer 236 blocks, District G 161, TxDOT-only 162 + city 74), and clears if nothing remains. Replaced single-segment `selId` with `selStreet`/`selIds`; removed the now-dead `openInfo`. Also fixed the control dropdowns rendering white-on-white under macOS dark mode (`color-scheme:light` + explicit option colors).
+- **Legend** no longer floats in a whitespace band below the map: the map fills the wrapper (`min-height` + `height:100%` + an `invalidateSize` after load).
+- **"A few streets carry most harm" KPI** now updates with all filters (mode/severity/year/district/owner) by ranking on the already-filter-aware `activeCounts`; sub-label says "of crashes" when showing all crashes.
+
+(Drafted via parallel subagents, integrated and verified one at a time. Fixed one drafting bug where a district change cleared the street selection instead of narrowing it.)
+
+---
+
 ## 2026-06-14 — Fix: ownership label flagged freeway OVERPASSES as TxDOT-owned
 
 Vincent spotted plain city streets being shown as TxDOT-owned where they cross over interstates. Cause: the `on_txdot` label used a distance-only test (>=50% of a segment's length within 60 ft of a TxDOT on-system roadway). A street that bridges over a freeway runs directly above the wide freeway corridor, so a short overpass had most of its length inside the buffer and got mislabeled state-owned even though it crosses the freeway perpendicularly.

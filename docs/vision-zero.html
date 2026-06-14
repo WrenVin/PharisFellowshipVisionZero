@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{--ink:#15212b;--muted:#5b6672;--line:#e4e7eb;--panel:#f7f8fa;--accent:#b4232a;
-    --sans:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif}
+    --sans:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color-scheme:light}
   body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .barhit{fill:transparent;transition:fill .12s}
   .barhit:hover{fill:rgba(122,20,25,.08)}
@@ -51,9 +51,10 @@
   .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
   .ctrl .grp{margin-bottom:16px}
   .ctrl select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
-    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer}
+    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
+  .ctrl select option{background:#fff;color:var(--ink)}
   .ctrl input[type=text]{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
-    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit}
+    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
   .ctrl input[type=text]:focus{outline:none;border-color:var(--accent)}
   .ctrl .note{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
@@ -273,7 +274,7 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
+let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
@@ -324,9 +325,10 @@ function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=
 function rampIdx(v){let i=0;while(i<_breaks.length&&v>_breaks[i])i++;return i;}
 function styleFor(f){
   if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
-  const v=activeCounts[f.properties.seg_id]||0, sel=f.properties.seg_id===selId;
+  const v=activeCounts[f.properties.seg_id]||0;
+  if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5.5, opacity:.95};  // selected street
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
-  const i=rampIdx(v); return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
+  const i=rampIdx(v); return {color:REDS[i], weight: 3.2+i*0.9, opacity:.95};
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
@@ -379,7 +381,10 @@ Promise.all([
   ]);
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
-      selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
+      const p=f.properties;
+      if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;   // ignore filtered-out segments
+      selectStreet(p.name && p.name.trim() ? p.name : '__seg__'+p.seg_id, false);
+      L.DomEvent.stop(e); });
   }}).addTo(map);
   map.on('click', e=>{  // crash-locations view: click near a dot to see that crash
     if(view!=='points') return;
@@ -414,21 +419,50 @@ function doSearch(q){
   q=(q||'').trim().toLowerCase();
   const note=document.getElementById('searchnote');
   if(!q){ note.textContent=''; return; }
-  const hits=[];
-  for(const nm in streetIndex){ if(nm.includes(q)) hits.push(...streetIndex[nm]); }
-  if(!hits.length){ note.textContent='No street matches "'+q+'".'; return; }
-  const grp=L.featureGroup(hits);
-  try{ map.fitBounds(grp.getBounds().pad(0.2)); }catch(e){}
-  note.innerHTML=hits.length+' segment'+(hits.length>1?'s':'')+' found. <span style="color:#1d4ed8;cursor:pointer" onclick="clearSearch()">clear ✕</span>';
-  // select the highest-KSI matching segment so its details open
-  let best=hits[0].feature;
-  for(const l of hits){ if((l.feature.properties.n_severe||0) > (best.properties.n_severe||0)) best=l.feature; }
-  selId=best.properties.seg_id; restyle(); openInfo(best.properties);
+  // prefer an exact street-name match, else the first name that contains the query
+  let name=null;
+  if(streetIndex[q]) name=streetIndex[q][0].feature.properties.name;
+  else { for(const nm in streetIndex){ if(nm.includes(q)){ name=streetIndex[nm][0].feature.properties.name; break; } } }
+  if(!name){ note.textContent='No street matches "'+q+'".'; return; }
+  const ids=selectStreet(name, true);
+  if(!ids.length){ note.textContent='"'+name+'" has nothing in the current filter.'; return; }
+  note.innerHTML=ids.length+' block'+(ids.length>1?'s':'')+' selected. <span style="color:#1d4ed8;cursor:pointer" onclick="clearSearch()">clear ✕</span>';
 }
 function clearSearch(){ document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
-  selId=null; document.getElementById('info').style.display='none'; restyle(); }
+  clearSel(); }
+// select every in-filter segment of a street by name; returns the seg_ids selected.
+// fitView: pan/zoom to the street (true for search, false for a map click).
+function selectStreet(name, fitView){
+  selStreet=name;
+  const props=collectStreetProps();
+  selIds=new Set(props.map(p=>p.seg_id));
+  restyle();
+  if(!props.length){ selStreet=null; document.getElementById('info').style.display='none'; return []; }
+  if(fitView){ const ll=[]; geo.eachLayer(l=>{ if(selIds.has(l.feature.properties.seg_id)) ll.push(l); });
+    if(ll.length){ try{ map.fitBounds(L.featureGroup(ll).getBounds().pad(0.2)); }catch(e){} } }
+  openInfoStreet(name, props);
+  return [...selIds];
+}
+// the in-filter properties for the current selStreet (handles the __seg__ fallback)
+function collectStreetProps(){
+  if(selStreet===null) return [];
+  const out=[];
+  if(selStreet.startsWith('__seg__')){
+    const id=selStreet.slice(7);
+    geo.eachLayer(l=>{ const p=l.feature.properties;
+      if(String(p.seg_id)===id && inDist(p.district) && ownerOk(p.on_txdot)) out.push(p); });
+  } else {
+    const layers=streetIndex[selStreet.toLowerCase()]||[];
+    for(const l of layers){ const p=l.feature.properties;
+      if(inDist(p.district) && ownerOk(p.on_txdot)) out.push(p); }
+  }
+  return out;
+}
+function clearSel(){ selStreet=null; selIds=new Set();
+  document.getElementById('info').style.display='none'; restyle(); }
 
 function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
+  if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5, opacity:.9};
   return {color:ZERO, weight:1, opacity:.35}; }
 function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
 function buildPoints(){
@@ -449,7 +483,13 @@ function buildPoints(){
   ptLayer=g.addTo(map);
 }
 function render(){
-  computeCounts(); restyle();
+  computeCounts();
+  if(selStreet!==null){   // re-derive the selection within the (possibly new) filter
+    const props=collectStreetProps();
+    if(props.length){ selIds=new Set(props.map(p=>p.seg_id)); openInfoStreet(selStreet, props); }
+    else clearSel();
+  }
+  restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing();
@@ -479,7 +519,8 @@ function setupDistricts(dists){
 }
 function selectDistrict(d){
   district = d || null;
-  selId=null; document.getElementById('info').style.display='none';
+  // keep any selected street; render() re-derives it within the new district
+  // (narrowing to the in-district part, or clearing if none remains).
   if(distLayer){ map.removeLayer(distLayer); distLayer=null; }
   if(district!==null){
     const f=distFeats.find(x=>x.properties.DISTRICT===district);
@@ -490,7 +531,7 @@ function selectDistrict(d){
   render();
 }
 function clearView(){
-  year=null; selId=null;
+  year=null; clearSel();
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders
 }
@@ -688,7 +729,7 @@ function drawTimeOfDay(){
   document.getElementById('tod-sub').textContent='By hour of day, '+span;
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
-function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
+function selectYear(y){ year = (y===year) ? null : y; render(); }
 const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
 // nearest street segment to a crash, found geometrically at click time (crash
@@ -749,24 +790,42 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   L.popup({closeButton:true,maxWidth:260}).setLatLng([p[0],p[1]]).setContent(h).openOn(map);
 }
 
-function openInfo(p){
+// sum crash counts across all selected segments of a street; show design as ranges
+function openInfoStreet(name, props){
   const I=document.getElementById('info');
-  const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'n/a';
+  const sum=f=>props.reduce((a,p)=>a+(p[f]||0),0);
+  const S={n_severe:sum('n_severe'),n_fatal:sum('n_fatal'),n_ped_severe:sum('n_ped_severe'),
+    n_bike_severe:sum('n_bike_severe'),n_crash:sum('n_crash')};
+  // range "min–max" (or single value if uniform) for design fields that don't add up
+  const range=(f,suf)=>{ const vs=props.map(p=>p[f]).filter(v=>v!=null);
+    if(!vs.length) return 'n/a';
+    const mn=Math.min(...vs), mx=Math.max(...vs); suf=suf||'';
+    return mn===mx ? (fmt(mn)+suf) : (fmt(mn)+'–'+fmt(mx)+suf); };
+  // predominant sidewalk value across the selected blocks
+  const swMap={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'};
+  const swCount={}; for(const p of props){ const v=p.sidewalk_presence; if(v) swCount[v]=(swCount[v]||0)+1; }
+  let swTop=null,swN=-1; for(const k in swCount){ if(swCount[k]>swN){swN=swCount[k];swTop=k;} }
+  const sw=swTop?(swMap[swTop]||swTop):'n/a';
+  const miles=props.reduce((a,p)=>a+(p.length_ft||0),0)/5280;
+  const cls=props[0]?props[0].road_class:'';
+  const nBlocks=props.length;
   const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
-  I.innerHTML='<button class="x" onclick="document.getElementById(\'info\').style.display=\'none\';selId=null;restyle()">×</button>'
-    +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class+'</div></div>'
+  const title=name.startsWith('__seg__')?'(unnamed street)':name;
+  I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
+    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls
+      +' · '+nBlocks+' block'+(nBlocks>1?'s':'')+' · '+miles.toFixed(2)+' mi</div></div>'
     +'<div class="g"><h4>Crash history (2016–2026)</h4>'
-      +row('Killed or seriously injured',(p.n_severe||0),p.n_severe>0)
-      +row('People killed',(p.n_fatal||0),p.n_fatal>0)
-      +row('Severe (walking)',(p.n_ped_severe||0))
-      +row('Severe (biking)',(p.n_bike_severe||0))
-      +row('All crashes',(p.n_crash||0))+'</div>'
+      +row('Killed or seriously injured',fmt(S.n_severe),S.n_severe>0)
+      +row('People killed',fmt(S.n_fatal),S.n_fatal>0)
+      +row('Severe (walking)',fmt(S.n_ped_severe))
+      +row('Severe (biking)',fmt(S.n_bike_severe))
+      +row('All crashes',fmt(S.n_crash))+'</div>'
     +'<div class="g"><h4>Street design</h4>'
-      +row('Lanes',(p.lanes_final!=null?p.lanes_final:'n/a'))
-      +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'n/a'))
-      +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'n/a'))
+      +row('Lanes',range('lanes_final'))
+      +row('Roadway width',range('roadway_width_ft',' ft'))
+      +row('Posted speed',range('posted_speed_mph',' mph'))
       +row('Sidewalks',sw)
-      +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>';
+      +row('Traffic volume',range('adt',' veh/day'))+'</div>';
   I.style.display='block';
 }
 
