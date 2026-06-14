@@ -14,6 +14,7 @@ Outputs:
   reports/crash_assignment_report.md
 """
 
+import json
 from pathlib import Path
 
 import geopandas as gpd
@@ -22,6 +23,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 REPORTS = ROOT / "reports"
+DOCS = ROOT / "docs"
 MAX_FT = 200
 
 OWNED = ["n_crash", "n_injury", "n_severe", "n_fatal", "n_ped", "n_bike",
@@ -77,6 +79,17 @@ for c in OWNED:
 out = PROCESSED / "district_c_segments_enriched.gpkg"
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved crash counts -> {out}")
+
+# Per-crash records for the dashboard's year drill-down: [seg_id, year, severe,
+# fatal, ped, bike]. Lets the web app recompute any single year client-side.
+rec = assigned[["target", "year", "severe", "fatal", "involves_ped", "involves_bike"]]
+records = [
+    [t, int(y) if pd.notna(y) else None, int(bool(s)), int(bool(k)), int(bool(p)), int(bool(b))]
+    for t, y, s, k, p, b in rec.itertuples(index=False)
+]
+DOCS.mkdir(exist_ok=True)
+(DOCS / "crash_records.json").write_text(json.dumps(records, separators=(",", ":")))
+print(f"Saved {len(records):,} crash records -> {DOCS / 'crash_records.json'}")
 
 # --- report -------------------------------------------------------------------
 # identity check: per-segment sums must equal assigned totals (counted once)

@@ -249,8 +249,8 @@ browse every kind of data, it leads with what matters: how many people have been
 killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
 of streets account for ~78% of it), a switch to focus on people walking or
 biking, a breakdown of who's being hurt (in a vehicle vs. walking vs. biking),
-the city's own official "most dangerous streets" list for comparison, and
-whether things are getting better year to year (they aren't). It's modeled on how cities
+the city's own official "most dangerous streets" list for comparison, and a
+year-by-year chart you can click to see any single year on the map. It's modeled on how cities
 like Austin and New York present their traffic-safety data to the public — it
 shows what has actually happened, and stays out of conclusions we haven't proven
 yet.

@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — VZ dashboard: year drill-down, neutral copy, legend + basemap fixes
+
+Round of fixes from Vincent's review:
+- **Neutral language.** Removed point-of-view copy ("a decade in, the trend isn't falling", "worst year") from the VZ dashboard; all chart/label text is now descriptive only. (Standing note to self: dashboard describes, doesn't editorialize.)
+- **Year drill-down.** Click a year bar → the whole dashboard (map colors, KPI numbers, mode breakdown, legend) recomputes for that single year; click the same bar again to clear. Implemented by exporting per-crash records (`docs/crash_records.json`, 40,997 rows: seg_id/year/severe/fatal/ped/bike from `assign_crashes.py`) and aggregating client-side; all-years view still uses the precomputed segment totals. Selected bar highlights, others dim; subtitle shows the active year.
+- **Legend "none401" spacing bug fixed** (min-width + full-width gradient + flex gap).
+- **Basemap selector moved off the panel** onto the map as a compact Leaflet layers control (top-left); panel is now shorter.
+
+Verified in-browser (2020/2024 drill-downs, all-crashes legend, clear), no console errors.
+
+---
+
 ## 2026-06-13 — Major data fix (freeway crashes) + 2020/25 + VZ dashboard rebuild
 
 **Freeway-crash contamination (Vincent spotted it).** Crashes physically on I-610 / US-59 etc. were being snapped onto nearby city cross-streets by the 200-ft buffer. Diagnosed: of 69,513 geocoded District C crashes, **28,336 (41%) were on freeway/tollway facilities** (Road_Cls_ID Interstate/Tollway, service-road/ramp/connector road parts, or class-2 US/State-hwy with a freeway street name — careful to KEEP class-2 surface arterials like Shepherd/Kirby/Braeswood). Added the filter to `build_crashes.py` and excluded them. Impact: **deaths 138→88, KSI 1,039→712** (the removed ones were genuinely on freeways); assignment jumped to **99.6%** (median crash now 4 ft from its street) — confirming the remainder really are on city streets. Also fixed the inflated all-crashes max (693→401).

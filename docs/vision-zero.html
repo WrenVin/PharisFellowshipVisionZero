@@ -32,13 +32,12 @@
   .ctrl .grp{margin-bottom:16px}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
-  select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#fff}
   #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   #map{height:480px}
   #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
-    border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;max-width:250px}
-  #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px}
-  #legend .ends{display:flex;justify-content:space-between;color:var(--muted)}
+    border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;min-width:188px;max-width:250px}
+  #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px;width:100%}
+  #legend .ends{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
   #legend .key{display:flex;align-items:center;gap:6px;margin-top:7px}
   #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
     background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none}
@@ -55,7 +54,7 @@
   .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
   .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
   .card h3{font-size:14px;margin:0 0 1px;font-weight:700}
-  .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px;min-height:15px}
   .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
   .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
@@ -100,14 +99,7 @@
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">Houston's official 2022 HIN, for comparison</div>
       </div>
-      <div class="grp">
-        <h3>Basemap</h3>
-        <select id="basemap">
-          <option value="light">Light</option>
-          <option value="satellite">Satellite</option>
-        </select>
-      </div>
-      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and design.</div>
+      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and design. Click a year bar below to view a single year.</div>
     </div>
 
     <div id="mapwrap">
@@ -121,13 +113,13 @@
   <div class="below">
     <div class="card">
       <h3>Killed or seriously injured, by year</h3>
-      <div class="sub" id="trend-sub">A decade in, the trend isn't falling</div>
+      <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:7px" id="trend-note"></div>
     </div>
     <div class="card">
-      <h3>Who is being hurt</h3>
-      <div class="sub">Killed or seriously injured, by how they were travelling</div>
+      <h3>By travel mode</h3>
+      <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
@@ -143,81 +135,103 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
-const ZERO='#c9ccd1', MISSING='#dfe2e6', HINCOLOR='#6a3d9a';
-const METRIC={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
+const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
+const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', vz=null, geo=null, hinLayer=null, selId=null;
+let mode='all', sev='ksi', year=null, vz=null, geo=null, hinLayer=null, selId=null;
+let records=[], activeCounts={}, _breaks=[];
 const fmt=n=>Number(n).toLocaleString();
-function metricField(){ return METRIC[mode][sev]; }
 
-const breaks={};
-function maxOf(f){if(!geo)return 0;let m=0;geo.eachLayer(l=>{const v=l.feature.properties[f];if(v!=null&&v>m)m=v;});return m;}
-function countBreaks(f){ if(breaks[f])return breaks[f]; const mx=Math.max(maxOf(f),2),b=[];
-  for(let i=1;i<REDS.length;i++)b.push(Math.pow(mx,i/REDS.length)); breaks[f]=b; return b; }
-function rampIdx(f,v){const b=countBreaks(f);let i=0;while(i<b.length&&v>b[i])i++;return i;}
+function recMatch(r){ // r=[seg,year,sev,fatal,ped,bike]
+  const m = mode==='all' || (mode==='ped'&&r[4]) || (mode==='bike'&&r[5]);
+  return m && (sev==='all' || r[2]===1);
+}
+function computeCounts(){
+  activeCounts={};
+  if(year===null){ const f=FIELD[mode][sev]; geo.eachLayer(l=>{activeCounts[l.feature.properties.seg_id]=l.feature.properties[f]||0;}); }
+  else { for(const r of records){ if(r[1]===year && recMatch(r)) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
+  let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
+  _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
+}
+function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=activeCounts[k];return m;}
+function rampIdx(v){let i=0;while(i<_breaks.length&&v>_breaks[i])i++;return i;}
 function styleFor(f){
-  const p=f.properties, v=p[metricField()], sel=p.seg_id===selId;
+  const v=activeCounts[f.properties.seg_id]||0, sel=f.properties.seg_id===selId;
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
-  const i=rampIdx(metricField(),v);
-  return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
+  const i=rampIdx(v); return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
+}
+
+function tally(y){
+  if(y===null){const t=vz.toll,m=vz.mode;return {killed:t.killed,ksi:t.ksi,ped_killed:m.ped_killed,
+    bike_killed:m.bike_killed,ped_ksi:m.ped_ksi,bike_ksi:m.bike_ksi};}
+  let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
+  for(const r of records){ if(r[1]!==y)continue; const s=r[2],f=r[3],p=r[4],b=r[5];
+    if(f)killed++; if(s)ksi++; if(f&&p)pk++; if(f&&b)bk++; if(s&&p)pksi++; if(s&&b)bksi++; }
+  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi};
 }
 
 const renderer=L.canvas({tolerance:8});
 const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
 L.control.zoom({position:'bottomright'}).addTo(map);
-const bases={light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
-  satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19})};
-let base=bases.light.addTo(map);
+const bases={Light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
+  Satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19})};
+bases.Light.addTo(map);
+L.control.layers(bases,null,{position:'topleft',collapsed:true}).addTo(map);
 
 Promise.all([
   fetch('vz_summary.json').then(r=>r.json()),
   fetch('boundary.geojson').then(r=>r.json()),
   fetch('segments.geojson').then(r=>r.json()),
-  fetch('hin.geojson').then(r=>r.json())
-]).then(([summary,bnd,seg,hin])=>{
-  vz=summary;
+  fetch('hin.geojson').then(r=>r.json()),
+  fetch('crash_records.json').then(r=>r.json())
+]).then(([summary,bnd,seg,hin,recs])=>{
+  vz=summary; records=recs;
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
-  hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});  // added on toggle
+  hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
   }}).addTo(map);
   try{map.fitBounds(geo.getBounds());}catch(e){}
   document.getElementById('loading').style.display='none';
-  buildTrend(); buildBreakdown(); render();
+  render();
 });
 
 function restyle(){ geo.setStyle(styleFor); }
-function render(){ restyle(); drawKPIs(); drawLegend(); }
+function render(){ computeCounts(); restyle(); drawKPIs(); drawLegend(); drawTrend(); drawMode(); }
 
 function drawKPIs(){
-  const t=vz.toll, m=vz.mode;
+  const t=tally(year);
   let killed,ksi;
   if(mode==='all'){killed=t.killed;ksi=t.ksi;}
-  else if(mode==='ped'){killed=m.ped_killed;ksi=m.ped_ksi;}
-  else {killed=m.bike_killed;ksi=m.bike_ksi;}
+  else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
+  else {killed=t.bike_killed;ksi=t.bike_ksi;}
   const who=mode==='all'?'on city streets':mode==='ped'?'people walking':'people biking';
-  const span=vz.years[0]+'–'+vz.years[vz.years.length-2];
+  const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
+  const conSub='of KSI on the worst '+vz.hin.pct_streets+'% of streets'+(year===null?'':' (all years)');
   document.getElementById('kpis').innerHTML=
     kpi('People killed · '+span, fmt(killed), who, false)
    +kpi('Killed or seriously injured', fmt(ksi), 'people · '+who, false)
-   +kpi('Crash concentration', vz.hin.pct_ksi+'%', 'of KSI on the worst '+vz.hin.pct_streets+'% of streets', true);
+   +kpi('Crash concentration', vz.hin.pct_ksi+'%', conSub, true);
 }
 function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
 
 function drawLegend(){
-  const el=document.getElementById('legend'), mx=maxOf(metricField());
+  const el=document.getElementById('legend'), mx=activeMax();
   const what=sev==='all'?'crashes':'killed or seriously injured';
   const pre=mode==='all'?'':mode==='ped'?'Walking — ':'Biking — ';
-  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+what+'</div>'
+  const yr=year===null?'':' · '+year;
+  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+what+yr+'</div>'
     +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
     +'<div class="ends"><span>none</span><span>'+Math.round(mx)+' on one street</span></div>';
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
   el.innerHTML=h;
 }
 
-function buildBreakdown(){
-  const t=vz.toll, m=vz.mode;
-  const ped=m.ped_ksi, bike=m.bike_ksi, veh=t.ksi-ped-bike;
+function drawMode(){
+  const t=tally(year), ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
+  document.getElementById('mode-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
+  if(t.ksi<=0){ document.getElementById('modebar').innerHTML=''; document.getElementById('modeleg').innerHTML='';
+    document.getElementById('modedeaths').textContent='No one killed or seriously injured was recorded'+(year?' in '+year:'')+' for this view.'; return; }
   const pct=x=>Math.round(100*x/t.ksi);
   document.getElementById('modebar').innerHTML=
     '<div style="width:'+pct(veh)+'%;background:#9aa3ad">'+pct(veh)+'%</div>'
@@ -227,14 +241,11 @@ function buildBreakdown(){
     '<span><span class="dot" style="background:#9aa3ad"></span>In a vehicle ('+fmt(veh)+')</span>'
    +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
    +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
-  document.getElementById('modedeaths').innerHTML='Of '+t.killed+' people killed, '+m.ped_killed
-    +' were walking and '+m.bike_killed+' biking ('+m.vuln_killed_share+'% of deaths).';
+  document.getElementById('modedeaths').innerHTML=t.killed+' people killed — '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
 }
 
-function buildTrend(){
-  const y=vz.ksi_by_year, last=vz.years[vz.years.length-1];
-  const yrs=vz.years.filter(v=>v<last||y[last]>=60); // keep full years; drop a clearly-partial current year
-  const full=vz.years.filter(v=>v!==2026); const partial=vz.years.includes(2026);
+function drawTrend(){
+  const y=vz.ksi_by_year, full=vz.years.filter(v=>v!==2026), partial=vz.years.includes(2026);
   const vals=full.map(yr=>y[yr]||0), mx=Math.max(...vals), nice=Math.ceil(mx/20)*20;
   const W=340,H=140,L=30,R=6,T=8,B=20, pw=W-L-R, ph=H-T-B;
   const n=full.length+(partial?1:0), bw=pw/n*0.7, gap=pw/n;
@@ -243,19 +254,22 @@ function buildTrend(){
   [0,nice/2,nice].forEach(t=>{const yy=y2(t);
     s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
       +'<text x="'+(L-5)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3ad">'+t+'</text>';});
-  full.forEach((yr,i)=>{const v=y[yr]; const x=L+gap*i+(gap-bw)/2;
-    if(v==null){ s+='<rect x="'+x+'" y="'+(T+ph-6)+'" width="'+bw+'" height="6" fill="#dde0e4"/>'; }
-    else { const hh=(v/nice)*ph, worst=v===mx; s+='<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(worst?'#7a1419':'#e0584f')+'"><title>'+yr+': '+v+'</title></rect>'; }
-    s+='<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="#9aa3ad">’'+String(yr).slice(2)+'</text>';});
-  if(partial){const i=full.length, x=L+gap*i+(gap-bw)/2, v=y[2026]||0, hh=(v/nice)*ph;
-    s+='<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="#e0584f" opacity=".4"><title>2026 (partial): '+v+'</title></rect>'
-      +'<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="#c2c6cc">’26</text>';}
+  const bar=(yr,v,x,faded)=>{ const hh=v==null?0:(v/nice)*ph, sel=yr===year;
+    const op = year!==null && !sel ? .35 : (faded?.4:1);
+    let r=(v==null)
+      ? '<rect x="'+x+'" y="'+(T+ph-5)+'" width="'+bw+'" height="5" fill="#dde0e4"/>'
+      : '<rect x="'+x+'" y="'+y2(v)+'" width="'+bw+'" height="'+hh+'" rx="2" fill="'+(sel?'#7a1419':'#e0584f')+'" opacity="'+op+'" style="cursor:pointer" onclick="selectYear('+yr+')"><title>'+yr+': '+v+' KSI — click to view</title></rect>';
+    return r+'<text x="'+(x+bw/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="9" fill="'+(sel?'#7a1419':'#9aa3ad')+'">’'+String(yr).slice(2)+'</text>'; };
+  full.forEach((yr,i)=>{ s+=bar(yr,y[yr],L+gap*i+(gap-bw)/2,false); });
+  if(partial){ s+=bar(2026,y[2026],L+gap*full.length+(gap-bw)/2,true); }
   s+='</svg>';
   document.getElementById('trend').innerHTML=s;
-  const worstYr=full.reduce((a,b)=>(y[b]||0)>(y[a]||0)?b:a,full[0]);
-  document.getElementById('trend-note').textContent='Y axis = people killed or seriously injured per year'
-    +(partial?' · 2026 partial':'')+' · worst: '+worstYr+' ('+y[worstYr]+')';
+  document.getElementById('trend-sub').innerHTML = year===null
+    ? 'Click a year to view it on the map above'
+    : 'Showing <b style="color:#7a1419">'+year+'</b> · click the bar again to clear';
+  document.getElementById('trend-note').textContent='Y axis = people killed or seriously injured per year'+(partial?' · 2026 is partial':'');
 }
+function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
 
 function openInfo(p){
   const I=document.getElementById('info');
@@ -287,9 +301,8 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend();
 };
-document.getElementById('basemap').onchange=e=>{map.removeLayer(base); base=bases[e.target.value].addTo(map); base.bringToBack();};
 document.getElementById('about').onclick=e=>{e.preventDefault();
-  alert('City-street crashes only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). Crashes on freeways, tollways, ramps and frontage roads are excluded — those are TxDOT facilities, not the city streets this project studies — and were removed so they are not mis-attributed to nearby cross-streets. Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design & traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
+  alert('City-street crashes only. TxDOT CRIS public extracts, 2016–2025 (+ partial 2026). Crashes on freeways, tollways, ramps and frontage roads are excluded — those are TxDOT facilities, not the city streets this project studies — so they are not mis-attributed to nearby cross-streets. Each remaining crash is assigned to its nearest city street within 200 ft (median 4 ft). "Killed or seriously injured" = KABCO K+A. The High Injury Network overlay is the City of Houston\'s official Vision Zero HIN (2022). Street design and traffic: City of Houston / HCAD. Full methods in the project CODEBOOK on GitHub.');
 };
 </script>
 </body>
