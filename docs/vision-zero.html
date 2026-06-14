@@ -89,6 +89,7 @@
     <div class="lens">
       <span class="lab">Travel mode</span>
       <span class="pill on" data-mode="all">Everyone</span>
+      <span class="pill" data-mode="veh">Driving</span>
       <span class="pill" data-mode="ped">Walking</span>
       <span class="pill" data-mode="bike">Biking</span>
     </div>
@@ -159,12 +160,26 @@ let records=[], pts=[], activeCounts={}, _breaks=[];
 const fmt=n=>Number(n).toLocaleString();
 
 function recMatch(r){ // r=[seg,year,sev,fatal,ped,bike]
-  const m = mode==='all' || (mode==='ped'&&r[4]) || (mode==='bike'&&r[5]);
+  const m = modeMatch(r[4], r[5]);
   return m && (sev==='all' || r[2]===1);
+}
+// shared mode test: ped/bike flags -> does this crash belong to the active lens?
+function modeMatch(ped, bike){
+  return mode==='all' || (mode==='ped'&&ped) || (mode==='bike'&&bike) || (mode==='veh'&&!ped&&!bike);
+}
+// per-segment count for the all-years view (vehicle = total minus ped minus bike)
+function segCount(pr){
+  if(mode==='veh'){
+    const tot=(sev==='ksi'?pr.n_severe:pr.n_crash)||0;
+    const p=(sev==='ksi'?pr.n_ped_severe:pr.n_ped)||0;
+    const b=(sev==='ksi'?pr.n_bike_severe:pr.n_bike)||0;
+    return Math.max(0, tot-p-b);
+  }
+  return pr[FIELD[mode][sev]]||0;
 }
 function computeCounts(){
   activeCounts={};
-  if(year===null){ const f=FIELD[mode][sev]; geo.eachLayer(l=>{activeCounts[l.feature.properties.seg_id]=l.feature.properties[f]||0;}); }
+  if(year===null){ geo.eachLayer(l=>{activeCounts[l.feature.properties.seg_id]=segCount(l.feature.properties);}); }
   else { for(const r of records){ if(r[1]===year && recMatch(r)) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
   let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
   _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
@@ -214,7 +229,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      const m = mode==='all'||(mode==='ped'&&p[4])||(mode==='bike'&&p[5]); if(!m) continue;
+      if(!modeMatch(p[4], p[5])) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -233,7 +248,7 @@ function buildPoints(){
   const g=L.layerGroup();
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year]
     if(year!==null && p[6]!==year) continue;
-    const m = mode==='all' || (mode==='ped'&&p[4]) || (mode==='bike'&&p[5]); if(!m) continue;
+    if(!modeMatch(p[4], p[5])) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?4:2.4,stroke:false,
       fillColor:isSev?'#b30000':'#fb8a5c', fillOpacity:isSev?.85:.4}).addTo(g);
@@ -261,8 +276,9 @@ function drawKPIs(){
   let killed,ksi;
   if(mode==='all'){killed=t.killed;ksi=t.ksi;}
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
-  else {killed=t.bike_killed;ksi=t.bike_ksi;}
-  const who=mode==='all'?'on city streets':mode==='ped'?'people walking':'people biking';
+  else if(mode==='bike'){killed=t.bike_killed;ksi=t.bike_ksi;}
+  else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
+  const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
   const conSub='of streets → of KSI'+(year===null?'':' (all years)');
   document.getElementById('kpis').innerHTML=
@@ -275,7 +291,7 @@ function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'">
 function drawLegend(){
   const el=document.getElementById('legend');
   const metric=sev==='all'?'Crashes':'Killed or seriously injured';
-  const pre=mode==='all'?'':mode==='ped'?'Walking · ':'Biking · ';
+  const pre=mode==='all'?'':mode==='ped'?'Walking · ':mode==='bike'?'Biking · ':'Driving · ';
   const yr=year===null?'':' · '+year;
   let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>';
   if(view==='points'){

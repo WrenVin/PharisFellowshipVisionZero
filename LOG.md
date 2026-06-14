@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: "Driving" travel-mode lens + stale-label cleanup
+
+- **Added a Driving lens** to the travel-mode toggle (Everyone / Driving / Walking / Biking). Vehicle-occupant crashes = total − walking − biking; verified exact (0 crashes involve both a pedestrian and a cyclist, so the subtraction never double-counts). Works across all code paths — all-years segment shading, single-year drill-down (records recompute), crash-locations dots, KPIs, and legend — via shared `modeMatch()` / `segCount()` helpers. Driving toll: 57 killed / 500 KSI (vs 712 all, 163 walking, 49 biking). The "By travel mode" breakdown card is unchanged (it always shows the full split). Cleaned the KPI subtitle wording ("people · walking" instead of the doubled "people · people walking").
+- **Trimmed the VZ subtitle** — dropped the inner-loop neighborhood list, ends at "Houston City Council District C."
+- **Stale-label sweep** (missed in the earlier doc audit): Street Explorer data-sources modal and crash legend no longer say "2020/2025 pending"; CODEBOOK crash-year range → 2016–2025 and Known-limitations item 5 rewritten (all predictors are conflated in now). `assign_crashes.py` now derives its report's year range from the data so it can't go stale again.
+
+Verified in-browser (all four lenses, points view, year drill-down), no console errors.
+
+---
+
 ## 2026-06-13 — VZ dashboard: crash-locations (points) view + clearer wording
 
 Vincent's point: showing crash *points* as shaded *segments* can confuse — a hotspot at an intersection lights one approach leg red while the adjacent block reads grey (an artifact of nearest-leg assignment + discrete unequal-length blocks). Fix: added a **"Display as" toggle — Shaded streets / Crash locations.** Crash locations plots each crash as a dot (red = KSI, light = other), so the real spatial pattern shows without segment boundaries; shaded-streets stays the analytical/HIN view. Both respect the mode lens, year drill-down, and KSI/all metric.
