@@ -50,6 +50,8 @@
   .ctrl{flex:0 0 212px;border:1px solid var(--line);border-radius:12px;padding:14px}
   .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
   .ctrl .grp{margin-bottom:16px}
+  .ctrl select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
+    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
   #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -106,6 +108,10 @@
 
   <div class="main">
     <div class="ctrl">
+      <div class="grp" id="district-grp" style="display:none">
+        <h3>District</h3>
+        <select id="district"></select>
+      </div>
       <div class="grp">
         <h3>Travel mode</h3>
         <div class="lens">
@@ -178,9 +184,10 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
-let records=[], pts=[], activeCounts={}, _breaks=[];
+let mode='all', sev='ksi', year=null, district=null, view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
+let records=[], pts=[], activeCounts={}, _breaks=[], seg2dist={}, distLayer=null, distFeats=[];
 const fmt=n=>Number(n).toLocaleString();
+const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
@@ -208,26 +215,40 @@ function segCount(pr){
 }
 function computeCounts(){
   activeCounts={};
-  if(year===null){ geo.eachLayer(l=>{activeCounts[l.feature.properties.seg_id]=segCount(l.feature.properties);}); }
-  else { for(const r of records){ if(r[1]===year && recMatch(r)) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
+  if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district)) activeCounts[p.seg_id]=segCount(p);}); }
+  else { for(const r of records){ if(r[1]===year && recMatch(r) && inDist(seg2dist[r[0]])) activeCounts[r[0]]=(activeCounts[r[0]]||0)+1; } }
   let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
   _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
 }
 function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=activeCounts[k];return m;}
 function rampIdx(v){let i=0;while(i<_breaks.length&&v>_breaks[i])i++;return i;}
 function styleFor(f){
+  if(!inDist(f.properties.district)) return {opacity:0, weight:0};   // hide other districts
   const v=activeCounts[f.properties.seg_id]||0, sel=f.properties.seg_id===selId;
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
   const i=rampIdx(v); return {color:REDS[i], weight: sel?7.5 : 3.2+i*0.9, opacity:.95};
 }
 
+// the toll, computed from crash points so it filters by year AND district uniformly.
+// p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
 function tally(y){
-  if(y===null){const t=vz.toll,m=vz.mode;return {killed:t.killed,ksi:t.ksi,ped_killed:m.ped_killed,
-    bike_killed:m.bike_killed,ped_ksi:m.ped_ksi,bike_ksi:m.bike_ksi};}
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
-  for(const r of records){ if(r[1]!==y)continue; const s=r[2],f=r[3],p=r[4],b=r[5];
-    if(f)killed++; if(s)ksi++; if(f&&p)pk++; if(f&&b)bk++; if(s&&p)pksi++; if(s&&b)bksi++; }
+  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10])) continue;
+    const s=p[2],f=p[3],pe=p[4],bi=p[5];
+    if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi};
+}
+// HIN-style concentration within the active district: top 6% of street-miles by KSI -> % of KSI
+function concentration(){
+  const rows=[];
+  geo.eachLayer(l=>{const p=l.feature.properties; if(!inDist(p.district)) return;
+    rows.push([p.n_severe||0, (p.length_ft||0)/5280]);});
+  rows.sort((a,b)=>b[0]-a[0]);
+  let totSev=0, totMi=0; for(const r of rows){totSev+=r[0]; totMi+=r[1];}
+  if(totSev<=0 || totMi<=0) return {pct_streets:6, pct_ksi:0};
+  let cumMi=0, cumSev=0;
+  for(const [s,mi] of rows){ cumMi+=mi; cumSev+=s; if(cumMi/totMi>=0.06) break; }
+  return {pct_streets:6, pct_ksi:Math.round(100*cumSev/totSev)};
 }
 
 const renderer=L.canvas({tolerance:8});
@@ -244,9 +265,12 @@ Promise.all([
   fetch('segments.geojson').then(r=>r.json()),
   fetch('hin.geojson').then(r=>r.json()),
   fetch('crash_records.json').then(r=>r.json()),
-  fetch('crash_points.json').then(r=>r.json())
-]).then(([summary,bnd,seg,hin,recs,points])=>{
+  fetch('crash_points.json').then(r=>r.json()),
+  fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
+]).then(([summary,bnd,seg,hin,recs,points,dists])=>{
   vz=summary; records=recs; pts=points;
+  for(const f of seg.features) seg2dist[f.properties.seg_id]=f.properties.district;  // seg -> district lookup
+  if(dists && dists.features && dists.features.length) setupDistricts(dists);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
@@ -258,7 +282,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5])) continue;
+      if(!modeMatch(p[4], p[5]) || !inDist(p[10])) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -270,14 +294,15 @@ Promise.all([
   render();
 });
 
-function faintStyle(){ return {color:ZERO, weight:1, opacity:.35}; }
+function faintStyle(f){ if(!inDist(f.properties.district)) return {opacity:0, weight:0};
+  return {color:ZERO, weight:1, opacity:.35}; }
 function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
 function buildPoints(){
   if(ptLayer) map.removeLayer(ptLayer);
   const g=L.layerGroup();
-  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year]
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5])) continue;
+    if(!modeMatch(p[4], p[5]) || !inDist(p[10])) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?4:2.4,stroke:false,
       fillColor:isSev?'#b30000':'#fb8a5c', fillOpacity:isSev?.85:.4}).addTo(g);
@@ -292,12 +317,43 @@ function render(){
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
-  if(year!==null){
-    v.innerHTML='Viewing <b>'+year+'</b> · <span style="color:#1d4ed8;cursor:pointer">show all years ✕</span>';
-    v.querySelector('span').onclick=()=>selectYear(year);
+  const parts=[];
+  if(district!==null) parts.push('District <b>'+district+'</b>');
+  if(year!==null) parts.push('<b>'+year+'</b>');
+  if(parts.length){
+    v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
+    v.querySelector('span').onclick=clearView;
   } else {
     v.innerHTML='<span style="color:var(--muted)">Tip: click a street or crash dot for details</span>';
   }
+}
+// --- per-district filter ------------------------------------------------------
+function setupDistricts(dists){
+  distFeats = dists.features;
+  const sel=document.getElementById('district');
+  const opts=['<option value="">All districts</option>'];
+  distFeats.map(f=>f.properties.DISTRICT).sort()
+    .forEach(d=>opts.push('<option value="'+d+'">District '+d+'</option>'));
+  sel.innerHTML=opts.join('');
+  sel.onchange=()=>selectDistrict(sel.value);
+  document.getElementById('district-grp').style.display='';
+}
+function selectDistrict(d){
+  district = d || null;
+  selId=null; document.getElementById('info').style.display='none';
+  if(distLayer){ map.removeLayer(distLayer); distLayer=null; }
+  if(district!==null){
+    const f=distFeats.find(x=>x.properties.DISTRICT===district);
+    if(f){ distLayer=L.geoJSON(f,{interactive:false,style:{color:'#111',weight:2.5,
+      fill:false,opacity:.75,dashArray:'5 3'}}).addTo(map);
+      try{ map.fitBounds(distLayer.getBounds().pad(0.04)); }catch(e){} }
+  } else { try{ map.fitBounds(geo.getBounds()); }catch(e){} }
+  render();
+}
+function clearView(){
+  year=null; selId=null;
+  const sel=document.getElementById('district'); if(sel) sel.value='';
+  selectDistrict(null);   // resets district, refits, renders
 }
 
 function drawKPIs(){
@@ -310,13 +366,13 @@ function drawKPIs(){
   const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
   const conSub='of streets → of KSI'+(year===null?'':' (all years)');
-  const yll=Math.round(yllTotal()), serious=ksi-killed;
+  const yll=Math.round(yllTotal()), serious=ksi-killed, con=concentration();
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average — so the total is an estimate.';
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false)
    +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip)
    +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false)
-   +kpi(KICON.conc,'A few streets carry most harm', vz.hin.pct_streets+'% → '+vz.hin.pct_ksi+'%', conSub, true);
+   +kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
 }
 function kpi(ic,l,v,s,neutral,tip){
   const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
@@ -324,7 +380,7 @@ function kpi(ic,l,v,s,neutral,tip){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const t=btn.closest('.kpi').querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -366,7 +422,7 @@ function drawMode(){
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]); }   // severe + active lens
+function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]); }   // severe + lens + district
 function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
 function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;

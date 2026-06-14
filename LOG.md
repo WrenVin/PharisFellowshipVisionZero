@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: per-council-district filter
+
+Added a **District dropdown** (All districts / A–K) to the Vision Zero dashboard so you can zoom into one council district and have *everything* recompute for it.
+
+- **Data:** `export_webmap_data.py` now tags every segment (nearest of the 11 council districts) and every crash (point-in-district) with its `district`, and writes `docs/districts.geojson` (the simplified district polygons) for the dropdown + outline + zoom. Saved the 11 polygons to `data/raw/houston_districts.geojson`. Area-aware: if no districts file exists (single-district build) the dropdown stays hidden.
+- **Dashboard:** selecting a district filters the map (other districts hidden), KPIs, the years-of-life-lost total, the by-year / by-month / by-time-of-day / by-travel-mode panels, the crash dots, and the "few streets carry most harm" concentration — and fits the map to the district with a dashed outline. The year drill-down composes with it. A "clear ✕" chip resets to the city.
+- **Implementation notes:** the toll KPIs now compute from the crash points (uniformly year+district filterable, replacing the precomputed `vz.toll`); concentration is computed client-side per district from each segment's `n_severe` + `length_ft`. Sanity ✓: selecting District C reproduces the standalone District C build exactly (88 killed, 712 KSI, mode 500/163/49).
+
+Verified in-browser (multiple districts, year drill within a district, clear), no console errors. (Not yet added to the Street Explorer — easy follow-up since its segments now carry `district`.)
+
+---
+
 ## 2026-06-14 — Scaled the whole project from District C to the entire City of Houston
 
 Flipped `config.py` `AREA` from `district_c` to `houston` and reran the full pipeline citywide. The area-agnostic refactor paid off — no per-script edits were needed to retarget; the work was getting the boundary, fixing two scale-exposed bugs, and deferring land use.

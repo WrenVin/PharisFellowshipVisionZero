@@ -16,7 +16,7 @@ ROOT, PROCESSED, DOCS = cfg.ROOT, cfg.PROCESSED, cfg.DOCS
 
 # column -> rounding (None = keep as-is / string)
 COLS = {
-    "seg_id": None, "name": None, "highway": None,
+    "seg_id": None, "name": None, "highway": None, "district": None,
     "lanes_final": 0, "lanes_source": None,
     "roadway_width_ft": 0,
     "posted_speed_mph": 0, "speed_source": None,
@@ -45,6 +45,21 @@ seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 base = seg["highway"].str.replace("_link", "", regex=False)
 seg["road_class"] = base.map(FRIENDLY_CLASS).fillna("Minor street")
 seg.loc[seg["highway"].str.endswith("_link"), "road_class"] = "Minor street"
+
+# council district per segment (for the dashboard's per-district filter), if the
+# area has sub-districts to filter by (city build); skipped for single-district builds.
+districts_4326 = None
+_dpath = cfg.raw("districts.geojson")
+if _dpath.exists():
+    districts_4326 = gpd.read_file(_dpath)
+    d_ft = districts_4326.to_crs(seg.crs)[["DISTRICT", "geometry"]]
+    mids = gpd.GeoDataFrame(geometry=seg.geometry.representative_point(), crs=seg.crs)
+    # nearest district (not within) so segments in thin inter-district gaps still
+    # get assigned — the whole network is inside the city, so nearest is correct.
+    sj = gpd.sjoin_nearest(mids, d_ft, how="left")
+    sj = sj[~sj.index.duplicated()]
+    seg["district"] = sj["DISTRICT"].values
+    print(f"Tagged segments by district: {seg['district'].notna().sum():,}/{len(seg):,}")
 
 keep = seg[[c for c in COLS if c in seg.columns] + ["road_class", "geometry"]].copy()
 for c, nd in COLS.items():
@@ -82,19 +97,39 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, and years-of-life-lost panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll]
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district]
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(4326)
+if districts_4326 is not None:  # council district per crash, for the per-district filter
+    cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
+                   how="left", predicate="within")
+    cj = cj[~cj.index.duplicated()]
+    cr["district"] = cj["DISTRICT"].values
+else:
+    cr["district"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
                 int(bool(pd_)), int(bool(bk)), int(yr) if pd.notna(yr) else None,
                 dt if isinstance(dt, str) else None,
                 int(hr) if pd.notna(hr) else None,
-                round(float(yl), 1) if pd.notna(yl) and yl else 0])
+                round(float(yl), 1) if pd.notna(yl) and yl else 0,
+                dist if isinstance(dist, str) else None])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
+
+# council district polygons for the dashboard dropdown + outline + zoom (city build)
+if districts_4326 is not None:
+    dd = districts_4326.to_crs(2278)
+    dd["geometry"] = dd.geometry.simplify(150, preserve_topology=True)
+    dd = dd.to_crs(4326)
+    keep_cols = [c for c in ("DISTRICT", "MEMBER") if c in dd.columns] + ["geometry"]
+    dpath = DOCS / "districts.geojson"
+    if dpath.exists():
+        dpath.unlink()
+    dd[keep_cols].to_file(dpath, driver="GeoJSON", COORDINATE_PRECISION=5)
+    print(f"Wrote {len(dd)} districts -> {dpath} ({dpath.stat().st_size/1e3:.0f} KB)")
