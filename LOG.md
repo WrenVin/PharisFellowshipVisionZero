@@ -16,6 +16,16 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — TxDOT label: drop interstates + curate the last false positives
+
+Two more fixes after Vincent spotted residual bad pieces (e.g. Pierce St running under the Pierce Elevated / I-45, parallel to the freeway):
+- **Drop interstates from the match set.** Interstates (RTE_PRFX='IH') are limited-access freeways not in our network; a surface street running parallel directly under an elevated interstate passes the parallel test and gets mislabeled. Excluding IH from the TxDOT geometry fixed the downtown Pierce case with zero legitimate loss (no at-grade arterial is on an interstate). The TxDOT layer has no functional-class field, so prefix is the available signal; US/SH-prefixed freeways (US 59, SH 288) can't be separated this way.
+- **Curated false-positive list.** For the handful that remain (US/SH freeway-adjacent), the TxDOT network is static, so per Vincent's suggestion I inspected the TxDOT-only map, found the short, disconnected city-street stubs that don't belong (Pierce, Bagby, Milam, Chartres, Burlington, West Alabama, Zephyr, Calhoun, Hardy, Sue Barnett, Monroe, N Durham, W Montgomery, plus unnamed stubs), and hard-listed their seg_ids (`TXDOT_FALSE_POSITIVES`, 42 segments) to force them city-owned. Genuine short state routes (Highway 6, La Porte Fwy, FM 1960/Cypress Creek, FM 528/NASA Pkwy, Spur 5, Hempstead Hwy, Wayside, Cullen, Westheimer) are kept. Found the candidates by connected-component analysis of the on_txdot network (real arterials are long corridors; false positives are isolated < 0.35 mi pieces).
+
+Result: TxDOT segments 1,480 -> 1,438; KSI on TxDOT ~11%. The override runs before the crash-to-segment join, so crash ownership labels stay consistent. Verified in-browser: the downtown freeway tangle is clean, remaining TxDOT shading is coherent corridors.
+
+---
+
 ## 2026-06-14 — Fix: ownership label flagged freeway OVERPASSES as TxDOT-owned
 
 Vincent spotted plain city streets being shown as TxDOT-owned where they cross over interstates. Cause: the `on_txdot` label used a distance-only test (>=50% of a segment's length within 60 ft of a TxDOT on-system roadway). A street that bridges over a freeway runs directly above the wide freeway corridor, so a short overpass had most of its length inside the buffer and got mislabeled state-owned even though it crosses the freeway perpendicularly.

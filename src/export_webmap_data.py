@@ -30,7 +30,10 @@ def fetch_txdot_onsys(crs):
     bb = cfg.bbox_4326()
     env = {"xmin": bb[0], "ymin": bb[1], "xmax": bb[2], "ymax": bb[3],
            "spatialReference": {"wkid": 4326}}
-    where = "SYSTEM='On' AND RDBD_TYPE IN ('Single Roadbed','Left Roadbed','Right Roadbed')"
+    # exclude interstates (RTE_PRFX='IH'): limited-access freeways, not in our
+    # surface-street network; matching streets that run under them mislabels them.
+    where = ("SYSTEM='On' AND RTE_PRFX<>'IH' AND "
+             "RDBD_TYPE IN ('Single Roadbed','Left Roadbed','Right Roadbed')")
     frames, off = [], 0
     while True:
         r = requests.get(TXDOT_URL + "/query", params={
@@ -146,6 +149,43 @@ if _hpath.exists():
 # perpendicularly. These at-grade state arterials are KEPT in the network (like the
 # City's HIN and Austin's dashboard); only limited-access freeways are excluded
 # upstream (pull_osm + build_crashes).
+#
+# We also DROP interstates (RTE_PRFX 'IH') from the match set: they are limited-
+# access freeways that aren't in our network, and a surface street running parallel
+# directly UNDER an elevated interstate (e.g. Pierce St below the Pierce Elevated /
+# I-45) would otherwise pass the parallel test and be mislabeled state-owned. At-
+# grade state arterials are US/SH/FM/etc., which stay.
+FREEWAY_PRFX = {"IH"}
+
+# Hand-curated false positives: short, isolated city-street stubs that the
+# parallel-match test still flags because they run beside/under a non-interstate
+# freeway (US 59, SH 288, the downtown freeway tangle) or a toll road. The TxDOT
+# network is static, so we just list the offending seg_ids and force them
+# city-owned. These are ordinary city streets (Pierce under the Pierce Elevated,
+# Bagby/Milam/Chartres/Burlington downtown, etc.) plus unnamed disconnected stubs;
+# genuine short state routes (Highway 6, La Porte Fwy, FM 1960/Cypress Creek,
+# FM 528/NASA Pkwy, Spur 5, Hempstead Hwy, Wayside, Cullen, Westheimer) are kept.
+TXDOT_FALSE_POSITIVES = {
+    # downtown / midtown city streets in the freeway tangle
+    "H-81534", "H-84475",                                  # Pierce Street
+    "H-103300", "H-103301",                               # Bagby Street
+    "H-90087", "H-90088", "H-96804", "H-96805",          # Milam Street
+    "H-65518",                                            # Chartres Street
+    "H-87413", "H-87414",                                 # Burlington Street
+    "H-15093",                                            # West Alabama Street
+    "H-99811",                                            # Zephyr Street
+    "H-81685",                                            # Calhoun Road
+    # other city streets running parallel to a freeway/toll road
+    "H-66525",                                            # Hardy Street
+    "H-77927", "H-77928",                                 # Sue Barnett Drive
+    "H-102029", "H-102031", "H-99579",                   # Monroe Road
+    "H-63149", "H-63153", "H-88549", "H-88551", "H-88552",  # North Durham Drive
+    "H-56555",                                            # West Montgomery Road
+    # unnamed disconnected stubs
+    "H-109435", "H-109437", "H-13968", "H-18124", "H-25436", "H-25437",
+    "H-26041", "H-26043", "H-26434", "H-26438", "H-31125", "H-32165",
+    "H-55510", "H-59157", "H-59648", "H-76591",
+}
 def _bearing_pieces(gdf, id_col=None):
     """Explode lines into straight 2-point pieces with a 0-180 bearing + length."""
     recs = []
@@ -169,6 +209,8 @@ def _bearing_pieces(gdf, id_col=None):
 seg["on_txdot"] = False
 try:
     tx = fetch_txdot_onsys(seg.crs)
+    if "RTE_PRFX" in tx.columns:   # drop interstates (limited-access freeways)
+        tx = tx[~tx["RTE_PRFX"].isin(FREEWAY_PRFX)].copy()
     cpieces = _bearing_pieces(seg, "seg_id")
     tpieces = _bearing_pieces(tx)[["brg", "geometry"]].rename(columns={"brg": "tx_brg"})
     j = gpd.sjoin_nearest(cpieces, tpieces, how="left", max_distance=60, distance_col="d")
@@ -180,8 +222,12 @@ try:
     total = cpieces.groupby("seg_id")["plen"].sum()
     frac = (matched / total).reindex(seg["seg_id"].values).fillna(0).values
     seg["on_txdot"] = frac >= 0.5
+    # force the hand-curated false positives back to city-owned (see above)
+    n_fp = int(seg["seg_id"].isin(TXDOT_FALSE_POSITIVES).sum())
+    seg.loc[seg["seg_id"].isin(TXDOT_FALSE_POSITIVES), "on_txdot"] = False
     print(f"TxDOT-owned (state) segments labeled: {int(seg['on_txdot'].sum()):,} "
-          f"({100*seg['on_txdot'].mean():.1f}%) — parallel-aligned match, overpasses excluded")
+          f"({100*seg['on_txdot'].mean():.1f}%) — parallel-aligned, interstates dropped, "
+          f"{n_fp} curated false positives removed")
 except Exception as e:
     print(f"WARNING: TxDOT tagging skipped ({type(e).__name__}: {e})")
 
