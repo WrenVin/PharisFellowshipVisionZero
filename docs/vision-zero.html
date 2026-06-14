@@ -162,9 +162,10 @@
       </div>
       <div class="grp">
         <h3>Display as <button class="info" onclick="toggleTip(this)" aria-label="About display modes">i</button></h3>
-        <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded streets</label>
+        <label class="opt"><input type="radio" name="view" value="corridor" checked> Shaded streets</label>
+        <label class="opt"><input type="radio" name="view" value="streets"> Shaded street segments</label>
         <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
-        <div class="tip">Shaded streets shade each block by how many crashes occurred on it; crash locations plot every crash as an individual dot.</div>
+        <div class="tip">Three levels of detail. Shaded streets colors each street as a whole by its total crashes (a street that changes owner, like Westheimer, counts as two). Shaded street segments colors each block on its own. Crash locations plots every crash as a dot.</div>
       </div>
       <div class="grp">
         <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
@@ -274,8 +275,9 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, district=null, owner='all', view='corridor', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
+let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
@@ -322,13 +324,23 @@ function computeCounts(){
   _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
 }
 function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=activeCounts[k];return m;}
-function rampIdx(v){let i=0;while(i<_breaks.length&&v>_breaks[i])i++;return i;}
+function corridorMax(){let m=0;for(const k in corrTotal)if(corrTotal[k]>m)m=corrTotal[k];return m;}
+// corridor view: roll the per-segment counts up to whole streets (name+owner)
+function computeCorridorCounts(){
+  corrTotal={};
+  for(const sid in activeCounts){ const k=seg2corr[sid]; if(k==null) continue; corrTotal[k]=(corrTotal[k]||0)+activeCounts[sid]; }
+  let mx=0; for(const k in corrTotal) if(corrTotal[k]>mx) mx=corrTotal[k];
+  _cbreaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _cbreaks.push(Math.pow(M,i/REDS.length));
+}
 function styleFor(f){
-  if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
-  const v=activeCounts[f.properties.seg_id]||0;
-  if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5.5, opacity:.95};  // selected street
+  const p=f.properties;
+  if(!inDist(p.district) || !ownerOk(p.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
+  if(selIds.has(p.seg_id)) return {color:'#1d4ed8', weight:5.5, opacity:.95};  // selected street/segment
+  const corr = view==='corridor';
+  const v = corr ? (corrTotal[seg2corr[p.seg_id]]||0) : (activeCounts[p.seg_id]||0);
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
-  const i=rampIdx(v); return {color:REDS[i], weight: 3.2+i*0.9, opacity:.95};
+  const br = corr ? _cbreaks : _breaks; let i=0; while(i<br.length && v>br[i]) i++;
+  return {color:REDS[i], weight: 3.2+i*0.9, opacity:.95};
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
@@ -371,7 +383,10 @@ Promise.all([
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,cyear,points,dists])=>{
   vz=summary; segYear=cyear; pts=points;
-  for(const f of seg.features){ seg2dist[f.properties.seg_id]=f.properties.district; seg2tx[f.properties.seg_id]=!!f.properties.on_txdot; }  // seg -> district + ownership
+  for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot;
+    // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
+    // unnamed segments are their own corridor (no name to group on).
+    seg2corr[p.seg_id]=(p.name && p.name.trim()) ? p.name+'|'+(p.on_txdot?1:0) : ' '+p.seg_id; }
   if(dists && dists.features && dists.features.length) setupDistricts(dists);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   // white casing under a crisp purple core so the HIN reads clearly over the shaded streets
@@ -491,6 +506,7 @@ function buildPoints(){
 }
 function render(){
   computeCounts();
+  if(view==='corridor') computeCorridorCounts();
   if(selStreet!==null){   // re-derive a street selection within the (possibly new) filter
     const props=collectStreetProps();
     if(props.length){ selIds=new Set(props.map(p=>p.seg_id)); openInfoStreet(selStreet, props); }
@@ -584,8 +600,10 @@ function drawLegend(){
     }
     h+='<div style="color:var(--muted);margin-top:4px">Each dot is one crash location.</div>';
   } else {
-    const mx=activeMax();
-    h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">Streets shaded by count on each block</div>'
+    const corr=view==='corridor';
+    const mx=corr?corridorMax():activeMax();
+    const cap=corr?'Whole streets shaded by their total':'Streets shaded by count on each block';
+    h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">'+cap+'</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
       +'<div class="ends"><span>0</span><span>'+Math.round(mx)+'</span></div>';
   }

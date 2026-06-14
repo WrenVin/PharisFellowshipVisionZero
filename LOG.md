@@ -16,6 +16,17 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: three display granularities (corridor / block / point)
+
+Per Vincent: added a third "Display as" level so the map reads at three zooms of detail:
+- **Shaded streets (corridor, NEW default):** colors each whole street by its total crashes. A street is split where ownership changes (Westheimer's TxDOT/FM 1093 part = 231 KSI vs its city part = 33 are shaded separately), keyed by `name + on_txdot`; unnamed segments are their own corridor. Built by rolling the per-segment `activeCounts` up to corridor totals (`computeCorridorCounts`, separate `_cbreaks` ramp).
+- **Shaded street segments (block):** the previous "Shaded streets" view, renamed; colors each block on its own.
+- **Crash locations (point):** unchanged.
+
+Chose corridor as the default: at the opening citywide zoom it's the most legible (whole streets read as continuous lines instead of speckle) and it answers "which corridors should the City prioritize," matching the Vision Zero high-injury-network framing. Caveat noted: corridor totals aren't length-normalized, so long arterials naturally read darker; the block view is better for pinpointing specific hot blocks, and the concentration KPI stays segment-based. Clicking still selects a single block in any shaded view (with the "view whole street" link); search still selects the whole street. Verified all three views + the ownership split in-browser, no errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: click = single block; whole street is opt-in
 
 Per Vincent: clicking a single segment was selecting the entire street, which he didn't want. Reverted clicks to single-segment selection (`selectSeg`): the panel shows just that block's crash history and design (and its city/TxDOT owner), and highlights only that one segment. Whole-street selection (summed totals, full-corridor highlight) now happens only from the search box, or from a new "View this whole street →" link added to the single-block popup. State: added `selSeg` alongside `selStreet`; render() re-derives whichever is active within the current filter (clears a single block if a filter hides it). Verified in-browser: click shows one block + the link; the link/search expand to the full street.
