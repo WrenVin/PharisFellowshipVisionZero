@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: clarify the time-of-day chart, tidy ownership/labels
+
+Small clarity fixes from Vincent's review:
+- **Time of day:** subtitle now reads "By hour of day, totals over 2016–2025" (or the selected year), and an 'i' explains each bar is the *total* KSI in that clock hour summed across all years shown, not an average day.
+- **Ownership card:** removed the prose note under the bar; the city-vs-TxDOT explanation now lives only behind the 'i'.
+- Renamed the "Map shows" control to "Show".
+
+---
+
 ## 2026-06-14 — VZ dashboard: street + design context in the crash popup
 
 Clicking a crash dot now also shows the street it is on (name, class) and that street's design: lanes, roadway width, posted speed, sidewalks, traffic volume, and city-vs-TxDOT owner. Crash points carry no segment link, so rather than bloat crash_points.json we find the nearest segment geometrically at click time (`nearestSegProps`: point-to-segment distance in flat lon·cosLat space, bbox-prefiltered, ~150 m cutoff). Crashes were assigned to their nearest segment in the pipeline (median 4 ft), so this reproduces that link client-side.

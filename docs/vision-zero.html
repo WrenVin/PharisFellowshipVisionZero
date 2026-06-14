@@ -174,10 +174,11 @@
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
     <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day</h3>
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
       <div class="sub" id="tod-sub"></div>
       <div id="tod"></div>
       <div class="bleg" id="tod-leg"></div>
+      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows when in the day severe crashes cluster.</div>
     </div>
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
@@ -633,7 +634,8 @@ function drawTimeOfDay(){
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
   document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:150});
-  document.getElementById('tod-sub').textContent='Hour of day'+(year===null?'':' · '+year);
+  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2]) : ('totals in '+year);
+  document.getElementById('tod-sub').textContent='By hour of day, '+span;
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
 function selectYear(y){ year = (y===year) ? null : y; selId=null; document.getElementById('info').style.display='none'; render(); }
