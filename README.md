@@ -2,7 +2,9 @@
 
 A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
 
-**🗺️ Live interactive Street Explorer:** https://wrenvin.github.io/PharisFellowshipVisionZero/ — every District C street, with live controls: **color by any attribute** (design, traffic, demographics, **or crash counts**), **stacking filters** (e.g. 4+ lanes, ≥35 mph, no sidewalk; or streets with ≥1 severe crash), street search, and a click-to-pin info panel (incl. each street's crash history). Mobile-friendly; data sources + vintages disclosed in-app.
+**Two public dashboards (one GitHub Pages site, shared data):**
+- **🚦 Vision Zero view** (story-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — leads with the toll (people killed / seriously injured), the High Injury Network concentration (6% of streets → 82% of KSI), a walking/biking lens, the yearly trend, and an equity overlay. Click any street for its crash history and the street design behind the risk.
+- **🗺️ Street Explorer** (data-first): https://wrenvin.github.io/PharisFellowshipVisionZero/ — every street, **color by any attribute** (design, traffic, demographics, crashes), **stacking filters**, search, click-to-pin info. Mobile-friendly; sources + vintages disclosed in-app.
 
 ## Research question
 
@@ -35,11 +37,14 @@ src/
   build_crashes.py             # clean CRIS crashes -> District C points (severity + mode)
   assign_crashes.py            # assign crashes to segments (200-ft buffer) -> counts
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
-  export_webmap_data.py        # export GeoJSON for the interactive web app (docs/)
-docs/                          # the public web app (GitHub Pages)
-  index.html                   # custom Leaflet Street Explorer (color/filter/search)
-  segments.geojson             # street data the app loads
+  export_webmap_data.py        # export GeoJSON for the web apps (docs/)
+  export_vz_summary.py         # export headline Vision Zero stats (docs/vz_summary.json)
+docs/                          # public web apps (GitHub Pages)
+  vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, mode, equity)
+  index.html                   # Street Explorer (data-first: color/filter/search)
+  segments.geojson             # per-street data both apps load
   boundary.geojson             # District C outline
+  vz_summary.json              # district-wide toll/trend/HIN/equity numbers
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
   dual_merge_report.md      # divided-road merge report (generated)

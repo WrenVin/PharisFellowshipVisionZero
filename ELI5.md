@@ -233,8 +233,19 @@ handful of big roads light up red. That grey-vs-red map is basically the city's
 current "where crashes happened" view — and it's exactly what our design-based
 model will be compared against.
 
-Next: build the model that answers the big question — **which dangerous streets
-is the city's current crash-only method missing?**
+We also built a **second, public-friendly dashboard focused purely on safety**
+(a "Vision Zero" view, alongside the data-explorer one). Instead of letting you
+browse every kind of data, it leads with what matters: how many people have been
+killed or seriously hurt, *which* streets carry almost all of that harm (just 6%
+of streets account for 82% of it), a switch to focus on people walking or
+biking, whether the harm falls more on lower-income neighborhoods, and whether
+things are getting better year to year (they aren't). It's modeled on how cities
+like Austin and New York present their traffic-safety data to the public — but
+with a twist only we have: it points out that 93% of streets have had no serious
+crash, setting up the question our model will answer.
+
+Next: build that model — **which dangerous streets is the city's current
+crash-only method missing?**
 
 Bonus discovery: the city also publishes its *own* official list of
 most-dangerous streets (the "High Injury Network") — exactly the thing our

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vision Zero · District C — Traffic Safety</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{--ink:#15212b;--muted:#5b6672;--line:#e4e7eb;--panel:#f7f8fa;--accent:#b4232a;
+    --sans:'Helvetica Neue',Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff}
+  a{color:#1d4ed8}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 18px 60px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+  h1{font-size:21px;margin:0;font-weight:700}
+  .tag{font-size:13px;color:var(--muted);margin-top:3px}
+  .lens{display:flex;gap:6px;align-items:center}
+  .lens .lab{font-size:12px;color:var(--muted);margin-right:2px}
+  .pill{font-size:13px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--muted);cursor:pointer;user-select:none}
+  .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0 10px}
+  .kpi{background:var(--panel);border-radius:10px;padding:14px 16px}
+  .kpi .l{font-size:13px;color:var(--muted)}
+  .kpi .v{font-size:30px;font-weight:700;color:#7a1419;line-height:1.15;margin-top:2px}
+  .kpi.neutral .v{color:var(--ink)}
+  .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+  .strip{background:#fbe9ea;color:#7a1419;border-radius:8px;padding:10px 14px;font-size:13.5px;margin:6px 0 16px}
+  .strip b{font-weight:700}
+  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+  .ctrl{flex:0 0 210px;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .ctrl .grp{margin-bottom:16px}
+  .opt{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
+  .opt input{margin:0}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 0;cursor:pointer}
+  select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#fff}
+  #mapwrap{flex:1 1 420px;min-width:300px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  #map{height:480px}
+  #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.93);
+    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;max-width:230px}
+  #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px}
+  #legend .ends{display:flex;justify-content:space-between;color:var(--muted)}
+  #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
+    background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none}
+  #info .hd{padding:11px 13px 8px;border-bottom:1px solid var(--line)}
+  #info .hd .n{font-size:15px;font-weight:700}
+  #info .hd .c{font-size:11px;color:var(--muted);margin-top:2px}
+  #info .x{position:absolute;top:7px;right:10px;border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer}
+  #info .g{padding:8px 13px}
+  #info .g h4{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:6px 0 4px}
+  #info .kv{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0}
+  #info .kv .k{color:var(--muted)}
+  #info .kv .v{font-weight:600;text-align:right}
+  #info .kv .v.bad{color:#7a1419}
+  .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card h3{font-size:14px;margin:0 0 1px;font-weight:700}
+  .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:96px}
+  .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+  .bars .bar{width:100%;background:#e24b4a;border-radius:2px 2px 0 0}
+  .bars .bar.hi{background:#7a1419}
+  .bars .bar.gap{background:#dcdfe3}
+  .bars .yl{font-size:10px;color:var(--muted);margin-top:3px}
+  .eqbar{display:flex;height:28px;border-radius:7px;overflow:hidden;font-size:11.5px;margin-top:6px}
+  .foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
+    justify-content:center;color:var(--muted);z-index:700}
+  @media(max-width:680px){.ctrl{flex-basis:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2 class="sr-only">Vision Zero dashboard for Houston Council District C: traffic deaths and serious injuries, the High Injury Network, and street design.</h2>
+
+  <div class="top">
+    <div>
+      <h1>Vision Zero · District C</h1>
+      <div class="tag">Working toward zero traffic deaths and serious injuries in Houston's District C</div>
+    </div>
+    <div class="lens">
+      <span class="lab">Show</span>
+      <span class="pill on" data-mode="all">Everyone</span>
+      <span class="pill" data-mode="ped">Walking</span>
+      <span class="pill" data-mode="bike">Biking</span>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="strip" id="strip"></div>
+
+  <div class="main">
+    <div class="ctrl">
+      <div class="grp">
+        <h3>Map shows</h3>
+        <label class="opt"><input type="radio" name="sev" value="ksi" checked> Killed or seriously injured</label>
+        <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
+      </div>
+      <div class="grp">
+        <h3>Focus</h3>
+        <label class="toggle"><input type="checkbox" id="hin"> Isolate the High Injury Network</label>
+        <label class="toggle"><input type="checkbox" id="equity"> Equity overlay (income)</label>
+      </div>
+      <div class="grp">
+        <h3>Basemap</h3>
+        <select id="basemap">
+          <option value="light">Light</option>
+          <option value="satellite">Satellite</option>
+        </select>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and the design that drives the risk.</div>
+    </div>
+
+    <div id="mapwrap">
+      <div id="map"></div>
+      <div id="legend"></div>
+      <div id="info"></div>
+      <div id="loading">Loading…</div>
+    </div>
+  </div>
+
+  <div class="below">
+    <div class="card">
+      <h3>Killed or seriously injured, by year</h3>
+      <div class="sub" id="trend-sub">A decade in, the trend isn't falling</div>
+      <div class="bars" id="trend"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:7px" id="trend-note"></div>
+    </div>
+    <div class="card">
+      <h3>Who bears the harm</h3>
+      <div class="sub" id="eq-sub"></div>
+      <div class="eqbar" id="eqbar"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:12px" id="eq-mode"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
+    <span><a href="#" id="about">Data &amp; methods</a> · TxDOT CRIS 2016–2024 (+ partial 2026), City of Houston, U.S. Census</span>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const REDS=['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'];
+const ZERO='#e7e9ec', MISSING='#d9dde2';
+const INCOME=['#eff6ff','#c6dbef','#9ecae1','#6baed6','#3182bd','#08519c'];
+// metric field per (mode, severity)
+const METRIC={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
+  bike:{ksi:'n_bike_severe',all:'n_bike'}};
+let mode='all', sev='ksi', equity=false, hinOnly=false, vz=null, geo=null, selId=null;
+
+const fmt=n=>Number(n).toLocaleString();
+function metricField(){ return equity?'median_hh_income':METRIC[mode][sev]; }
+function maxOf(f){if(!geo)return 0;let m=0;geo.eachLayer(l=>{const v=l.feature.properties[f];if(v!=null&&v>m)m=v;});return m;}
+const breaks={};
+function countBreaks(f){ if(breaks[f])return breaks[f]; const mx=Math.max(maxOf(f),2),b=[];
+  for(let i=1;i<REDS.length;i++)b.push(Math.pow(mx,i/REDS.length)); breaks[f]=b; return b; }
+function incBreaks(){ if(breaks._inc)return breaks._inc; const v=[];geo.eachLayer(l=>{const x=l.feature.properties.median_hh_income;if(x!=null)v.push(x);});
+  v.sort((a,b)=>a-b); const b=[];for(let i=1;i<INCOME.length;i++)b.push(v[Math.floor(i/INCOME.length*v.length)]); breaks._inc=b; return b; }
+function colorFor(p){
+  if(equity){ const v=p.median_hh_income; if(v==null)return MISSING; const b=incBreaks();let i=0;while(i<b.length&&v>b[i])i++; return INCOME[i]; }
+  const v=p[metricField()]; if(v==null)return MISSING; if(v<=0)return ZERO;
+  const b=countBreaks(metricField());let i=0;while(i<b.length&&v>b[i])i++; return REDS[i];
+}
+function styleFor(f){
+  const p=f.properties, v=p[metricField()];
+  if(hinOnly && !equity && !(v>0)) return {opacity:0,weight:0};
+  const sel=p.seg_id===selId, zero=!equity&&!(v>0);
+  return {color:colorFor(p), weight: sel?6: zero?1.4: 3, opacity: zero?0.5:0.95};
+}
+
+const renderer=L.canvas({tolerance:8});
+const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const bases={light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
+  satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19})};
+let base=bases.light.addTo(map);
+
+Promise.all([
+  fetch('vz_summary.json').then(r=>r.json()),
+  fetch('boundary.geojson').then(r=>r.json()),
+  fetch('segments.geojson').then(r=>r.json())
+]).then(([summary,bnd,seg])=>{
+  vz=summary;
+  L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.65}}).addTo(map);
+  geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
+    l.on('click',e=>{ selId=f.properties.seg_id; restyle(); openInfo(f.properties); L.DomEvent.stop(e); });
+  }}).addTo(map);
+  try{map.fitBounds(geo.getBounds());}catch(e){}
+  document.getElementById('loading').style.display='none';
+  buildTrend(); render();  // render() applies styleFor now that geo exists
+});
+
+function restyle(){ geo.setStyle(styleFor); }
+function render(){ breaks._inc=null; restyle(); drawKPIs(); drawLegend(); drawStrip(); drawEquity(); }
+
+function drawKPIs(){
+  const t=vz.toll, m=vz.mode;
+  let killed,ksi,k3l,k3v,k3s;
+  if(mode==='all'){killed=t.killed;ksi=t.ksi;}
+  else if(mode==='ped'){killed=m.ped_killed;ksi=m.ped_ksi;}
+  else {killed=m.bike_killed;ksi=m.bike_ksi;}
+  const lab=mode==='all'?'people':mode==='ped'?'people walking':'people biking';
+  const span=vz.years[0]+'–'+vz.years[vz.years.length-2];
+  document.getElementById('kpis').innerHTML=
+    kpiCard('People killed · '+span, fmt(killed), mode==='all'?vz.mode.vuln_killed_share+'% were walking or biking':'in District C')
+   +kpiCard('Killed or seriously injured', fmt(ksi), 'KSI — '+lab)
+   +kpiCard('High Injury Network', vz.hin.pct_streets+'% <span style="color:#9aa3ad">→</span> '+vz.hin.pct_ksi+'%', 'of streets carry '+vz.hin.pct_ksi+'% of KSI', true);
+}
+function kpiCard(l,v,s,neutral){
+  return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
+}
+function drawStrip(){
+  document.getElementById('strip').innerHTML=
+    '<b>'+vz.hin.pct_zero_streets+'% of District C streets</b> have no record of anyone killed or seriously injured — '
+    +'but many are built to be dangerous. A crash-only map can’t see them; a design-based model can.';
+}
+function drawLegend(){
+  const el=document.getElementById('legend');
+  if(equity){
+    el.innerHTML='<div style="font-weight:600;margin-bottom:3px">Neighborhood income</div>'
+      +'<div class="grad" style="background:linear-gradient(90deg,'+INCOME.join(',')+')"></div>'
+      +'<div class="ends"><span>lower</span><span>higher</span></div>'
+      +'<div style="color:#5b6672;margin-top:5px">Red lines = where people are hurt. Look where they fall.</div>';
+    return;
+  }
+  const mx=maxOf(metricField());
+  const what = sev==='all' ? 'crashes' : 'killed or seriously injured';
+  el.innerHTML='<div style="font-weight:600;margin-bottom:3px">'+(mode==='all'?'':mode==='ped'?'Walking: ':'Biking: ')+what+'</div>'
+    +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></div>'
+    +'<div class="ends"><span>none</span><span>'+Math.round(mx)+' on one street</span></div>'
+    +(hinOnly?'<div style="color:#5b6672;margin-top:5px">Showing only streets with a recorded KSI.</div>':'');
+}
+function drawEquity(){
+  document.getElementById('eq-sub').textContent='Within District C (median income $'+fmt(vz.equity.median_income)+'), KSI skews lower-income';
+  const lo=vz.equity.ksi_lower_income_pct, hi=100-lo;
+  document.getElementById('eqbar').innerHTML=
+    '<div style="width:'+lo+'%;background:#a32d2d;color:#fce8e8;display:flex;align-items:center;justify-content:center">'+lo+'% lower-income half</div>'
+    +'<div style="width:'+hi+'%;background:#f0997b;color:#4a1b0c;display:flex;align-items:center;justify-content:center">'+hi+'%</div>';
+  const m=vz.mode;
+  document.getElementById('eq-mode').innerHTML='Of '+vz.toll.killed+' people killed, <b>'+m.ped_killed+' were walking</b> and '+m.bike_killed+' biking.';
+}
+function buildTrend(){
+  const y=vz.ksi_by_year, allY=[]; for(let yr=vz.years[0];yr<=vz.years[vz.years.length-1];yr++) allY.push(yr);
+  const full=allY.filter(yr=>yr<2026); // drop partial current year from the bar chart
+  const mx=Math.max(...full.map(yr=>y[yr]||0));
+  const worst=full.reduce((a,b)=>(y[b]||0)>(y[a]||0)?b:a, full[0]);
+  document.getElementById('trend').innerHTML=full.map(yr=>{
+    const v=y[yr];
+    if(v==null) return '<div class="b"><div class="bar gap" style="height:12px"></div><div class="yl">·'+String(yr).slice(2)+'</div></div>';
+    const h=Math.round(20+v/mx*70);
+    return '<div class="b"><div class="bar'+(yr===worst?' hi':'')+'" style="height:'+h+'px" title="'+yr+': '+v+'"></div><div class="yl">'+String(yr).slice(2)+'</div></div>';
+  }).join('');
+  document.getElementById('trend-note').textContent='2020 & 2025 pending · worst year so far: '+worst+' ('+y[worst]+' KSI)';
+}
+function openInfo(p){
+  const I=document.getElementById('info');
+  const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'—';
+  const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
+  I.innerHTML='<button class="x" onclick="document.getElementById(\'info\').style.display=\'none\';selId=null;restyle()">×</button>'
+    +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class+'</div></div>'
+    +'<div class="g"><h4>Crash history (2016–2026)</h4>'
+      +row('Killed or seriously injured',(p.n_severe||0),p.n_severe>0)
+      +row('People killed',(p.n_fatal||0),p.n_fatal>0)
+      +row('Severe — walking',(p.n_ped_severe||0))
+      +row('Severe — biking',(p.n_bike_severe||0))
+      +row('All crashes',(p.n_crash||0))+'</div>'
+    +'<div class="g"><h4>The street design that drives risk</h4>'
+      +row('Lanes',(p.lanes_final!=null?p.lanes_final:'—'))
+      +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'—'))
+      +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'—'))
+      +row('Sidewalks',sw)
+      +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'—'))+'</div>';
+  I.style.display='block';
+}
+
+// controls
+document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
+  document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+  p.classList.add('on'); mode=p.dataset.mode; render();
+});
+document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
+document.getElementById('hin').onchange=e=>{hinOnly=e.target.checked; render();};
+document.getElementById('equity').onchange=e=>{equity=e.target.checked; render();};
+document.getElementById('basemap').onchange=e=>{map.removeLayer(base); base=bases[e.target.value].addTo(map); base.bringToBack();};
+document.getElementById('about').onclick=e=>{e.preventDefault(); sendAbout();};
+function sendAbout(){ alert('Crashes: TxDOT CRIS public extracts, 2016–2024 + partial 2026 (2020 & 2025 pending), each assigned to its nearest city street within 200 ft. Street design & traffic: City of Houston / HCAD. Demographics: U.S. Census ACS 2023 5-year. "Killed or seriously injured" = KABCO K+A. Full methods in the project CODEBOOK on GitHub.'); }
+</script>
+</body>
+</html>

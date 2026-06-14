@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — Second dashboard: a Vision Zero view
+
+Vincent: the Street Explorer is data-first (built around road type); a *Vision Zero* dashboard should put harm front and center. Researched how Austin/NYC/LA/Seattle/SF present publicly — all reactive, toll-led, organized around "are we ending traffic deaths?": big KSI numbers, a severe-crash map as the homepage, the "X% of streets = Y% of harm" High Injury Network stat, a mode lens (walking/biking), equity disparities named explicitly, and a flat yearly trend. None show *predicted* risk (streets dangerous by design but not-yet-bloody) — that's our differentiator (Act 3, after modeling).
+
+Mocked it up first (visualize widget, real numbers) → Vincent approved direction, flagged AI-sounding wording, and asked to **keep the Street Explorer as-is and build a separate second dashboard**. Both host on the one Pages site (shared geojson).
+
+Built `docs/vision-zero.html` (+ `src/export_vz_summary.py` → `docs/vz_summary.json`). Story-first, real District C numbers, proper VZ vocabulary (KSI / High Injury Network / killed-or-seriously-injured / walking-biking / street design). Features: toll KPI header (updates by mode), blind-spot strip (93% of streets zero-KSI → sets up the model), KSI hotspot map as default (log-scale count color), walking/biking lens, "isolate the High Injury Network" + "equity overlay (income)" toggles, click panel (crash history + the street design behind the risk), yearly KSI trend (2020/25 gaps shown), equity split, cross-link to the Explorer.
+
+Headline stat computed from our data: **6% of District C street-miles carry 82% of KSI** (vs Houston citywide 6%/60%, LA 6%/70%); 93% of streets have zero KSI. Fixed a load bug (count-type default style called geo.eachLayer before geo was assigned → build layer first, then style). Verified in-browser: KPIs, mode lens, info panel, equity overlay, trend all work, no console errors. Left index.html untouched per Vincent.
+
+---
+
 ## 2026-06-13 — Crashes on the dashboard
 
 Surfaced the per-segment crash counts in the Street Explorer (Vincent: finish the dashboard before modeling). `export_webmap_data.py` now exports the crash columns; `docs/index.html` gains a **Crashes** color-by group (severe/all/injury/fatal/ped-severe/bike-severe), a **Crash history** block in the click panel, a **severe-crash range filter**, and a CRIS row in the data-sources modal.

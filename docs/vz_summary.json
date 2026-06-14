@@ -1,0 +1,50 @@
+{
+  "generated": "2026-06-13",
+  "years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2026
+  ],
+  "toll": {
+    "killed": 138,
+    "serious": 901,
+    "ksi": 1039,
+    "crashes": 57848
+  },
+  "mode": {
+    "ped_killed": 42,
+    "bike_killed": 7,
+    "ped_ksi": 171,
+    "bike_ksi": 50,
+    "ped_crashes": 755,
+    "bike_crashes": 437,
+    "vuln_killed_share": 36
+  },
+  "ksi_by_year": {
+    "2016": 124,
+    "2017": 116,
+    "2018": 113,
+    "2019": 117,
+    "2021": 126,
+    "2022": 137,
+    "2023": 119,
+    "2024": 144,
+    "2026": 43
+  },
+  "hin": {
+    "pct_streets": 6,
+    "pct_ksi": 82,
+    "pct_zero_streets": 93,
+    "ksi_on_streets": 832
+  },
+  "equity": {
+    "median_income": 146968,
+    "ksi_lower_income_pct": 58
+  }
+}
