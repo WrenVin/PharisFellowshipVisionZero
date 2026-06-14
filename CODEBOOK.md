@@ -2,7 +2,7 @@
 
 Documents every variable in the segment datasets. One row = one **road segment**: a stretch of street between two intersections (or an intersection and a dead end), undirected — a two-way street is one row, not two, and (after the merge) a divided boulevard is one row, not two.
 
-> **Scope: surface streets across the City of Houston** (75,260 segments), rebuilt 2026-06-14 from District C via `AREA` in `src/config.py`. Only limited-access freeways/tollways are excluded; at-grade arterials including state-owned ones (S Main/US-90A, SH 6, Westheimer/FM 1093) are kept and **labeled** `on_txdot` (city vs TxDOT ownership, from TxDOT's roadway inventory) rather than dropped — matching Austin's Vision Zero dashboard and the City's own HIN. ~16% of the surface-street KSI shown are on TxDOT-owned arterials (the rest city streets; freeways, which are state-owned, are excluded entirely). Some inline coverage %s may still reflect the District C build; current coverage is in README. **Land use (`landuse_*`) is deferred** and absent.
+> **Scope: surface streets across the City of Houston** (75,260 segments), rebuilt 2026-06-14 from District C via `AREA` in `src/config.py`. Only limited-access freeways/tollways are excluded; at-grade arterials including state-owned ones (S Main/US-90A, SH 6, Westheimer/FM 1093) are kept and **labeled** `on_txdot` (city vs TxDOT ownership, from TxDOT's roadway inventory) rather than dropped — matching Austin's Vision Zero dashboard and the City's own HIN. ~11% of the surface-street KSI shown are on TxDOT-owned arterials (the rest city streets; freeways, which are state-owned, are excluded entirely). `on_txdot` is set only where a segment runs *parallel to* (within 60 ft and bearing within 30 deg of) a TxDOT on-system roadway, so streets that merely cross over a freeway are not mislabeled. Some inline coverage %s may still reflect the District C build; current coverage is in README. **Land use (`landuse_*`) is deferred** and absent.
 
 **Files** (in `data/processed/`):
 
@@ -175,7 +175,7 @@ Source: City of Houston "Land Use (Grouped)" parcel layer (HCAD). For each segme
 
 ## Crash points — `houston_crashes.gpkg` (separate file, not a segment column yet)
 
-TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to the City of Houston (EPSG:2278). **Surface streets**: only limited-access freeways/tollways/ramps/frontage are excluded; at-grade arterials incl. state-owned (S Main/US-90A, SH 6, Westheimer/FM 1093) are KEPT and labeled city- vs TxDOT-owned (`on_txdot`). **421,699 crashes, 9,928 KSI** (2016–2025 + partial 2026). ~16% of these are on TxDOT-owned arterials (rest city streets); freeways (state-owned) are excluded entirely, so the often-cited "~half of KSI on state roads" is mostly freeways, out of scope here. See `reports/crash_build_report.md`.
+TxDOT CRIS crashes (public extracts), one row per crash, deduped by `Crash_ID`, geocoded, clipped to the City of Houston (EPSG:2278). **Surface streets**: only limited-access freeways/tollways/ramps/frontage are excluded; at-grade arterials incl. state-owned (S Main/US-90A, SH 6, Westheimer/FM 1093) are KEPT and labeled city- vs TxDOT-owned (`on_txdot`). **421,699 crashes, 9,928 KSI** (2016–2025 + partial 2026). ~11% of these are on TxDOT-owned arterials (rest city streets); freeways (state-owned) are excluded entirely, so the often-cited "~half of KSI on state roads" is mostly freeways, out of scope here. See `reports/crash_build_report.md`.
 
 | Variable | Type | Values | Description |
 |---|---|---|---|

@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Fix: ownership label flagged freeway OVERPASSES as TxDOT-owned
+
+Vincent spotted plain city streets being shown as TxDOT-owned where they cross over interstates. Cause: the `on_txdot` label used a distance-only test (>=50% of a segment's length within 60 ft of a TxDOT on-system roadway). A street that bridges over a freeway runs directly above the wide freeway corridor, so a short overpass had most of its length inside the buffer and got mislabeled state-owned even though it crosses the freeway perpendicularly.
+
+Fix in `export_webmap_data.py`: break both the city network and the TxDOT roadways into straight 2-point pieces with a compass bearing, then a city piece counts as TxDOT only if its nearest TxDOT piece is within 60 ft **and roughly parallel** (bearing within 30 deg). A segment is `on_txdot` when >=50% of its length matches. Crossings are perpendicular, so they no longer qualify; segments running *along* a state arterial still do.
+
+Effect: TxDOT-labeled segments 1,930 -> 1,475; KSI on TxDOT 16% -> 11% (1,104 of 9,928). The ~473 dropped segments are dominated by city cross-streets over freeways/arterials (Broadway, Bissonnet, W Bellfort, Lawndale, Jensen, Beechnut) and Beltway-crossing pieces; the kept set is coherent state arterials (Westheimer/FM 1093, Cullen, Old Spanish Trail, Cypress Creek Pkwy/FM 1960, Galveston Rd, Highway 6, Telephone, Almeda, Main/US-90A). Crash `on_txdot` is derived from the segment label, so it's corrected too. Re-ran the export (segments.geojson, segments_vz.geojson, crash_points.json regenerated); the slim VZ file is re-minified. Docs (README, CODEBOOK, ELI5) updated 16%->11% / "1 in 6"->"1 in 9" and the method note. Verified in-browser: TxDOT-only view now shows clean arterial corridors, no per-crossing speckle.
+
+---
+
 ## 2026-06-14 — VZ dashboard: clarify the time-of-day chart, tidy ownership/labels
 
 Small clarity fixes from Vincent's review:

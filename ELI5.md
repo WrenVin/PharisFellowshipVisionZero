@@ -217,12 +217,14 @@ would hide the problem. The decade's toll on city streets: **1,687 people killed
 and 9,928 killed or seriously injured** (about **69,500 years of life lost**).
 
 What we *do* do is **label** every street and crash as city-owned or
-state-owned (TxDOT), so the dashboard can say plainly that about **1 in 6 of the
+state-owned (TxDOT), so the dashboard can say plainly that about **1 in 9 of the
 serious crashes on these streets are on state-owned arterials** — the ones the
 City can't fix alone and has to push TxDOT to redesign. (If you also counted the
 freeways we leave out, state-owned roads are closer to half of all the city's
-serious crashes.) That's an honest, useful point rather than quietly dropping
-those roads. (Running just District C earlier gave 88 killed
+serious crashes.) We only call a street state-owned where it actually runs
+*along* a TxDOT road, so an ordinary city street that just bridges over a freeway
+is no longer mistakenly counted as the state's. That's an honest, useful point
+rather than quietly dropping those roads. (Running just District C earlier gave 88 killed
 and 712 injured; the whole city is far larger.)
 
 We then figured out **which crashes involved people walking or biking** (the

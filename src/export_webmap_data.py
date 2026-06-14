@@ -6,11 +6,13 @@ round attribute values, and carry only display/filter-relevant columns.
 """
 
 import json
+import math
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 import requests
+from shapely.geometry import LineString
 
 import config as cfg
 ROOT, PROCESSED, DOCS, EXTERNAL = cfg.ROOT, cfg.PROCESSED, cfg.DOCS, cfg.EXTERNAL
@@ -133,20 +135,53 @@ if _hpath.exists():
     print(f"on-HIN segments: {int(seg['on_hin'].sum()):,} "
           f"({100*seg['on_hin'].mean():.1f}%)")
 
-# Label each segment as TxDOT-owned (state) vs city-owned: a segment is on_txdot
-# if >=50% of its length runs within 60 ft of a TxDOT on-system main lane (S Main/
-# US-90A, SH 6, FM 1093, etc.). These at-grade state arterials are KEPT in the
-# network (like the City's HIN and Austin's dashboard) but flagged so the dashboard
-# can show the state-owned share — only limited-access freeways are excluded
-# (upstream, in pull_osm + build_crashes).
+# Label each segment as TxDOT-owned (state) vs city-owned. A segment is on_txdot
+# only if it runs ALONG a TxDOT on-system main lane (S Main/US-90A, SH 6, FM 1093,
+# etc.) for >=50% of its length. We break both networks into straight 2-point
+# pieces with a compass bearing, then a city piece "matches" a TxDOT piece only
+# when it is within 60 ft AND roughly parallel (bearing within 30 deg). The
+# parallel test is the fix for a real bug: a plain city street that BRIDGES OVER an
+# interstate runs directly above the (wide) freeway corridor, so the old distance-
+# only test flagged the overpass as state-owned even though it crosses the freeway
+# perpendicularly. These at-grade state arterials are KEPT in the network (like the
+# City's HIN and Austin's dashboard); only limited-access freeways are excluded
+# upstream (pull_osm + build_crashes).
+def _bearing_pieces(gdf, id_col=None):
+    """Explode lines into straight 2-point pieces with a 0-180 bearing + length."""
+    recs = []
+    ids = gdf[id_col].values if id_col else [None] * len(gdf)
+    for gid, geom in zip(ids, gdf.geometry.values):
+        if geom is None or geom.is_empty:
+            continue
+        parts = geom.geoms if geom.geom_type == "MultiLineString" else [geom]
+        for part in parts:
+            cs = list(part.coords)
+            for i in range(len(cs) - 1):
+                (x0, y0), (x1, y1) = cs[i], cs[i + 1]
+                ln = LineString([(x0, y0), (x1, y1)])
+                rec = {"brg": math.degrees(math.atan2(y1 - y0, x1 - x0)) % 180,
+                       "plen": ln.length, "geometry": ln}
+                if id_col:
+                    rec[id_col] = gid
+                recs.append(rec)
+    return gpd.GeoDataFrame(recs, crs=gdf.crs)
+
 seg["on_txdot"] = False
 try:
     tx = fetch_txdot_onsys(seg.crs)
-    tbuf = tx.buffer(60).union_all()
-    tfrac = seg.geometry.intersection(tbuf).length / seg.geometry.length
-    seg["on_txdot"] = (tfrac >= 0.5).fillna(False).values
+    cpieces = _bearing_pieces(seg, "seg_id")
+    tpieces = _bearing_pieces(tx)[["brg", "geometry"]].rename(columns={"brg": "tx_brg"})
+    j = gpd.sjoin_nearest(cpieces, tpieces, how="left", max_distance=60, distance_col="d")
+    j = j[~j.index.duplicated(keep="first")]
+    db = (j["brg"] - j["tx_brg"]).abs()
+    db = db.where(db <= 90, 180 - db)          # circular bearing diff on 0-180
+    j["match"] = j["tx_brg"].notna() & (db <= 30)
+    matched = j[j["match"]].groupby("seg_id")["plen"].sum()
+    total = cpieces.groupby("seg_id")["plen"].sum()
+    frac = (matched / total).reindex(seg["seg_id"].values).fillna(0).values
+    seg["on_txdot"] = frac >= 0.5
     print(f"TxDOT-owned (state) segments labeled: {int(seg['on_txdot'].sum()):,} "
-          f"({100*seg['on_txdot'].mean():.1f}%) — kept in network, flagged for the ownership view")
+          f"({100*seg['on_txdot'].mean():.1f}%) — parallel-aligned match, overpasses excluded")
 except Exception as e:
     print(f"WARNING: TxDOT tagging skipped ({type(e).__name__}: {e})")
 
@@ -181,6 +216,9 @@ if vz_out.exists():
     vz_out.unlink()
 web = keep[[c for c in WEB_KEEP if c in keep.columns] + ["geometry"]].copy()
 web.to_file(vz_out, driver="GeoJSON", COORDINATE_PRECISION=5)
+# GDAL writes pretty-printed JSON; re-dump compact to shave the download further
+# (parsed memory is unchanged, but it trims a few MB off the wire).
+vz_out.write_text(json.dumps(json.loads(vz_out.read_text()), separators=(",", ":")))
 print(f"Wrote slim VZ segments -> {vz_out} ({vz_out.stat().st_size/1e6:.1f} MB)")
 
 # boundary: simplify hard (outline only, not measured) to keep it light
