@@ -101,11 +101,17 @@
         <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
       </div>
       <div class="grp">
+        <h3>Display as</h3>
+        <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded streets</label>
+        <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Streets shade by how many crashes occurred on each block; locations plot each crash as a dot.</div>
+      </div>
+      <div class="grp">
         <h3>Overlay</h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">Houston's official 2022 HIN, for comparison</div>
       </div>
-      <div style="font-size:11.5px;color:var(--muted)">Click any street for its crash history and design. Click a year bar below to view a single year.</div>
+      <div style="font-size:11.5px;color:var(--muted)">Click any street for its details. Click a year bar below to view a single year.</div>
     </div>
 
     <div id="mapwrap">
@@ -144,8 +150,8 @@ const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, vz=null, geo=null, hinLayer=null, selId=null;
-let records=[], activeCounts={}, _breaks=[];
+let mode='all', sev='ksi', year=null, view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selId=null;
+let records=[], pts=[], activeCounts={}, _breaks=[];
 const fmt=n=>Number(n).toLocaleString();
 
 function recMatch(r){ // r=[seg,year,sev,fatal,ped,bike]
@@ -189,9 +195,10 @@ Promise.all([
   fetch('boundary.geojson').then(r=>r.json()),
   fetch('segments.geojson').then(r=>r.json()),
   fetch('hin.geojson').then(r=>r.json()),
-  fetch('crash_records.json').then(r=>r.json())
-]).then(([summary,bnd,seg,hin,recs])=>{
-  vz=summary; records=recs;
+  fetch('crash_records.json').then(r=>r.json()),
+  fetch('crash_points.json').then(r=>r.json())
+]).then(([summary,bnd,seg,hin,recs,points])=>{
+  vz=summary; records=recs; pts=points;
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   hinLayer=L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:5,opacity:.45}});
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
@@ -202,8 +209,26 @@ Promise.all([
   render();
 });
 
-function restyle(){ geo.setStyle(styleFor); }
-function render(){ computeCounts(); restyle(); drawKPIs(); drawLegend(); drawTrend(); drawMode(); }
+function faintStyle(){ return {color:ZERO, weight:1, opacity:.35}; }
+function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
+function buildPoints(){
+  if(ptLayer) map.removeLayer(ptLayer);
+  const g=L.layerGroup();
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year]
+    if(year!==null && p[6]!==year) continue;
+    const m = mode==='all' || (mode==='ped'&&p[4]) || (mode==='bike'&&p[5]); if(!m) continue;
+    const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
+    L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?4:2.4,stroke:false,
+      fillColor:isSev?'#b30000':'#fb8a5c', fillOpacity:isSev?.85:.4}).addTo(g);
+  }
+  ptLayer=g.addTo(map);
+}
+function render(){
+  computeCounts(); restyle();
+  if(view==='points') buildPoints();
+  else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
+  drawKPIs(); drawLegend(); drawTrend(); drawMode();
+}
 
 function drawKPIs(){
   const t=tally(year);
@@ -222,13 +247,23 @@ function drawKPIs(){
 function kpi(l,v,s,neutral){return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';}
 
 function drawLegend(){
-  const el=document.getElementById('legend'), mx=activeMax();
+  const el=document.getElementById('legend');
   const metric=sev==='all'?'Crashes':'Killed or seriously injured';
   const pre=mode==='all'?'':mode==='ped'?'Walking · ':'Biking · ';
   const yr=year===null?'':' · '+year;
-  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>'
-    +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
-    +'<div class="ends"><span>0</span><span>'+Math.round(mx)+' on one street</span></div>';
+  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>';
+  if(view==='points'){
+    if(sev==='all'){
+      h+='<div class="key"><span class="dot" style="background:#b30000;border-radius:50%;width:9px;height:9px"></span>Killed or seriously injured</div>'
+        +'<div class="key"><span class="dot" style="background:#fb8a5c;border-radius:50%;width:7px;height:7px"></span>Other crash</div>';
+    }
+    h+='<div style="color:var(--muted);margin-top:4px">Each dot is one crash location.</div>';
+  } else {
+    const mx=activeMax();
+    h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">Streets shaded by count on each block</div>'
+      +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
+      +'<div class="ends"><span>0</span><span>'+Math.round(mx)+' on one street</span></div>';
+  }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
   el.innerHTML=h;
 }
@@ -303,6 +338,7 @@ document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
   p.classList.add('on'); mode=p.dataset.mode; render();
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
+document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});
 document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend();

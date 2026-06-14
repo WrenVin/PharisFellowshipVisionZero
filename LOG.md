@@ -4,6 +4,19 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-13 — VZ dashboard: crash-locations (points) view + clearer wording
+
+Vincent's point: showing crash *points* as shaded *segments* can confuse — a hotspot at an intersection lights one approach leg red while the adjacent block reads grey (an artifact of nearest-leg assignment + discrete unequal-length blocks). Fix: added a **"Display as" toggle — Shaded streets / Crash locations.** Crash locations plots each crash as a dot (red = KSI, light = other), so the real spatial pattern shows without segment boundaries; shaded-streets stays the analytical/HIN view. Both respect the mode lens, year drill-down, and KSI/all metric.
+
+- Exported `docs/crash_points.json` (41,177 city-street crashes: lat/lon/severity/mode/year) via `export_webmap_data.py`.
+- Points rendered on canvas (interactive:false so street clicks pass through); 41k draw in ~250 ms.
+- Clearer wording: control hint + legend now state "Streets shaded by count on each block" vs "Each dot is one crash location."
+- Underlying data/model unchanged — purely a presentation option.
+
+Verified in-browser (KSI 712 pts, all-crashes 41,177 pts, year filter), no console errors.
+
+---
+
 ## 2026-06-13 — Dashboard typography + label polish
 
 - **Inter font** (Google Fonts) applied to both dashboards + antialiasing — more professional than the prior Helvetica/Arial fallback.

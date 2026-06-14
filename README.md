@@ -3,7 +3,7 @@
 A traffic-safety analysis and dashboard for **Houston City Council District C**, built in partnership with the office of Council Member Joseph Panzarella. This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026).
 
 **Two public dashboards (one GitHub Pages site, shared data):**
-- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed / seriously injured, city streets only), where it concentrates (6% of streets → 78% of KSI), a walking/biking lens, a by-travel-mode breakdown, a yearly trend you can **click to drill into a single year**, and the City's official High Injury Network as a comparison overlay. Click any street for its crash history and design.
+- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed / seriously injured, city streets only), where it concentrates (6% of streets → 78% of KSI), a walking/biking lens, a by-travel-mode breakdown, a yearly trend you can **click to drill into a single year**, a **shaded-streets / crash-locations toggle**, and the City's official High Injury Network as a comparison overlay. Click any street for its crash history and design.
 - **🗺️ Street Explorer** (data-first): https://wrenvin.github.io/PharisFellowshipVisionZero/ — every street, **color by any attribute** (design, traffic, demographics, crashes), **stacking filters**, search, click-to-pin info. Mobile-friendly; sources + vintages disclosed in-app.
 
 ## Research question
@@ -47,6 +47,7 @@ docs/                          # public web apps (GitHub Pages)
   vz_summary.json              # district-wide toll / trend / concentration numbers
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   crash_records.json           # per-crash records (seg/year/severity/mode) for year drill-down
+  crash_points.json            # crash coordinates for the "Crash locations" points view
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
   dual_merge_report.md      # divided-road merge report (generated)
