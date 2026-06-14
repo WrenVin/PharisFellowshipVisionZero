@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: "By neighborhood income" equity panel
+
+Added an equity panel now that the build is citywide (it was meaningless in affluent District C alone — which is exactly what the data shows). Each crash is tagged with the median household income of its neighborhood (nearest segment's block-group income → tier; `export_webmap_data`, new `inc_tier` field on crash points). New "By neighborhood income" card: a stacked bar of KSI across four income tiers (<$50k / $50–100k / $100–150k / $150k+), mode/year/district aware, with a takeaway ("neighborhoods under $100k account for X% of KSI here") and an ecological caveat.
+
+The story validates the angle: **citywide 81% of KSI is in neighborhoods under $100k**; but District C (affluent) skews high-income (only 28% under $100k) while District B (lower-income) is 99% under $100k. Time of day was kept (briefly considered removing it). Verified offline (JS syntax + a Python simulation of the panel/tally/concentration logic — District C reproduces 88 K / 712 KSI) because the local preview server is down this session (a tooling `os.getcwd` permission error, unrelated to the code).
+
+---
+
 ## 2026-06-14 — VZ dashboard: per-council-district filter
 
 Added a **District dropdown** (All districts / A–K) to the Vision Zero dashboard so you can zoom into one council district and have *everything* recompute for it.

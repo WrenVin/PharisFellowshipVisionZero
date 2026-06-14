@@ -170,6 +170,14 @@
       <div class="legrow" id="modeleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
+    <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income</h3>
+      <div class="sub" id="eq-sub">Killed or seriously injured</div>
+      <div class="stack" id="eqbar"></div>
+      <div class="legrow" id="eqleg"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:6px">By the median income of the neighborhood (Census block group) around each crash — a property of the area, not the individual.</div>
+    </div>
   </div>
 
   <div class="foot">
@@ -313,7 +321,7 @@ function render(){
   computeCounts(); restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawViewing();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawViewing();
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
@@ -419,6 +427,28 @@ function drawMode(){
    +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
    +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
   document.getElementById('modedeaths').innerHTML=t.killed+' people killed — '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
+}
+
+// --- equity: KSI by neighborhood median household income (mode/year/district aware) ---
+const INC_COL=['#7a1419','#d7301f','#fc8d59','#fdd49e'];   // darker = lower income (bears more)
+const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
+function drawEquity(){
+  const c=[0,0,0,0]; let unk=0;
+  for(const p of pts){ if(year!==null && p[6]!==year) continue;
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI
+    const t=p[11]; if(t==null) unk++; else c[t]++; }
+  const tot=c[0]+c[1]+c[2]+c[3];
+  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
+  if(tot<=0){ document.getElementById('eqbar').innerHTML=''; document.getElementById('eqleg').innerHTML='';
+    document.getElementById('eqnote').textContent='No KSI with a known neighborhood income for this view.'; return; }
+  const pct=x=>Math.round(100*x/tot);
+  document.getElementById('eqbar').innerHTML=c.map((v,i)=>
+    v>0?'<div style="width:'+pct(v)+'%;background:'+INC_COL[i]+'">'+(pct(v)>=8?pct(v)+'%':'')+'</div>':'').join('');
+  document.getElementById('eqleg').innerHTML=c.map((v,i)=>
+    '<span><span class="dot" style="background:'+INC_COL[i]+'"></span>'+INC_LAB[i]+' ('+fmt(v)+')</span>').join('');
+  const low=pct(c[0]+c[1]);
+  document.getElementById('eqnote').innerHTML='Neighborhoods under $100k median income account for <b>'+low
+    +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----

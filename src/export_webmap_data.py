@@ -39,6 +39,17 @@ FRIENDLY_CLASS = {
     "residential": "Local street", "unclassified": "Minor street",
 }
 
+# neighborhood median-household-income tier per crash (for the equity panel):
+# 0 = <$50k, 1 = $50-100k, 2 = $100-150k, 3 = $150k+
+INC_EDGES = [50000, 100000, 150000]
+def inc_tier(v):
+    if pd.isna(v):
+        return None
+    for i, e in enumerate(INC_EDGES):
+        if v < e:
+            return i
+    return len(INC_EDGES)
+
 seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 
 # friendly road class (collapse *_link to Minor)
@@ -96,9 +107,15 @@ print(f"Wrote {len(keep):,} segments -> {out} ({out.stat().st_size/1e6:.1f} MB)"
 print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
-# by-time-of-day, and years-of-life-lost panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district]
-cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(4326)
+# by-time-of-day, years-of-life-lost, and by-neighborhood-income panels:
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier]
+cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
+# neighborhood income per crash = nearest segment's block-group median income -> tier
+nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "geometry"]], how="left")
+nj = nj[~nj.index.duplicated()]
+cr["inc_tier"] = pd.Series(pd.to_numeric(nj["median_hh_income"].values,
+                                         errors="coerce")).map(inc_tier).values
+cr = cr.to_crs(4326)
 if districts_4326 is not None:  # council district per crash, for the per-district filter
     cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
                    how="left", predicate="within")
@@ -107,9 +124,9 @@ if districts_4326 is not None:  # council district per crash, for the per-distri
 else:
     cr["district"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -117,7 +134,8 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist in zip(
                 dt if isinstance(dt, str) else None,
                 int(hr) if pd.notna(hr) else None,
                 round(float(yl), 1) if pd.notna(yl) and yl else 0,
-                dist if isinstance(dist, str) else None])
+                dist if isinstance(dist, str) else None,
+                int(it) if pd.notna(it) else None])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
