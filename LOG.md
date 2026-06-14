@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: clearer HIN overlay + "Crashes vs. the HIN" stats
+
+The official HIN overlay was muddy (translucent purple over the red shading). Fixed + added a comparison panel:
+
+- **Legibility:** HIN now drawn as a white casing under a crisp full-opacity purple core (round caps) — reads clearly over the shaded streets at any zoom.
+- **Tagging:** `export_webmap_data` now flags each segment `on_hin` (≥50% of its length within 50 ft of an HIN line) and each crash (nearest segment's flag). Citywide the HIN is **~8% of street-miles** but on-HIN segments carry **~52% of KSI**.
+- **New card "Crashes vs. the High Injury Network":** stacked bar of KSI on-HIN vs off-HIN (mode/year/district aware) with the takeaway "The HIN is X% of street-miles here but carries Y% of KSI — Z% fall off it." Citywide: 8% / 49% / **51% off**; District C 7% / 36% / 64% off; District B 7% / 48% / 52% off. (Descriptive preview of the divergence theme — not the model.)
+
+Verified in-browser (overlay legibility, card per-district, no console errors).
+
+---
+
 ## 2026-06-14 — VZ dashboard: "By neighborhood income" equity panel
 
 Added an equity panel now that the build is citywide (it was meaningless in affluent District C alone — which is exactly what the data shows). Each crash is tagged with the median household income of its neighborhood (nearest segment's block-group income → tier; `export_webmap_data`, new `inc_tier` field on crash points). New "By neighborhood income" card: a stacked bar of KSI across four income tiers (<$50k / $50–100k / $100–150k / $150k+), mode/year/district aware, with a takeaway ("neighborhoods under $100k account for X% of KSI here") and an ecological caveat.
