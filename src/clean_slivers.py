@@ -30,14 +30,13 @@ import geopandas as gpd
 import pandas as pd
 from shapely.ops import linemerge, unary_union
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.REPORTS
 
 ABSORB_FT = 100  # named short pieces below this get absorbed into neighbors
 DROP_FT = 50     # unnamed fragments below this get dropped
 
-src = PROCESSED / "district_c_segments_merged.gpkg"
+src = cfg.processed("segments_merged.gpkg")
 net = gpd.read_file(src, layer="segments").set_index("seg_id", drop=False)
 merged_away = gpd.read_file(src, layer="merged_away")
 n0, mi0 = len(net), net["length_ft"].sum() / 5280
@@ -121,7 +120,7 @@ merged_away["rep_seg_id"] = merged_away["rep_seg_id"].map(
 orphans = merged_away["rep_seg_id"].isin(removed_ids).sum()
 
 # --- save -------------------------------------------------------------------------
-out = PROCESSED / "district_c_segments_clean.gpkg"
+out = cfg.processed("segments_clean.gpkg")
 net.reset_index(drop=True).to_file(out, layer="segments", driver="GPKG")
 removed.reset_index(drop=True).to_file(out, layer="removed_slivers", driver="GPKG")
 merged_away.to_file(out, layer="merged_away", driver="GPKG")

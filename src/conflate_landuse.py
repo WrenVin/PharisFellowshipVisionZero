@@ -21,10 +21,8 @@ import numpy as np
 import pandas as pd
 import requests
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 LU_URL = "https://mycity2.houstontx.gov/pubgis02/rest/services/HoustonMap/Landuse/MapServer/0"
 BUFFER_FT = 100
@@ -80,16 +78,16 @@ def fetch_parcels(boundary_4326):
     return out.drop_duplicates("OBJECTID").reset_index(drop=True)
 
 
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 seg = seg.drop(columns=[c for c in OWNED if c in seg.columns])
 print(f"Segments: {len(seg):,}")
 
 EXTERNAL.mkdir(parents=True, exist_ok=True)
-cache = EXTERNAL / "houston_parcels_landuse_districtC.gpkg"
+cache = cfg.external("parcels_landuse.gpkg")
 if cache.exists():
     parcels = gpd.read_file(cache)
 else:
-    boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson").to_crs(4326)
+    boundary = cfg.boundary(4326)
     parcels = fetch_parcels(boundary)
     parcels.to_file(cache, driver="GPKG")
 print(f"Parcels: {len(parcels):,}")
@@ -123,7 +121,7 @@ res["n_parcels_nearby"] = hit.groupby("seg_id").size().reindex(res.index).fillna
 seg = seg.merge(res.reset_index(), on="seg_id", how="left")
 seg["landuse_source"] = np.where(seg["landuse_dominant"].notna(), "hcad_parcels", "none")
 
-out = PROCESSED / "district_c_segments_enriched.gpkg"
+out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved {out}")
 

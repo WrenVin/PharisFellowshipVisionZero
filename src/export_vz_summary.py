@@ -11,12 +11,11 @@ from pathlib import Path
 
 import geopandas as gpd
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-DOCS = ROOT / "docs"
+import config as cfg
+ROOT, PROCESSED, DOCS = cfg.ROOT, cfg.PROCESSED, cfg.DOCS
 
-cr = gpd.read_file(PROCESSED / "district_c_crashes.gpkg", layer="crashes")
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 
 ksi = cr["severe"]
 out = {

@@ -15,8 +15,9 @@ from pathlib import Path
 import geopandas as gpd
 import osmnx as ox
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw"
+import config as cfg
+
+RAW = cfg.RAW
 
 # Tags we want preserved on every way (tier 1 + tier 2 features)
 ox.settings.useful_tags_way = list(
@@ -49,7 +50,7 @@ ox.settings.useful_tags_way = list(
     }
 )
 
-boundary = gpd.read_file(RAW / "district_c_boundary.geojson").to_crs(4326)
+boundary = cfg.boundary(4326)
 polygon = boundary.geometry.iloc[0]
 
 print("Pulling drivable network from Overpass...")
@@ -88,7 +89,7 @@ G.remove_nodes_from([n for n in G.nodes if G.degree(n) == 0])
 print(f"Removed {len(drop):,} motorway/ramp/frontage edges")
 print(f"Filtered graph: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
-ox.save_graphml(G, RAW / "district_c_drive.graphml")
+ox.save_graphml(G, cfg.raw("drive.graphml"))
 
 edges = ox.graph_to_gdfs(G, nodes=False)
 # GeoPackage can't store lists (OSMnx merges tag values when simplifying)
@@ -99,7 +100,7 @@ for col in edges_out.columns:
     edges_out[col] = edges_out[col].apply(
         lambda v: "|".join(map(str, v)) if isinstance(v, list) else v
     )
-edges_out.to_file(RAW / "district_c_edges_raw.gpkg", layer="edges", driver="GPKG")
+edges_out.to_file(cfg.raw("edges_raw.gpkg"), layer="edges", driver="GPKG")
 
 print("\nHighway class breakdown (edge count):")
 hw = edges["highway"].apply(lambda v: "|".join(v) if isinstance(v, list) else v)

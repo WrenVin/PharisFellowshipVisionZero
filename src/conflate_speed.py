@@ -37,21 +37,19 @@ from shapely.geometry import Point
 
 from arcgis_fetch import fetch_layer
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 SPEED_URL = "https://geogimstest.houstontx.gov/arcgis/rest/services/TDO/Traffic_gx/MapServer/2"
-BBOX = (-95.51, 29.66, -95.37, 29.85)  # District C envelope, lon/lat
+BBOX = cfg.bbox_4326()  # study-area envelope, lon/lat (derived from boundary)
 TOL_FT = 60          # max snap distance, segment sample point -> city line
 MIN_FRAC = 0.4       # >= this share of a segment's 5 points must match
 LOCAL_CLASSES = {"residential", "unclassified", "living_street"}
 TX_DEFAULT_MPH = 30  # Texas urban prima facie limit where unposted
 
 # --- load network (enriched if present, else clean) ---------------------------
-enriched = PROCESSED / "district_c_segments_enriched.gpkg"
-src = enriched if enriched.exists() else PROCESSED / "district_c_segments_clean.gpkg"
+enriched = cfg.processed("segments_enriched.gpkg")
+src = enriched if enriched.exists() else cfg.processed("segments_clean.gpkg")
 seg = gpd.read_file(src, layer="segments")
 # idempotent: drop any columns from a previous run of this script
 OWNED = ["maxspeed_city", "match_frac", "city_name", "posted_speed_mph",
@@ -61,7 +59,7 @@ print(f"Segments: {len(seg):,} (from {src.name})")
 
 # --- fetch + cache the city speed layer ---------------------------------------
 EXTERNAL.mkdir(parents=True, exist_ok=True)
-cache = EXTERNAL / "houston_speed_limit_districtC.gpkg"
+cache = cfg.external("speed_limit.gpkg")
 if cache.exists():
     speed = gpd.read_file(cache)
 else:
@@ -142,7 +140,7 @@ seg["speed_name_match"] = [
     for a, b in zip(seg["name"], seg["city_name"])
 ]
 
-out = PROCESSED / "district_c_segments_enriched.gpkg"
+out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved {out}")
 

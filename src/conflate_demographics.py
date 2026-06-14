@@ -33,15 +33,14 @@ import requests
 
 from arcgis_fetch import fetch_layer
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 ACS_YEAR = 2023            # ACS 5-year (2019–2023); falls back to 2022
-STATE, COUNTY = "48", "201"  # Texas, Harris County
+STATE, COUNTY = "48", "201"  # Texas, Harris County (Houston is ~99% Harris;
+                             # expand to a county list if going beyond Harris)
 BG_LAYER = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2023/MapServer/10"
-BBOX = (-95.51, 29.66, -95.37, 29.85)
+BBOX = cfg.bbox_4326()
 
 # Note: at BLOCK GROUP level the poverty (B17001) and vehicle (B08201) detail
 # tables return null, so we use the equivalents that ARE published at BG:
@@ -104,12 +103,12 @@ def fetch_acs(year, key):
 
 def main():
     key = get_key()
-    seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg",
+    seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"),
                         layer="segments")
     seg = seg.drop(columns=[c for c in OWNED if c in seg.columns])
 
     # block-group geometry (cache)
-    bg_cache = EXTERNAL / "census_bg_districtC.gpkg"
+    bg_cache = cfg.external("census_bg.gpkg")
     if bg_cache.exists():
         bg = gpd.read_file(bg_cache)
     else:
@@ -153,7 +152,7 @@ def main():
     joined = joined.drop_duplicates("seg_id")
     seg = seg.merge(joined[["seg_id"] + cols], on="seg_id", how="left")
 
-    out = PROCESSED / "district_c_segments_enriched.gpkg"
+    out = cfg.processed("segments_enriched.gpkg")
     seg.to_file(out, layer="segments", driver="GPKG")
     print(f"Saved {out}")
 

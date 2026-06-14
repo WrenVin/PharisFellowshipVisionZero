@@ -33,26 +33,24 @@ import pandas as pd
 from arcgis_fetch import fetch_layer, fetch_table
 from conflate_util import snap_match  # noqa: F401  (kept for parity / future use)
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 BASE = "https://geogimstest.houstontx.gov/arcgis/rest/services/TDO/Traffic_gx/MapServer"
-BBOX = (-95.51, 29.66, -95.37, 29.85)
+BBOX = cfg.bbox_4326()
 STATION_TOL_FT = 150  # max distance station point -> segment centerline
 
 OWNED = ["adt", "adt_source", "adt_year", "n_adt_stations",
          "op_speed_85_mph", "op_speed_source"]
 
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 seg = seg.drop(columns=[c for c in OWNED if c in seg.columns])
 print(f"Segments: {len(seg):,}")
 
 # --- 1. fetch + cache stations and ADT readings -------------------------------
 EXTERNAL.mkdir(parents=True, exist_ok=True)
-st_cache = EXTERNAL / "houston_adt_stations_districtC.gpkg"
-a_cache = EXTERNAL / "houston_adt_assignments.parquet"
+st_cache = cfg.external("adt_stations.gpkg")
+a_cache = cfg.external("adt_assignments.parquet")
 if st_cache.exists() and a_cache.exists():
     stations = gpd.read_file(st_cache)
     assign = pd.read_parquet(a_cache)
@@ -70,7 +68,7 @@ else:
     assign.to_parquet(a_cache)
 # clip stations to the actual district polygon (+200 ft for boundary roads);
 # the bbox pull included many out-of-district stations
-boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson").to_crs(2278)
+boundary = cfg.boundary(2278)
 poly = boundary.geometry.iloc[0].buffer(200)
 stations = stations[stations.within(poly)].copy()
 print(f"Stations in District C: {len(stations):,} | ADT readings (citywide): {len(assign):,}")
@@ -119,7 +117,7 @@ fill = seg["adt"].isna() & named & seg["name"].isin(street_med.index)
 seg.loc[fill, "adt"] = seg.loc[fill, "name"].map(street_med).round(0)
 seg.loc[fill, "adt_source"] = "street_median"
 
-out = PROCESSED / "district_c_segments_enriched.gpkg"
+out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved {out}")
 

@@ -9,11 +9,11 @@ from pathlib import Path
 
 import geopandas as gpd
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
+import config as cfg
+ROOT, PROCESSED = cfg.ROOT, cfg.PROCESSED
 
-enr = PROCESSED / "district_c_segments_enriched.gpkg"
-src = enr if enr.exists() else PROCESSED / "district_c_segments_clean.gpkg"
+enr = cfg.processed("segments_enriched.gpkg")
+src = enr if enr.exists() else cfg.processed("segments_clean.gpkg")
 
 seg = gpd.read_file(src, layer="segments")
 
@@ -38,7 +38,7 @@ front = [c for c in ["seg_id", "name", "highway", "road_class", "posted_speed_mp
          if c in df.columns]
 df = df[front + [c for c in df.columns if c not in front]]
 
-out = PROCESSED / "district_c_segments.csv"
+out = cfg.processed("segments.csv")
 df.to_csv(out, index=False)
 print(f"Wrote {len(df):,} rows x {len(df.columns)} cols -> {out}")
 print("Columns:", ", ".join(df.columns))

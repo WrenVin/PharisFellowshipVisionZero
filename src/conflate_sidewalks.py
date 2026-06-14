@@ -27,10 +27,8 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 # Search distance scales with road width: a sidewalk sits just past the curb,
 # which is ~half the roadway width from the centerline. tol = width/2 + setback.
@@ -40,17 +38,17 @@ N_SAMPLES = 11        # sample points per segment
 SIDE_THRESH = 0.5     # >= this share of points => that side has a sidewalk
 OWNED = ["sidewalk_presence", "sidewalk_source", "sw_left_frac", "sw_right_frac"]
 
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 seg = seg.drop(columns=[c for c in OWNED if c in seg.columns])
 print(f"Segments: {len(seg):,}")
 
 # --- fetch + cache OSM sidewalk footways --------------------------------------
 EXTERNAL.mkdir(parents=True, exist_ok=True)
-cache = EXTERNAL / "osm_sidewalks_districtC.gpkg"
+cache = cfg.external("sidewalks.gpkg")
 if cache.exists():
     sw = gpd.read_file(cache)
 else:
-    boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson").to_crs(4326)
+    boundary = cfg.boundary(4326)
     f = ox.features_from_polygon(
         boundary.geometry.iloc[0], tags={"highway": "footway", "footway": "sidewalk"}
     )
@@ -125,7 +123,7 @@ no_footway = (seg["sw_left_frac"] + seg["sw_right_frac"] == 0) & seg["sidewalk"]
 seg.loc[no_footway, "sidewalk_presence"] = seg.loc[no_footway, "sidewalk"]
 seg.loc[no_footway, "sidewalk_source"] = "osm_road_tag"
 
-out = PROCESSED / "district_c_segments_enriched.gpkg"
+out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved {out}")
 

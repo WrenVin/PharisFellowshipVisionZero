@@ -30,10 +30,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CRIS = ROOT / "data" / "raw" / "CRIS"
-PROCESSED = ROOT / "data" / "processed"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, CRIS, PROCESSED, REPORTS = cfg.ROOT, cfg.CRIS, cfg.PROCESSED, cfg.REPORTS
 
 WANT = ["Crash_ID", "Crash_Date", "Crash_Time", "Crash_Fatal_Fl", "Crash_Sev_ID",
         "Latitude", "Longitude", "Rpt_Latitude", "Rpt_Longitude",
@@ -79,8 +77,8 @@ g = gpd.GeoDataFrame(
     crs=4326,
 ).to_crs(2278)
 
-# --- clip to District C -------------------------------------------------------
-boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson").to_crs(2278)
+# --- clip to the study area ---------------------------------------------------
+boundary = cfg.boundary(2278)
 g = g[g.within(boundary.geometry.iloc[0])].copy()
 n_in_district = len(g)
 
@@ -177,7 +175,7 @@ out = g[["Crash_ID", "year", "month", "hour", "date", "kabco", "fatal",
          "geometry"]].copy()
 out["date"] = out["date"].dt.strftime("%Y-%m-%d")
 PROCESSED.mkdir(parents=True, exist_ok=True)
-dst = PROCESSED / "district_c_crashes.gpkg"
+dst = cfg.processed("crashes.gpkg")
 out.to_file(dst, layer="crashes", driver="GPKG")
 print(f"Saved {len(out):,} District C crashes -> {dst}")
 

@@ -38,14 +38,13 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.REPORTS
 
 SEARCH_FT = 150
 
-seg = gpd.read_file(PROCESSED / "district_c_segments.gpkg", layer="segments")
-seg["seg_id"] = [f"C-{i:05d}" for i in range(len(seg))]
+seg = gpd.read_file(cfg.processed("segments.gpkg"), layer="segments")
+seg["seg_id"] = [f"{cfg.SEG_PREFIX}-{i:05d}" for i in range(len(seg))]
 n_before, mi_before = len(seg), seg["length_ft"].sum() / 5280
 
 # --- 1. twin pairs ------------------------------------------------------------
@@ -141,7 +140,7 @@ network = seg.drop(index=list(dropped)).copy()
 
 n_after, mi_after = len(network), network["length_ft"].sum() / 5280
 
-out = PROCESSED / "district_c_segments_merged.gpkg"
+out = cfg.processed("segments_merged.gpkg")
 network.to_file(out, layer="segments", driver="GPKG")
 merged_away.to_file(out, layer="merged_away", driver="GPKG")
 print(f"Saved {out}")

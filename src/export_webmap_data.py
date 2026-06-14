@@ -11,9 +11,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-DOCS = ROOT / "docs"
+import config as cfg
+ROOT, PROCESSED, DOCS = cfg.ROOT, cfg.PROCESSED, cfg.DOCS
 
 # column -> rounding (None = keep as-is / string)
 COLS = {
@@ -40,7 +39,7 @@ FRIENDLY_CLASS = {
     "residential": "Local street", "unclassified": "Minor street",
 }
 
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 
 # friendly road class (collapse *_link to Minor)
 base = seg["highway"].str.replace("_link", "", regex=False)
@@ -67,7 +66,7 @@ if out.exists():
     out.unlink()
 keep.to_file(out, driver="GeoJSON", COORDINATE_PRECISION=5)
 
-boundary = gpd.read_file(ROOT / "data/raw/district_c_boundary.geojson").to_crs(4326)
+boundary = cfg.boundary(4326)
 bpath = DOCS / "boundary.geojson"
 if bpath.exists():
     bpath.unlink()
@@ -79,7 +78,7 @@ print(f"Wrote boundary -> {bpath}")
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, and years-of-life-lost panels:
 # [lat, lon, sev, fatal, ped, bike, year, date, hour, yll]
-cr = gpd.read_file(PROCESSED / "district_c_crashes.gpkg", layer="crashes").to_crs(4326)
+cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(4326)
 pts = []
 for g, sv, ft, pd_, bk, yr, dt, hr, yl in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,

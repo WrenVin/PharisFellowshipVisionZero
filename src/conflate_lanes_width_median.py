@@ -27,20 +27,18 @@ import pandas as pd
 
 from conflate_util import snap_match
 
-ROOT = Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "data" / "processed"
-EXTERNAL = ROOT / "data" / "external"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
 OWNED = ["city_lanes", "lanes_final", "lanes_source", "avg_lane_width_ft",
          "roadway_width_ft", "width_source", "median_type", "median_width_ft",
          "median_source", "geom_match_frac", "lanes_osm_city_agree"]
 
-seg = gpd.read_file(PROCESSED / "district_c_segments_enriched.gpkg", layer="segments")
+seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 seg = seg.drop(columns=[c for c in OWNED if c in seg.columns])
 print(f"Segments: {len(seg):,}")
 
-city = gpd.read_file(EXTERNAL / "houston_speed_limit_districtC.gpkg")
+city = gpd.read_file(cfg.external("speed_limit.gpkg"))
 for c in ("MEDIAN_TYPE", "DIRECTION"):
     if c in city:
         city[c] = city[c].astype("string").str.strip()
@@ -111,7 +109,7 @@ for mt, hw, md in zip(seg["median_type"], seg["highway"], seg["merged_dual"]):
 seg["median_type"] = mt_final
 seg["median_source"] = med_src
 
-out = PROCESSED / "district_c_segments_enriched.gpkg"
+out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved {out}")
 

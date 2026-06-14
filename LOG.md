@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Make the pipeline area-agnostic (config.py) for future city-scale expansion
+
+Refactor so the project can retarget from District C to another district — or the whole City of Houston — by changing one file, without touching the 15 pipeline scripts. No behavior change for District C: the regenerated `docs/` and `data/processed/` outputs are byte-identical.
+
+- **New `src/config.py`** — the single source of study-area truth: `AREA` slug, `AREA_LABEL`, `SEG_PREFIX`, the boundary path, CRS constants, dir constants, a **boundary-derived** bbox (`bbox_4326()`, replacing the three hand-coded `(-95.51, …)` envelopes), and area-scoped path helpers `processed()` / `external()` / `raw()`. Every script now `import config as cfg`.
+- **Output filenames are area-prefixed** (`{AREA}_segments.gpkg`, etc.) so multiple areas can be built side by side. With `AREA="district_c"` the names are exactly today's, so nothing regenerated.
+- **External caches renamed** to the area convention (`district_c_speed_limit.gpkg`, `district_c_census_bg.gpkg`, …) via `git mv` so they stay valid.
+- Found & fixed two buried area-specifics: the hand-coded query bbox (now derived) and the `C-#####` seg-id prefix (now `cfg.SEG_PREFIX`).
+- The `STATE/COUNTY = 48/201` (Harris) in demographics is left as-is — Houston is ~99% Harris; noted in-code to expand to a county list if ever going beyond it.
+
+Retargeting is now: drop `data/raw/<area>_boundary.geojson`, set `AREA`, rerun (README "Retargeting" section). All data sources are already city-wide; the remaining city-scale work is the web app (client-side rendering → vector tiles or per-area pages). Verified: all scripts byte-compile, config resolves, the three export scripts reproduce identical outputs.
+
+---
+
 ## 2026-06-14 — VZ dashboard: layout & legibility polish
 
 - **Travel-mode selector moved into the left control panel** (with Map shows / Display as / Overlay), freeing the header — pills wrap within the sidebar.

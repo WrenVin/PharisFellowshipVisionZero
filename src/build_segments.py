@@ -20,14 +20,12 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw"
-PROCESSED = ROOT / "data" / "processed"
-REPORTS = ROOT / "reports"
+import config as cfg
+ROOT, RAW, PROCESSED, REPORTS = cfg.ROOT, cfg.RAW, cfg.PROCESSED, cfg.REPORTS
 
 CRS_FT = 2278  # NAD83 / Texas South Central, US survey feet
 
-G = ox.load_graphml(RAW / "district_c_drive.graphml")
+G = ox.load_graphml(cfg.raw("drive.graphml"))
 Gu = ox.convert.to_undirected(G)
 Gp = ox.projection.project_graph(Gu, to_crs=CRS_FT)
 
@@ -227,7 +225,7 @@ dual_mi = seg.loc[seg["dual_carriageway"], "length_ft"].sum() / 5280
 PROCESSED.mkdir(parents=True, exist_ok=True)
 seg_out = seg.copy()
 seg_out["lit"] = seg_out["lit"].map({True: "yes", False: "no"})
-seg_out.to_file(PROCESSED / "district_c_segments.gpkg", layer="segments", driver="GPKG")
+seg_out.to_file(cfg.processed("segments.gpkg"), layer="segments", driver="GPKG")
 print(f"Saved {len(seg):,} segments -> data/processed/district_c_segments.gpkg")
 
 # --- coverage report -----------------------------------------------------------

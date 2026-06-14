@@ -22,6 +22,7 @@ data/
   processed/   # analysis-ready layers (segments + crashes GeoPackages, inspection CSV)
   external/    # cached third-party pulls (city Traffic_gx, HCAD parcels, Census; API key gitignored)
 src/
+  config.py                    # central study-area config (area slug, boundary, derived bbox, paths) — change to retarget
   pull_osm.py                  # pull OSM street network clipped to District C
   build_segments.py            # intersection-to-intersection segments + coverage report
   merge_dual_carriageways.py   # collapse divided-road halves into single segments
@@ -93,6 +94,16 @@ The web apps are static Leaflet (`docs/index.html`, `docs/vision-zero.html`; no 
 **To inspect by hand:** `data/processed/district_c_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
 
 Variable definitions for everything in `data/processed/` live in **`CODEBOOK.md`** — keep it in sync with any schema change.
+
+## Retargeting to another area (or the whole city)
+
+The pipeline is **boundary-driven** and all study-area settings live in one file, `src/config.py`. To build a different council district — or all of Houston — instead of District C:
+
+1. Drop the new outline at `data/raw/<area>_boundary.geojson`.
+2. In `src/config.py`, set `AREA` to that slug (and `AREA_LABEL` / `SEG_PREFIX`).
+3. Rerun the pipeline.
+
+Everything follows from there: the clip polygon, the city-data query bounding box (derived from the boundary — no hand-coded coordinates), and every output filename (prefixed with `AREA`, so areas don't collide). All input sources (OSM, CRIS, City `Traffic_gx`, HCAD, Census, the official HIN) are already city-wide and just clipped — no new data wiring needed. The remaining work at full-city scale is the **web app**, which currently loads all features client-side; that would need vector tiles or per-area pages (see LOG).
 
 ## Key data decisions (details in LOG.md)
 
