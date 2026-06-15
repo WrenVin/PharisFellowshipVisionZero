@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: "Create report" PDF export (council-ready)
+
+New substantive feature: a "Create report" button (header) that turns the current view into a clean, static, printable PDF for city-council offices, with the map + data + narrative but none of the interactive UI.
+- **Mechanism.** Builds a dedicated `#report` section from the current state, then `window.print()`; the print stylesheet hides the whole dashboard (`.wrap`, modal) and shows only `#report` (Save as PDF). No external libraries.
+- **Map.** Captured to a static PNG by compositing the basemap tiles + the vector overlay canvas onto one canvas (`captureMap()`). Added `crossOrigin:true` to the tile layers so the canvas is not tainted; falls back to the overlay alone if a basemap blocks CORS. Forces a synchronous `renderer._redraw()` before reading pixels so the snapshot reflects the current styling (Leaflet's redraw is rAF-deferred, which otherwise captured a stale/default-blue frame).
+- **Content.** Eyebrow + title + subtitle describing the view (region, year range, mode, selection) + prepared-date; four headline stats; an auto-written narrative (killed/serious/YLL, concentration, walking/biking deaths, the equity sentence, the most-affected street) built from the same live values; the map image with a gradient legend caption; the six breakdown charts cloned from the live SVG/bars (vector, so they print crisply); a most-affected-streets table; and a sources/methods footer.
+- Verified in-browser: report builds for a District C view (88 killed / 624 KSI / 3,592 YLL / 6%→73%, 5-sentence narrative, map captured to a valid ~900 KB PNG with the correct red shading, 6 charts with content, 5-row table); no console errors; no em dashes. Also refreshed the README dashboard blurb (added the report + range sliders + draggable panels, removed the now-deleted auto-pulse).
+
+---
+
 ## 2026-06-15 — VZ dashboard: fix street-rank usefulness + slider drag lag
 
 Two fixes from Vincent's testing of the prior change.

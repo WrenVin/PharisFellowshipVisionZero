@@ -192,6 +192,48 @@
   }
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
+  /* ---- printable report (council-ready PDF via the browser's Save as PDF) ---- */
+  #report{display:none}
+  #report .r-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  #report h1.r-title{font-size:25px;font-weight:700;margin:2px 0 2px}
+  #report .r-sub{font-size:13.5px;color:var(--muted)}
+  #report .r-hd{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  #report .r-date{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+  #report .r-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}
+  #report .r-stat{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+  #report .r-statv{font-size:23px;font-weight:700;color:#7a1419;line-height:1.1}
+  #report .r-statl{font-size:11px;color:var(--muted);margin-top:2px}
+  #report .r-narr{font-size:13px;line-height:1.6;margin:0 0 14px}
+  #report .r-narr p{margin:0 0 6px}
+  #report .r-map{margin:0 0 14px;break-inside:avoid}
+  #report .r-map img{width:100%;border:1px solid var(--line);border-radius:6px;display:block}
+  #report .r-mapcap{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  #report .r-mapcap .grad{height:9px;border-radius:3px;width:150px}
+  #report .r-mapcap .ends{display:flex;justify-content:space-between;width:150px}
+  #report h2.r-sec{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);
+    margin:16px 0 8px;border-top:1px solid var(--line);padding-top:10px;break-after:avoid}
+  #report .r-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+  #report .r-chart{break-inside:avoid}
+  #report .r-chart h3{font-size:13px;font-weight:700;margin:0 0 2px}
+  #report .r-chart .bleg,#report .r-chart .legrow{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:5px}
+  #report .r-chart .bleg span,#report .r-chart .legrow span{display:flex;align-items:center;gap:4px}
+  #report .r-chart .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  #report .r-note{font-size:11px;color:var(--muted);margin-top:5px}
+  #report .r-worst{width:100%;border-collapse:collapse;font-size:12.5px}
+  #report .r-worst td{padding:4px 6px;border-bottom:1px solid var(--line)}
+  #report .r-worst td:last-child{text-align:right;font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums}
+  #report .r-worst td:first-child{color:var(--muted);width:26px}
+  #report .r-foot{font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);
+    margin-top:16px;padding-top:10px}
+  #report .r-foot b{color:var(--ink)}
+  @media print{
+    @page{size:letter;margin:0.5in}
+    html,body{background:#fff !important}
+    .wrap,#modal{display:none !important}
+    #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    a{color:var(--ink);text-decoration:none}
+  }
 </style>
 </head>
 <body>
@@ -205,6 +247,8 @@
     </div>
     <div class="topbtns">
       <button id="reset" class="topbtn" style="display:none" aria-label="Reset all filters to the default view">Reset</button>
+      <button id="report-btn" class="topbtn" aria-label="Create a printable PDF report of the current view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px"><path d="M6 2h9l5 5v15a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0V2z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>Create report</button>
       <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
         <span class="lbl">Share view</span>
@@ -415,6 +459,9 @@
   </div>
 </div>
 
+<!-- printable report (built on demand from the current view; shown only when printing) -->
+<div id="report" aria-hidden="true"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // sequential ramp: pale/recessive for low counts, deep red for the dangerous tail
@@ -597,8 +644,8 @@ function concentration(){
 const renderer=L.canvas({tolerance:8});
 const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
 L.control.zoom({position:'bottomright'}).addTo(map);
-const bases={Light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20}),
-  Satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19})};
+const bases={Light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20,crossOrigin:true}),
+  Satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19,crossOrigin:true})};
 bases.Light.addTo(map);
 L.control.layers(bases,null,{position:'topleft',collapsed:true}).addTo(map);
 
@@ -1568,6 +1615,107 @@ document.getElementById('share').onclick=async()=>{
   else { lbl.textContent='Press Ctrl+C to copy'; }
   _shareTimer=setTimeout(()=>{ btn.classList.remove('ok'); lbl.textContent='Share view'; }, 2000);
 };
+// ---- printable report (council-ready PDF via the browser's Save as PDF) -------
+// Snapshot the current map by compositing the basemap tiles + the vector overlay
+// canvas onto one canvas. crossOrigin tiles keep it untainted; if a basemap blocks
+// CORS we fall back to the overlay alone (shape without the basemap).
+function captureMap(){
+  if(renderer && renderer._redraw) renderer._redraw();   // flush any pending (rAF-deferred) restyle so the canvas pixels are current
+  const size=map.getSize(), mc=map.getContainer(), mr=mc.getBoundingClientRect(), oc=renderer._container;
+  const draw=withTiles=>{ const c=document.createElement('canvas'); c.width=size.x; c.height=size.y;
+    const ctx=c.getContext('2d'); ctx.fillStyle='#eef1f4'; ctx.fillRect(0,0,size.x,size.y);
+    if(withTiles) mc.querySelectorAll('img.leaflet-tile-loaded').forEach(img=>{ const r=img.getBoundingClientRect();
+      try{ ctx.drawImage(img, r.left-mr.left, r.top-mr.top, r.width, r.height); }catch(e){} });
+    if(oc){ const r=oc.getBoundingClientRect(); try{ ctx.drawImage(oc, r.left-mr.left, r.top-mr.top, r.width, r.height); }catch(e){} }
+    return c; };
+  try{ return draw(true).toDataURL('image/png'); }
+  catch(e){ try{ return draw(false).toDataURL('image/png'); }catch(e2){ return null; } }
+}
+// human-readable description of the active view
+function viewDesc(){
+  const region = district!==null ? 'District '+district
+    : sn!==null ? (()=>{ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):'City of Houston'; })()
+    : 'City of Houston';
+  const when = year!==null ? (month!==null? MONTHS[month-1]+' '+year : String(year))
+    : yrNarrow() ? (yrLo+'–'+yrHi) : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
+  const modeTxt = mode==='ped'?'people walking' : mode==='bike'?'people biking' : mode==='veh'?'people in vehicles' : null;
+  const sel = selStreet!==null ? (selStreet.startsWith('__seg__')?'a selected block':selStreet) : (selSeg!==null ? (selSeg.name||'a selected block') : null);
+  const extras=[];
+  if(hrNarrow()) extras.push(hourLabel(hrLo)+'–'+hourLabel(hrHi));
+  if(dowNarrow()) extras.push(DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]);
+  if(sev==='all') extras.push('all crashes, not only KSI');
+  return {region, when, modeTxt, sel, extras};
+}
+const _ih=id=>{ const e=document.getElementById(id); return e?e.innerHTML:''; };
+function buildReport(){
+  const R=document.getElementById('report'); if(!R) return;
+  const d=viewDesc();
+  const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed);
+  const con = selIds.size>0 ? null : concentration();
+  const metric = sev==='all' ? 'crashes' : 'people killed or seriously injured';
+  const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
+  if(d.modeTxt) chips.push(d.modeTxt); d.extras.forEach(e=>chips.push(e));
+  const subtitle=chips.join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+  // narrative
+  const where = d.sel?('on '+d.sel) : (district!==null||sn!==null)?('on '+d.region+' streets') : 'on City of Houston streets';
+  const sents=[];
+  sents.push((d.when.indexOf('–')>0?('From '+d.when+', '):('In '+d.when+', '))+'<b>'+fmt(t.killed)+'</b> '+(t.killed===1?'person was':'people were')+' killed and <b>'+fmt(serious)+'</b> seriously injured '+where+(d.modeTxt?(' ('+d.modeTxt+')'):'')+', an estimated <b>'+fmt(yll)+'</b> years of life lost.');
+  if(con && con.pct_ksi>0) sents.push('Harm is concentrated: about <b>'+con.pct_streets+'%</b> of streets account for <b>'+con.pct_ksi+'%</b> of those killed or seriously injured.');
+  if((t.ped_killed+t.bike_killed)>0) sents.push('Of those killed, <b>'+t.ped_killed+'</b> '+(t.ped_killed===1?'was':'were')+' walking and <b>'+t.bike_killed+'</b> biking.');
+  const eqTxt=((document.getElementById('eqnote')||{}).textContent||'').trim(); if(eqTxt && !/^No /.test(eqTxt)) sents.push(eqTxt);
+  const wr=document.querySelector('#worst-list .worst-row');
+  if(wr){ const cleanNm=((wr.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim(); const n=(wr.querySelector('.worst-n')||{}).textContent||'';
+    if(cleanNm) sents.push('The most affected street in this view is <b>'+cleanNm+'</b>, with '+n+'.'); }
+  const narr='<p>'+sents.join('</p><p>')+'</p>';
+  // stats
+  const stat=(v,l)=>'<div class="r-stat"><div class="r-statv">'+v+'</div><div class="r-statl">'+l+'</div></div>';
+  const statsHTML = stat(fmt(t.killed),'People killed')+stat(fmt(serious),'Seriously injured')+stat(fmt(yll),'Years of life lost')
+    +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(con.pct_streets+'% → '+con.pct_ksi+'%','Streets → share of harm'));
+  // map
+  const mapURL=captureMap();
+  const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
+  const capLeft = view==='points' ? 'Each dot is one crash location.' : 'Streets shaded by '+metric+' on each block (darker = more).';
+  const mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+'&nbsp;·&nbsp;'+d.when+'</span></div></div>') : '';
+  // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector)
+  const chart=(title,bodyHTML,legHtml,noteHtml)=>'<div class="r-chart"><h3>'+title+'</h3>'+bodyHTML+(legHtml?('<div class="bleg">'+legHtml+'</div>'):'')+(noteHtml||'')+'</div>';
+  const stackBody=id=>'<div class="stack">'+_ih(id)+'</div>';
+  const note=id=>{ const x=((document.getElementById(id)||{}).textContent||'').trim(); return x?('<div class="r-note">'+x+'</div>'):''; };
+  const chartsHTML =
+      chart('Killed or seriously injured, by year', _ih('trend'), _ih('trend-leg'), note('trend-note'))
+    + chart('By time of day', _ih('tod'), _ih('tod-leg'))
+    + chart('By day of week', _ih('dow'), _ih('dow-leg'))
+    + chart('By travel mode', stackBody('modebar'), _ih('modeleg'), note('modedeaths'))
+    + chart('By neighborhood income', stackBody('eqbar'), _ih('eqleg'), note('eqnote'))
+    + chart('By road owner (city vs TxDOT)', stackBody('ownbar'), _ih('ownleg'));
+  // worst-streets table
+  let worstRows=''; document.querySelectorAll('#worst-list .worst-row').forEach((row,i)=>{
+    const nm=((row.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim();
+    const n=(row.querySelector('.worst-n')||{}).textContent||''; worstRows+='<tr><td>'+(i+1)+'</td><td>'+nm+'</td><td>'+n+'</td></tr>'; });
+  const worstHTML = worstRows ? ('<table class="r-worst"><tbody>'+worstRows+'</tbody></table>') : '';
+  const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  R.innerHTML =
+    '<div class="r-hd"><div><div class="r-eyebrow">Vision Zero · Houston</div>'
+      +'<h1 class="r-title">Traffic deaths &amp; serious injuries</h1>'
+      +'<div class="r-sub">'+subtitle+'</div></div>'
+      +'<div class="r-date">Prepared '+today+'<br>wrenvin.github.io/PharisFellowshipVisionZero</div></div>'
+    +'<div class="r-stats">'+statsHTML+'</div>'
+    +'<div class="r-narr">'+narr+'</div>'
+    +mapHTML
+    +'<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2>'
+    +'<div class="r-charts">'+chartsHTML+'</div>'
+    +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income). Full methods in the project CODEBOOK on GitHub.</div>';
+  R.dataset.built='1';
+}
+async function makeReport(){
+  buildReport();
+  const img=document.querySelector('#report .r-map img');   // let the map data-URL image decode before printing
+  if(img){ try{ await img.decode(); }catch(e){ await new Promise(r=>{ img.onload=img.onerror=r; setTimeout(r,500); }); } }
+  window.print();
+}
+document.getElementById('report-btn').onclick=makeReport;
+window.addEventListener('beforeprint', ()=>{ if(!document.getElementById('report').dataset.built) buildReport(); });
+window.addEventListener('afterprint', ()=>{ const R=document.getElementById('report'); R.innerHTML=''; R.removeAttribute('data-built'); });
 // keyboard activation for the generated worst-street rows (Enter/Space)
 document.getElementById('worst-list').addEventListener('keydown',e=>{
   const row=e.target.closest('.worst-row'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
