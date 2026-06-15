@@ -16,6 +16,12 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: single-screen, vertical flow (reverted the side-panel shell)
+
+Vincent disliked the app-shell (map center, panels in a right column): too much whitespace, awkward. Reverted to the vertical flow he liked (headline stats on top, then the map + selectors, then the data views below) but kept it fitting one screen with no scroll.
+
+The blocker was total height: the control sidebar alone is ~570-700px and six data panels add ~420px, so stacked it exceeds a laptop screen. Per Vincent's pick ("fewer data panels"), dropped the **By road owner** panel (already covered by the Road owner filter and the popup's owner line) and laid the remaining five (by-year, time of day, travel mode, neighborhood income, most dangerous streets) in a single row (`.below` = `repeat(5,1fr)`, `align-items:start` for the uneven/organic card heights he liked). Also compacted the control sidebar (tighter padding/margins, shorter Blink note) and the charts (h:106). Result at a 14" MacBook (1512x982): map ~564px tall, controls fully visible, data row ~218px, everything fits with zero scrolling. Larger screens (16"/external) have room to spare; below ~940px tall the control sidebar scrolls a little; under 900px wide it reverts to the normal stacked scrolling page (mobile unaffected). `drawOwnership` call removed from render (function left in place, unused).
+
 ## 2026-06-14 — VZ dashboard: single-screen desktop layout (no page scroll)
 
 Per Vincent: the dashboard had grown to require scrolling. Restructured into a fixed-viewport app shell: `.wrap` is a 100vh flex column (title + KPIs across the top, footer at the bottom), and the middle row fills the rest with controls (left, ~200px) | map (center, flexible, fills full height) | breakdown panels (right, ~540px, 2-wide grid). The map is now much larger. Moved `.below` inside `.main` as the right column.

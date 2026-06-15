@@ -49,18 +49,18 @@
   .card h3 .ic svg{width:15px;height:15px;display:block}
   .bleg{display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
   .bleg span{display:flex;align-items:center;gap:5px}
-  .main{flex:1 1 auto;min-height:0;display:flex;gap:12px;align-items:stretch;flex-wrap:nowrap}
-  .ctrl{flex:0 0 200px;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 7px;font-weight:700}
-  .ctrl .grp{margin-bottom:12px}
-  .ctrl select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
+  .main{flex:1 1 auto;min-height:200px;display:flex;gap:12px;align-items:stretch;flex-wrap:nowrap}
+  .ctrl{flex:0 0 206px;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 3px;font-weight:700}
+  .ctrl .grp{margin-bottom:6px}
+  .ctrl select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
     font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
   .ctrl select option{background:#fff;color:var(--ink)}
-  .ctrl input[type=text]{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
+  .ctrl input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
     font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
   .ctrl input[type=text]:focus{outline:none;border-color:var(--accent)}
-  .ctrl .note{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
-  .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
+  .ctrl .note{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}
+  .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:2px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
   #mapwrap{flex:1 1 auto;min-width:280px;min-height:0;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   #map{height:100%;min-height:100%}
@@ -84,8 +84,8 @@
   #info .kv .k{color:var(--muted)}
   #info .kv .v{font-weight:600;text-align:right}
   #info .kv .v.bad{color:#7a1419}
-  /* right-hand panel column: 2-wide grid that fills the row height, scrolls internally only if the window is short */
-  .below{flex:0 0 540px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;align-items:start;min-height:0;overflow-y:auto}
+  /* data views below the map: one row of 5, cards sized to content (uneven heights) */
+  .below{flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start;overflow:visible}
   .card{border:1px solid var(--line);border-radius:12px;padding:8px 11px}
   .card h3{font-size:13px;margin:0 0 1px;font-weight:700}
   .card .sub{font-size:11.5px;color:var(--muted);margin-bottom:7px;min-height:14px}
@@ -206,7 +206,7 @@
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
-        <div class="note" id="blink-note">Filter down (district, year, month, or a street) to flash where the crashes are.</div>
+        <div class="note" id="blink-note">Filter down to flash the crashes.</div>
       </div>
     </div>
 
@@ -217,8 +217,9 @@
       <div id="info"></div>
       <div id="loading">Loading…</div>
     </div>
+  </div>
 
-    <div class="below">
+  <div class="below">
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
@@ -249,13 +250,6 @@
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
     </div>
     <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
-      <div class="sub" id="own-sub">Killed or seriously injured</div>
-      <div class="stack" id="ownbar"></div>
-      <div class="legrow" id="ownleg"></div>
-      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
-    </div>
-    <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
       <div class="sub" id="worst-sub">Killed or seriously injured</div>
       <div id="worst-list"></div>
@@ -267,7 +261,6 @@
       <div class="legrow" id="hinleg"></div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="hinnote"></div>
       <div class="tip">The City's official 2022 High Injury Network: the streets it flagged from past severe crashes. "On the HIN" = a crash on one of those streets. The gap is the harm the official, crash-based map doesn't yet cover.</div>
-    </div>
     </div>
   </div>
 
@@ -619,8 +612,8 @@ function doBlink(){
 function updateBlinkBtn(){
   const btn=document.getElementById('blink'), note=document.getElementById('blink-note');
   if(_shownCount===0){ btn.disabled=true; note.textContent='No crashes in this view.'; }
-  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash here. Filter down (district, year, month, or a street) first.'; }
-  else { btn.disabled=false; note.textContent='Flash where the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' are.'; }
+  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many here. Filter down first.'; }
+  else { btn.disabled=false; note.textContent='Flash the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+'.'; }
 }
 // --- shareable URL state -----------------------------------------------------
 // write the current non-default state into the URL (replaceState, so filter
@@ -691,7 +684,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   buildPulse();
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -982,7 +975,7 @@ function drawTrend(){
       }
     }
   }
-  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:118});
+  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:106});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
@@ -1004,7 +997,7 @@ function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  document.getElementById("tod").innerHTML=barChartSVG(labels,fatal,serious,{h:118});
+  document.getElementById("tod").innerHTML=barChartSVG(labels,fatal,serious,{h:106});
   const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
   document.getElementById('tod-sub').textContent='By hour of day, '+span;
