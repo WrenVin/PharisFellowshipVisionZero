@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: dedicated Share button
+
+The shareable-URL state was already being written on every render (`syncURL`), but there was no obvious way to grab the link. Added a **"Share view"** button top-right in the header. On click it re-syncs the URL and copies it to the clipboard (`navigator.clipboard.writeText`, with a hidden-textarea + `execCommand('copy')` fallback for old/non-secure contexts), then flashes a green "Link copied" confirmation for 2s (or "Press Ctrl+C to copy" if both copy paths fail). The copied link reopens the exact filters/selection. Verified in-browser: with mode=Walking + year=2020 the link is `?mode=ped&year=2020`, the button confirms and resets, sits top-right at desktop width, no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: filter-transition polish (animations)
 
 Vincent wanted a little polish: smoother transitions when filters change. Everything re-renders via `innerHTML` on each `render()`, so the animations are entrance/refresh effects re-fired per update, all gated by `prefers-reduced-motion`.

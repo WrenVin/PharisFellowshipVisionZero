@@ -122,6 +122,13 @@
     color:#7a1419;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
   .blinkbtn:hover:not(:disabled){background:#f7d9db}
   .blinkbtn:disabled{border-color:var(--line);background:var(--panel);color:var(--muted);cursor:default}
+  /* share-this-view button (copies the URL, which already encodes the current filters/selection) */
+  .sharebtn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;color:var(--ink);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;
+    transition:border-color .2s,color .2s,background .2s}
+  .sharebtn svg{width:15px;height:15px}
+  .sharebtn:hover{border-color:var(--accent);color:#7a1419}
+  .sharebtn.ok{background:#e7f4ec;border-color:#3a9e78;color:#2e7d52}
   /* Data & methods modal */
   #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
@@ -159,6 +166,10 @@
       <h1>Vision Zero · Houston</h1>
       <div class="tag">Traffic deaths and serious injuries on city streets in the City of Houston.</div>
     </div>
+    <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+      <span class="lbl">Share view</span>
+    </button>
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -1217,6 +1228,23 @@ document.getElementById('hin').onchange=e=>{
   drawLegend();
 };
 document.getElementById('blink').onclick=doBlink;
+// share: copy the current URL (syncURL keeps it in step with the active filters/selection)
+let _shareTimer=null;
+document.getElementById('share').onclick=async()=>{
+  syncURL();
+  const url=location.href, btn=document.getElementById('share'), lbl=btn.querySelector('.lbl');
+  let ok=true;
+  try{ await navigator.clipboard.writeText(url); }
+  catch(e){   // older browsers / non-secure context: fall back to a hidden textarea
+    try{ const ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    catch(_){ ok=false; }
+  }
+  if(_shareTimer) clearTimeout(_shareTimer);
+  if(ok){ btn.classList.add('ok'); lbl.textContent='Link copied'; }
+  else { lbl.textContent='Press Ctrl+C to copy'; }
+  _shareTimer=setTimeout(()=>{ btn.classList.remove('ok'); lbl.textContent='Share view'; }, 2000);
+};
 // keyboard activation for the generated worst-street rows (Enter/Space)
 document.getElementById('worst-list').addEventListener('keydown',e=>{
   const row=e.target.closest('.worst-row'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
