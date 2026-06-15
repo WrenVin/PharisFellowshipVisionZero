@@ -276,7 +276,7 @@ const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
@@ -287,6 +287,9 @@ const SEG=14;   // crash-point field index: nearest segment id (for the click-to
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
 const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
+// month filter (1-12) within the selected year; p[7] is the date string "YYYY-MM-DD"
+const monthOk=p=> month===null || (p[7] && (+p[7].slice(5,7))===month);
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
@@ -321,7 +324,12 @@ function segCount(pr){
 }
 function computeCounts(){
   activeCounts={};
-  if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
+  if(month!==null){   // per-segment counts for a specific month, straight from crash points (have seg_id + date)
+    for(const p of pts){ if(p[6]!==year || !monthOk(p)) continue;
+      const seg=p[SEG]; if(seg==null || !inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
+      if(sev==='ksi' && p[2]!==1) continue; if(!modeMatch(p[4],p[5])) continue;
+      activeCounts[seg]=(activeCounts[seg]||0)+1; }
+  } else if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
   else { const yr=String(year);
     for(const seg in segYear){ const a=segYear[seg][yr]; if(!a) continue;
       if(!inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
@@ -364,7 +372,7 @@ function styleFor(f){
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
   let crashes=0;
-  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
+  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,crashes};
@@ -423,7 +431,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
+      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -511,7 +519,7 @@ function buildPoints(){
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id]
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
+    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -548,7 +556,7 @@ function drawViewing(){
                 : selSeg!==null ? (selSeg.name||'this block') : null;
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
-  if(year!==null) parts.push('<b>'+year+'</b>');
+  if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
     v.querySelector('span').onclick=clearView;
@@ -581,7 +589,7 @@ function selectDistrict(d){
   render();
 }
 function clearView(){
-  year=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year + selection
+  year=null; month=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
 }
@@ -595,7 +603,8 @@ function drawKPIs(){
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
   const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : 'on city streets';
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
-  const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
+  const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2])
+             : (month!==null ? MONTHS[month-1].slice(0,3)+' '+year : String(year));
   const yll=Math.round(yllTotal()), serious=ksi-killed;
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
   // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
@@ -605,7 +614,7 @@ function drawKPIs(){
     kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+year), true);
   } else {
     const con=concentration();
-    const conSub='of streets → of '+(sev==='all'?'crashes':'KSI')+(year===null?'':' (all years)');
+    const conSub='of streets → of '+(sev==='all'?'crashes':'KSI');
     kpi4=kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
   }
   document.getElementById('kpis').innerHTML=
@@ -620,13 +629,13 @@ function kpi(ic,l,v,s,neutral,tip){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])&&selOk(p)) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])&&selOk(p)&&monthOk(p)) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
   const metric=sev==='all'?'Crashes':'Killed or seriously injured';
   const pre=mode==='all'?'':mode==='ped'?'Walking · ':mode==='bike'?'Biking · ':'Driving · ';
-  const yr=year===null?'':' · '+year;
+  const yr=year===null?'':' · '+(month!==null?MONTHS[month-1].slice(0,3)+' '+year:year);
   let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>';
   if(view==='points'){
     if(sev==='all'){
@@ -670,7 +679,7 @@ const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
@@ -691,7 +700,7 @@ const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
   let cityN=0, txN=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !selOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
@@ -736,7 +745,7 @@ function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))cont
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
 function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
-function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!modeKSI(p))continue;
+function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!monthOk(p)||!modeKSI(p))continue;
   const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
@@ -771,14 +780,18 @@ function drawTrend(){
       serious.push(k.s[yr]||0); clickKeys.push('selectYear('+yr+')'); if(yr===2026) fadeIdx.add(i); });
   } else {
     const k=monthStacks(year), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
-    for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); }
+    clickKeys=[];
+    for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0);
+      clickKeys.push('selectMonth('+m+')'); if(month!==null && m!==month) fadeIdx.add(m-1); }
   }
   document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
     ? 'Click a year to view it on the map and break it down by month'
-    : '<span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>';
+    : (month!==null
+        ? 'Viewing <b>'+MONTHS[month-1]+' '+year+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectMonth('+month+')">back to all months</span> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">all years</span>'
+        : 'Click a month to filter the dashboard to it · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>');
   document.getElementById('trend-leg').innerHTML=stackLegend();
   document.getElementById('trend-note').textContent =
     (year===null && vz.years.includes(2026)) ? '2026 is a partial year' : '';
@@ -788,11 +801,13 @@ function drawTimeOfDay(){
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
   document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:150});
-  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2]) : ('totals in '+year);
+  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
+             : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
   document.getElementById('tod-sub').textContent='By hour of day, '+span;
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
-function selectYear(y){ year = (y===year) ? null : y; render(); }
+function selectYear(y){ year = (y===year) ? null : y; month=null; render(); }   // changing year clears month
+function selectMonth(m){ month = (m===month) ? null : m; render(); }
 const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
 // nearest street segment to a crash, found geometrically at click time (crash

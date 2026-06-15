@@ -16,6 +16,14 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: month drill-down within a selected year
+
+Per Vincent: after selecting a year, you can now click a month in the by-year chart to filter the whole dashboard to that month, the same way years already worked. Added a `month` state (1-12) and a `monthOk(p)` predicate (parses the crash date string p[7]); gated tally, yllTotal, equity, ownership, the time-of-day hours, the points layer, and the crash-dot picker on it. The by-year chart's month bars are now clickable (`selectMonth`), the selected month is highlighted (others faded), and the subtitle offers "back to all months / all years". `selectYear` clears the month; `clearView` clears both.
+
+Map shading also narrows to the month: `computeCounts` now has a month branch that counts per segment straight from the crash points (which carry seg_id + date since the cross-filter change) instead of the per-year aggregates, so the map and panels agree. KPI span, legend, time-of-day subtitle, and the Viewing banner all show e.g. "Jul 2022" / "July 2022". Also dropped the now-stale "(all years)" note on the concentration KPI, which became filter-aware earlier. Verified year→month→clear in-browser; no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: clicking a street/segment cross-filters the whole dashboard
 
 Per Vincent: a click is now a filter for the entire dashboard, not just a popup. Selecting a street (search or click) or a single block narrows every KPI and panel (by-year, time-of-day, travel mode, neighborhood income, road owner) to that selection; the map popup now holds the road's physical makeup (lanes, width, speed, sidewalks, traffic, owner) and points crash data to the panels.
