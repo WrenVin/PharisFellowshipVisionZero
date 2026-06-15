@@ -15,11 +15,10 @@
   .barhit{fill:transparent;transition:fill .1s}
   .barhit:hover{fill:rgba(122,20,25,.16);stroke:var(--accent);stroke-width:1.5;rx:2}
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;font-family:var(--sans);color:var(--ink);background:#fff}
-  body{overflow:hidden}   /* desktop: single-screen app shell, no page scroll (mobile re-enables below) */
+  html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff}
   a{color:#1d4ed8}
-  .wrap{max-width:1360px;margin:0 auto;padding:10px 16px;height:100vh;display:flex;flex-direction:column;gap:8px}
-  .top{flex:none;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+  .wrap{max-width:1360px;margin:0 auto;padding:12px 18px 18px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
   h1{font-size:21px;margin:0;font-weight:700}
   .tag{font-size:13px;color:var(--muted);margin-top:3px}
   .lens{display:flex;gap:6px;flex-wrap:wrap}
@@ -37,33 +36,33 @@
   .tip.show{display:block}
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
     box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
-  .kpis{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:10px 0 8px}
   .kpi{background:var(--panel);border-radius:10px;padding:9px 14px;position:relative}
   .kpi .ic{position:absolute;top:10px;right:12px}
   .kpi .ic svg{width:20px;height:20px;display:block}
   .kpi .l{font-size:12.5px;color:var(--muted);padding-right:24px}
-  .kpi .v{font-size:25px;font-weight:700;color:#7a1419;line-height:1.1;margin-top:1px}
+  .kpi .v{font-size:26px;font-weight:700;color:#7a1419;line-height:1.1;margin-top:1px}
   .kpi.neutral .v{color:var(--ink)}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
   .card h3 .ic{display:inline-flex;vertical-align:-2px;margin-right:6px}
   .card h3 .ic svg{width:15px;height:15px;display:block}
   .bleg{display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
   .bleg span{display:flex;align-items:center;gap:5px}
-  .main{flex:1 1 auto;min-height:200px;display:flex;gap:12px;align-items:stretch;flex-wrap:nowrap}
-  .ctrl{flex:0 0 206px;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:9px 11px}
-  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 3px;font-weight:700}
+  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+  .ctrl{flex:0 0 204px;border:1px solid var(--line);border-radius:12px;padding:8px 11px}
+  .ctrl h3{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 2px;font-weight:700}
   .ctrl .grp{margin-bottom:6px}
-  .ctrl select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
-    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
+  .ctrl select{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:7px;
+    font-size:13px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
   .ctrl select option{background:#fff;color:var(--ink)}
-  .ctrl input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
-    font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
+  .ctrl input[type=text]{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:7px;
+    font-size:13px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
   .ctrl input[type=text]:focus{outline:none;border-color:var(--accent)}
-  .ctrl .note{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}
-  .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:2px 0;cursor:pointer}
+  .ctrl .note{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.3}
+  .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:1px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
-  #mapwrap{flex:1 1 auto;min-width:280px;min-height:0;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  #map{height:100%;min-height:100%}
+  #mapwrap{flex:1 1 420px;min-width:300px;min-height:540px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  #map{height:100%}
   #viewing{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;
     padding:5px 13px;font-size:12px;box-shadow:0 1px 4px rgba(16,24,40,.12)}
@@ -84,22 +83,21 @@
   #info .kv .k{color:var(--muted)}
   #info .kv .v{font-weight:600;text-align:right}
   #info .kv .v.bad{color:#7a1419}
-  /* data views below the map: one row of 5, cards sized to content (uneven heights) */
-  .below{flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start;overflow:visible}
-  .card{border:1px solid var(--line);border-radius:12px;padding:8px 11px}
-  .card h3{font-size:13px;margin:0 0 1px;font-weight:700}
-  .card .sub{font-size:11.5px;color:var(--muted);margin-bottom:7px;min-height:14px}
-  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 6px;border-radius:6px;cursor:pointer}
+  .below{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;align-items:start}
+  .card{border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+  .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700}
+  .card .sub{font-size:12px;color:var(--muted);margin-bottom:9px;min-height:15px}
+  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer}
   .worst-row:hover{background:#f3f4f6}
   .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
   .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
-  .stack{display:flex;height:26px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
-  .legrow{display:flex;gap:12px;margin-top:6px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .legrow span{display:flex;align-items:center;gap:5px}
   .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
-  .foot{flex:none;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;
+  .foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
   #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
@@ -134,16 +132,8 @@
   .sheet section p:last-child{margin-bottom:0}
   .sheet section .lbl{font-weight:600}
   .sheet a{color:#1d4ed8}
-  /* narrow screens: drop the single-screen shell, return to a normal scrolling page */
-  @media(max-width:900px){
-    body{overflow:auto}
-    .wrap{height:auto;display:block;padding:14px 14px 50px}
-    .main{flex-wrap:wrap}
-    .ctrl{flex-basis:100%;overflow:visible}
-    #mapwrap{min-height:520px}
-    .below{flex-basis:100%;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));overflow:visible;margin-top:14px}
-    .foot{margin-top:14px}
-  }
+  @media(max-width:1100px){.below{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -206,7 +196,7 @@
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
-        <div class="note" id="blink-note">Filter down to flash the crashes.</div>
+        <div class="note" id="blink-note">Filter down (district, year, month, or a street) to flash where the crashes are.</div>
       </div>
     </div>
 
@@ -239,15 +229,22 @@
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="modedeaths"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
       <div class="sub" id="eq-sub">Killed or seriously injured</div>
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="eqnote"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
+    </div>
+    <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
+      <div class="sub" id="own-sub">Killed or seriously injured</div>
+      <div class="stack" id="ownbar"></div>
+      <div class="legrow" id="ownleg"></div>
+      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
     </div>
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
@@ -259,7 +256,7 @@
       <div class="sub" id="hin-sub">Killed or seriously injured</div>
       <div class="stack" id="hinbar"></div>
       <div class="legrow" id="hinleg"></div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="hinnote"></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="hinnote"></div>
       <div class="tip">The City's official 2022 High Injury Network: the streets it flagged from past severe crashes. "On the HIN" = a crash on one of those streets. The gap is the harm the official, crash-based map doesn't yet cover.</div>
     </div>
   </div>
@@ -612,8 +609,8 @@ function doBlink(){
 function updateBlinkBtn(){
   const btn=document.getElementById('blink'), note=document.getElementById('blink-note');
   if(_shownCount===0){ btn.disabled=true; note.textContent='No crashes in this view.'; }
-  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many here. Filter down first.'; }
-  else { btn.disabled=false; note.textContent='Flash the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+'.'; }
+  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash here. Filter down (district, year, month, or a street) first.'; }
+  else { btn.disabled=false; note.textContent='Flash where the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' are.'; }
 }
 // --- shareable URL state -----------------------------------------------------
 // write the current non-default state into the URL (replaceState, so filter
@@ -684,7 +681,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   buildPulse();
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -975,7 +972,7 @@ function drawTrend(){
       }
     }
   }
-  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:106});
+  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:108});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
@@ -997,7 +994,7 @@ function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  document.getElementById("tod").innerHTML=barChartSVG(labels,fatal,serious,{h:106});
+  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:108});
   const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
   document.getElementById('tod-sub').textContent='By hour of day, '+span;

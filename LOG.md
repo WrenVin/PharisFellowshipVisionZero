@@ -16,6 +16,15 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: balanced vertical layout (reverted the forced 100vh shell)
+
+The two single-screen attempts both read badly: the app-shell put panels in a right column (whitespace, awkward), and the forced-100vh vertical version made the map balloon on big screens while squishing the bottom panels into a thin strip. Reverted the layout to the normal document flow (`git checkout 763fb27 -- docs/vision-zero.html`, which kept every feature) and re-tuned for balance instead of a hard 100vh:
+- Normal flow (no `100vh`/`overflow:hidden`), so the map is a sensible height (~540, tied to the control column) rather than flex-growing huge.
+- Restored the **By road owner** panel and the 6-panel set; laid them out in a roomy **3-column grid (2 rows)** with `align-items:start` (the uneven/organic heights Vincent liked) instead of the squished single row. Wide cards, readable charts.
+- Compacted the control sidebar, KPIs, and charts (h:108) so total content is ~1280px. Worst-streets kept at top 5; trend note back to one line. Mobile: 3-col grid collapses to 2 then 1 via media queries.
+
+Honest limitation noted to Vincent: the content is ~1280px tall even compacted (control sidebar ~540 + 6 panels ~450 + KPIs/map), so it fits tall/large monitors with no scroll but still scrolls a little on a standard ~1000px laptop. The remaining lever to guarantee no-scroll on any screen is relocating the secondary toggles (Show, Display-as, Overlay, Blink) into a compact map toolbar (~250px freed) — offered, pending his call.
+
 ## 2026-06-14 — VZ dashboard: single-screen, vertical flow (reverted the side-panel shell)
 
 Vincent disliked the app-shell (map center, panels in a right column): too much whitespace, awkward. Reverted to the vertical flow he liked (headline stats on top, then the map + selectors, then the data views below) but kept it fitting one screen with no scroll.
