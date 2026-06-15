@@ -424,7 +424,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // sequential ramp: pale/recessive for low counts, deep red for the dangerous tail
-const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
+// warm sequential ramp (low -> high). The low end is a clear orange, not a pale
+// cream, so a 1-crash block is still easy to spot against the light basemap.
+const REDS=['#fdae61','#f98e52','#f16d43','#e0451f','#c0151a','#8a0b12'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
@@ -573,7 +575,7 @@ function styleFor(f){
   if(!(v>0)) return {color:ZERO, weight:1, opacity:.3};   // 0 crashes: recessive
   const br = corr ? _cbreaks : _breaks; let i=0; while(i<br.length && v>br[i]) i++;
   // low buckets stay thin + a touch transparent (recede); high buckets are thick + solid (pop)
-  return {color:REDS[i], weight: 2.2+i*1.05, opacity: 0.55+i*0.08};
+  return {color:REDS[i], weight: 2.8+i*1.0, opacity: 0.85+i*0.03};   // bolder + more opaque low end so 1-crash blocks read clearly
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
