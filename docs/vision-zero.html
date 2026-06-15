@@ -842,6 +842,12 @@ function barChartSVG(labels, fatal, serious, opt){
     if(opt.clickKeys) s+='<rect class="barhit" x="'+(x-1)+'" y="'+T+'" width="'+(bw+2)+'" height="'+ph+'" style="cursor:pointer" onclick="'+opt.clickKeys[i]+'"><title>'+tot[i]+' KSI · click to view</title></rect>';
     if(labels[i]) s+='<text x="'+(x+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-size="12" font-weight="500" fill="#5b6672">'+labels[i]+'</text>';
   }
+  if(opt.line){
+    const lp=[];
+    for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue;
+      lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
+    if(lp.length>1) s+='<polyline points="'+lp.join(' ')+'" fill="none" stroke="#15212b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>';
+  }
   return s+'</svg>';
 }
 function drawTrend(){
@@ -856,7 +862,33 @@ function drawTrend(){
     for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0);
       clickKeys.push('selectMonth('+m+')'); if(month!==null && m!==month) fadeIdx.add(m-1); }
   }
-  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx});
+  let line=null, headline='';
+  if(year===null){
+    // full-year totals only (exclude faded/partial years), least-squares fit on (index,total)
+    const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
+    const full=[]; for(let i=0;i<labels.length;i++) if(!fadeIdx.has(i)) full.push([i,tot[i]]);
+    if(full.length>=2){
+      const N=full.length, sx=full.reduce((a,p)=>a+p[0],0), sy=full.reduce((a,p)=>a+p[1],0),
+            sxx=full.reduce((a,p)=>a+p[0]*p[0],0), sxy=full.reduce((a,p)=>a+p[0]*p[1],0),
+            den=N*sxx-sx*sx, m=den?(N*sxy-sx*sy)/den:0, b=(sy-m*sx)/N;
+      line=labels.map((_,i)=>fadeIdx.has(i)?null:m*i+b);
+    }
+    // headline: avg of last k full years vs first k full years
+    if(full.length>=4){
+      const fy=full.map(p=>p[0]), yr=j=>vz.years[fy[j]];
+      const k=Math.min(3,Math.floor(full.length/2));
+      const first=full.slice(0,k), last=full.slice(-k);
+      const avg=a=>a.reduce((s,p)=>s+p[1],0)/a.length;
+      const a0=avg(first), a1=avg(last);
+      if(a0>0){
+        const pct=Math.round((a1-a0)/a0*100), base=yr(0)+(k>1?(' to '+yr(k-1)):'');
+        const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)');
+        const dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
+        headline='<b style="color:'+col+'">KSI are '+dir+' vs '+base+'</b>';
+      }
+    }
+  }
+  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
@@ -865,8 +897,15 @@ function drawTrend(){
         ? 'Viewing <b>'+MONTHS[month-1]+' '+year+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectMonth('+month+')">back to all months</span> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">all years</span>'
         : 'Click a month to filter the dashboard to it · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>');
   document.getElementById('trend-leg').innerHTML=stackLegend();
-  document.getElementById('trend-note').textContent =
-    (year===null && vz.years.includes(2026)) ? '2026 is a partial year' : '';
+  if(year===null){
+    const parts=[];
+    if(headline) parts.push(headline);
+    if(vz.years.includes(2026)) parts.push('2026 is a partial year, excluded from the trend');
+    parts.push('<span style="color:var(--muted)">Houston\'s goal: zero traffic deaths by 2030.</span>');
+    document.getElementById('trend-note').innerHTML = parts.join('<br>');
+  } else {
+    document.getElementById('trend-note').innerHTML = '';
+  }
 }
 function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
