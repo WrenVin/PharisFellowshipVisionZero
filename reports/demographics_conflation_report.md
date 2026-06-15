@@ -7,9 +7,9 @@ group containing its midpoint. Geometry from Census TIGERweb.
 ## Coverage
 
 - Segments assigned a block group: **96.8%** (72,837 of 75,260).
-- District C spans roughly 2445 block groups.
+- Houston spans roughly 2445 block groups.
 
-## District C demographic range (block-group values, population-weighted where shown)
+## Houston demographic range (block-group values, population-weighted where shown)
 
 | Metric | min | median | max |
 |---|---|---|---|

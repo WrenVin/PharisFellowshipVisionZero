@@ -1,7 +1,7 @@
-"""Conflate sidewalk presence onto District C segments (OSM-derived).
+"""Conflate sidewalk presence onto the study area's segments (OSM-derived).
 
 Houston publishes no complete citywide sidewalk inventory, so OSM is the best
-available source. In District C, OSM maps ~344 mi of sidewalks as SEPARATE
+available source. In the study area, OSM maps ~344 mi of sidewalks as SEPARATE
 `footway=sidewalk` lines (far richer than the 16% of roads carrying a
 `sidewalk=*` tag). This script associates those footway lines to each street
 and infers which SIDE(S) have a sidewalk.

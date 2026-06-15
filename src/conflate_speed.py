@@ -1,4 +1,4 @@
-"""Conflate City of Houston posted speed limits onto District C segments.
+"""Conflate City of Houston posted speed limits onto the study area's segments.
 
 Source: Houston Public Works "Speed Limit" layer (TDO/Traffic_gx/2), a street
 centerline network with POSTED_SPEED. Published via the city GeoHub from a
@@ -74,7 +74,7 @@ else:
     speed.to_file(cache, driver="GPKG")
 speed = speed[speed["POSTED_SPEED"].notna() & (speed["POSTED_SPEED"] > 0)].copy()
 speed = speed.reset_index(drop=True)
-print(f"City speed lines (District C, posted>0): {len(speed):,}")
+print(f"City speed lines ({cfg.AREA_LABEL}, posted>0): {len(speed):,}")
 
 # --- sample points along each segment, snap to nearest city line --------------
 FRACS = [0.1, 0.3, 0.5, 0.7, 0.9]

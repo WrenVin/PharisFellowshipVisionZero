@@ -20,7 +20,7 @@ same-named corridors.
   tertiary 34.7%,
   residential 4.4%
   — counts concentrate on the major roads, as expected.
-- District C has ~2,494 count stations (the genuine measurement density);
+- Houston has ~2,494 count stations (the genuine measurement density);
   2,466 station-readings mapped onto segments.
 - ADT distribution (segments with a value): p25=6,924, median=13,174, p75=17,773, p95=28,564 vehicles/day.
 - Reading recency: years 2012–2026.

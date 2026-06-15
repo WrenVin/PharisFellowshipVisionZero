@@ -1,4 +1,4 @@
-"""Conflate lane count, roadway width, and median onto District C segments.
+"""Conflate lane count, roadway width, and median onto the study area's segments.
 
 Source: cached Houston Public Works Speed Limit layer (TDO/Traffic_gx/2),
 which carries NO_OF_LANES, AVG_LANE_WIDTH, MEDIAN_TYPE, MEDIAN_WIDTH.

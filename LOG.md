@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — Repo accuracy pass: docs refreshed, source de-"District C"-ed
+
+Vincent: "walk through the repo and clean any old/outdated info and make sure everything is accurate." Anchored everything to the canonical citywide numbers in `docs/vz_summary.json` and the current `docs/vision-zero.html` feature set. Done with parallel subagents (one per file; disjoint files so edits don't collide), then verified.
+
+- **README / CODEBOOK / ELI5 refreshed.** Replaced the stale dashboard descriptions with the current feature set (three "Display as" map levels, the full sidebar filter list, click-to-cross-filter the whole dashboard, year-to-month drill-down with trend + zero-by-2030 progress, the six panels incl. most-dangerous-streets top 5, pulsing locators + Blink, shareable URL, Data & methods modal, single-screen/keyboard/mobile). Corrected stale numbers and the web payload note (the non-existent `crash_records.json` → the real `crash_year.json` + slim `segments_vz.geojson` + `crash_points.json`); added `districts.geojson` to the repo map. CODEBOOK got verified coverage figures from the reports and a new "Dashboard export fields" section documenting `on_hin`/`on_txdot`/per-crash `seg_id` and the four export files (with field orders checked against `export_webmap_data.py`/`assign_crashes.py`). ELI5 kept its warm tone and District C origin story but fixed the "no crash analysis yet" framing and stale stats.
+- **Concentration figure.** Docs now use the dashboard's live **~6% of streets → ~69% of KSI** (what a visitor actually sees) rather than the precomputed `vz_summary.json` 71%.
+- **Source + reports de-"District C"-ed.** The pipeline is area-agnostic via `config.py` but 9 `src/*.py` files and 4 generated `reports/*.md` still hardcoded "District C" in docstrings, prints, and report templates. Rewrote docstrings/comments to area-generic wording ("the study area") and switched runtime report/title strings to `{cfg.AREA_LABEL}` (= "Houston") so they track the configured area; edited the already-generated reports' text directly (no numbers touched). Verified zero "District C" left in `src/` and `reports/` (ignoring `__pycache__`/`cache`). Remaining mentions are intentional: README's partnership credit + retargeting example, ELI5's origin story, CODEBOOK's land-use history, and this diary.
+- **Constraints upheld:** no em dashes in `docs/*.html` (verified clean); no numeric values changed anywhere.
+
+---
+
 ## 2026-06-14 — VZ dashboard: whole-street selection, modal, filter-aware KPI, legend fix
 
 Four review fixes (each its own commit):

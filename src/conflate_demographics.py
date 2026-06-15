@@ -1,4 +1,4 @@
-"""Conflate neighborhood demographics (ACS) onto District C segments.
+"""Conflate neighborhood demographics (ACS) onto the study area's segments.
 
 Demographics are a CONFOUNDER in the project DAG and the basis of the equity
 overlay. They come from the U.S. Census American Community Survey (ACS) 5-year
@@ -171,9 +171,9 @@ group containing its midpoint. Geometry from Census TIGERweb.
 ## Coverage
 
 - Segments assigned a block group: **{pct(have)}%** ({int(have.sum()):,} of {len(seg):,}).
-- District C spans roughly {seg['bg_geoid'].nunique() if 'bg_geoid' in seg.columns else '—'} block groups.
+- {cfg.AREA_LABEL} spans roughly {seg['bg_geoid'].nunique() if 'bg_geoid' in seg.columns else '—'} block groups.
 
-## District C demographic range (block-group values, population-weighted where shown)
+## {cfg.AREA_LABEL} demographic range (block-group values, population-weighted where shown)
 
 | Metric | min | median | max |
 |---|---|---|---|

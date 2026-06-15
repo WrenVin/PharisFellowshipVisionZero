@@ -1,4 +1,4 @@
-"""Pull the OSM street network for District C, clipped to the official boundary.
+"""Pull the OSM street network for the study area, clipped to the official boundary.
 
 Scope: city-controlled surface streets. Excludes motorways (freeways) and
 motorway links (ramps); excludes service roads (alleys, driveways, parking

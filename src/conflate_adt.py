@@ -1,4 +1,4 @@
-"""Conflate traffic volume (ADT) onto District C segments — the exposure confounder.
+"""Conflate traffic volume (ADT) onto the study area's segments — the exposure confounder.
 
 Source: Houston Public Works Traffic_gx service.
   - Count stations: layer 4 (Major Thoroughfare ADT) + layer 5 (Local Street ADT),
@@ -9,7 +9,7 @@ Source: Houston Public Works Traffic_gx service.
     mediator in the project DAG).
 
 Pipeline:
-  1. Fetch District C stations (both layers) + all ADT-bearing assignments.
+  1. Fetch the study area's stations (both layers) + all ADT-bearing assignments.
   2. Per station: keep the MOST RECENT valid reading (Status Complete,
      Outcome Success) -> current ADT, plus most recent non-null op speed.
   3. Assign each station to its nearest segment within STATION_TOL_FT; a
@@ -71,7 +71,7 @@ else:
 boundary = cfg.boundary(2278)
 poly = boundary.geometry.iloc[0].buffer(200)
 stations = stations[stations.within(poly)].copy()
-print(f"Stations in District C: {len(stations):,} | ADT readings (citywide): {len(assign):,}")
+print(f"Stations in {cfg.AREA_LABEL}: {len(stations):,} | ADT readings (citywide): {len(assign):,}")
 
 # --- 2. most recent valid reading per station --------------------------------
 a = assign[(assign["Status"] == "Complete") & (assign["Outcome"] == "Success")].copy()
@@ -150,7 +150,7 @@ same-named corridors.
   tertiary {pct(have[seg.highway=='tertiary'])}%,
   residential {pct(have[seg.highway=='residential'])}%
   — counts concentrate on the major roads, as expected.
-- District C has ~{len(stations):,} count stations (the genuine measurement density);
+- {cfg.AREA_LABEL} has ~{len(stations):,} count stations (the genuine measurement density);
   {int(seg.n_adt_stations.fillna(0).sum()):,} station-readings mapped onto segments.
 - ADT distribution (segments with a value): p25={q[.25]:,.0f}, median={q[.5]:,.0f}, p75={q[.75]:,.0f}, p95={q[.95]:,.0f} vehicles/day.
 - Reading recency: years {int(seg.adt_year.min())}–{int(seg.adt_year.max())}.

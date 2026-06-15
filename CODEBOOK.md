@@ -2,7 +2,7 @@
 
 Documents every variable in the segment datasets. One row = one **road segment**: a stretch of street between two intersections (or an intersection and a dead end), undirected — a two-way street is one row, not two, and (after the merge) a divided boulevard is one row, not two.
 
-> **Scope: surface streets across the City of Houston** (75,260 segments), rebuilt 2026-06-14 from District C via `AREA` in `src/config.py`. Only limited-access freeways/tollways are excluded; at-grade arterials including state-owned ones (S Main/US-90A, SH 6, Westheimer/FM 1093) are kept and **labeled** `on_txdot` (city vs TxDOT ownership, from TxDOT's roadway inventory) rather than dropped — matching Austin's Vision Zero dashboard and the City's own HIN. ~11% of the surface-street KSI shown are on TxDOT-owned arterials (the rest city streets; freeways, which are state-owned, are excluded entirely). `on_txdot` is set only where a segment runs *parallel to* (within 60 ft and bearing within 30 deg of) a TxDOT on-system roadway, so streets that merely cross over a freeway are not mislabeled. Some inline coverage %s may still reflect the District C build; current coverage is in README. **Land use (`landuse_*`) is deferred** and absent.
+> **Scope: surface streets across the City of Houston** (75,260 segments), rebuilt 2026-06-14 (area set by `AREA` in `src/config.py`; `seg_id` prefix `H-` from `cfg.SEG_PREFIX`). Only limited-access freeways/tollways are excluded; at-grade arterials including state-owned ones (S Main/US-90A, SH 6, Westheimer/FM 1093) are kept and **labeled** `on_txdot` (city vs TxDOT ownership, from TxDOT's roadway inventory) rather than dropped — matching Austin's Vision Zero dashboard and the City's own HIN. ~11% of the surface-street KSI shown are on TxDOT-owned arterials (the rest city streets; freeways, which are state-owned, are excluded entirely). `on_txdot` is set only where a segment runs *along* a TxDOT on-system roadway (within 60 ft AND bearing within 30 deg for >=50% of its length); interstates (`RTE_PRFX` 'IH') are dropped from the match set and a hand-curated list of ~42 false-positive `seg_id`s is forced city-owned, so streets that merely cross over or run under a freeway are not mislabeled. ~1,438 segments are labeled TxDOT. Processed filenames are `houston_*.gpkg`. **Land use (`landuse_*`) is deferred** at city scale and absent from the current data.
 
 **Files** (in `data/processed/`):
 
@@ -54,7 +54,7 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-14, clipped to the City of Hous
 
 | Variable | Type | Units | Description |
 |---|---|---|---|
-| `length_ft` | float | feet | Segment centerline length, measured in EPSG:2278 (Texas State Plane, US ft). Median ≈ 304 ft ≈ one Houston block. |
+| `length_ft` | float | feet | Segment centerline length, measured in EPSG:2278 (Texas State Plane, US ft). Median ≈ 352 ft ≈ one Houston block. |
 | `bearing` | float | degrees (0–360, 0 = north) | Compass direction from the segment's start node to its end node. Used internally for dual-carriageway detection; not a design feature. |
 | `geometry` | LineString | — | The segment's shape, CRS EPSG:2278. |
 
@@ -68,7 +68,7 @@ Source data: OpenStreetMap (OSM), pulled 2026-06-14, clipped to the City of Hous
 | `width_ft` | float | feet | **0%** | OSM roadway width — untagged in Houston. Superseded by `roadway_width_ft` (tier 3), now 95.1% covered. |
 | `sidewalk` | text | `both`, `one_side`, `none`, missing | 8% | Sidewalk presence, collapsed from several OSM tagging styles. Missing = untagged, NOT "no sidewalk." |
 | `cycleway` | text | `none`, `lane`, `track`, `shared_lane`, … (pipe-joined if mixed) | 5% | Bike infrastructure on the segment. Same caveat: missing = untagged. |
-| `parking` | text | `present`, `none`, missing | 1% | On-street parking. Too sparse to use; conflate from city data later. |
+| `parking` | text | `present`, `none`, missing | 0.6% | On-street parking. Too sparse to use; conflate from city data later. |
 | `lit` | text | `yes`, `no`, missing | 9% | Street lighting. |
 | `surface` | text | `asphalt`, `concrete`, … | 26% | Pavement surface type. |
 
@@ -83,10 +83,10 @@ Source for speed: Houston Public Works "Speed Limit" layer (`TDO/Traffic_gx/2`),
 | `maxspeed_city` | float | mph | Raw city-matched posted speed (NaN if no confident match). |
 | `match_frac` | float | 0–1 | Share of the segment's 5 sample points that snapped to a city speed line. |
 | `city_name` | text | — | Street name from the matched city line (for audit). |
-| `speed_name_match` | bool | — | Does the city street name agree with the OSM `name`? Confidence flag on the spatial match (~86% true on city matches). |
+| `speed_name_match` | bool | — | Does the city street name agree with the OSM `name`? Confidence flag on the spatial match (85.0% true on city matches). |
 
 `speed_source` values:
-- **`city`** — matched to the city's posted-speed network. Authoritative. (~18% of segments, ~48% of arterials/collectors.)
+- **`city`** — matched to the city's posted-speed network. Authoritative. (17.0% of segments, 45.5% of arterials/collectors.)
 - **`osm`** — no city match, but OSM carried a posted speed.
 - **`default_30_local`** — residential/local class, unposted → Texas prima facie 30 mph (legal default, not a measurement).
 - **`default_30_unposted`** — higher OSM class but not on the city's posted network (median ~1,100 ft from any city speed line, i.e. genuinely unposted) → also 30 mph by TX default. **This is the set to sensitivity-test** if posted speed ever drives a published figure.
@@ -102,13 +102,13 @@ Same source and snap-match as speed. See `reports/lanes_width_median_report.md`.
 | `lanes_final` | float | count | **Total cross-section lanes for analysis** — 95.1% covered. Priority: city → OSM → local 2-lane default. |
 | `lanes_source` | text | `city` / `osm` / `default_local_2` / `none` | Where `lanes_final` came from. |
 | `city_lanes` | float | count | Raw city-matched lane count (NaN if no match). |
-| `lanes_osm_city_agree` | bool | — | Where both OSM and city exist, do they agree within 1 lane? (78% true.) QC flag — where they differ the city is usually higher (OSM tags one direction of a divided road). |
+| `lanes_osm_city_agree` | bool | — | Where both OSM and city exist (10,990 segments), do they agree within 1 lane? (78.4% true.) QC flag — where they differ the city is usually higher (OSM tags one direction of a divided road). |
 | `roadway_width_ft` | float | feet | **Roadway (travel-lane) width for analysis** — 95.1% covered, was 0% in OSM. = `lanes_final` × avg lane width. Excludes the median. |
 | `avg_lane_width_ft` | float | feet | City average lane width (~12 ft almost everywhere; 11 occasionally). |
 | `width_source` | text | `city_lanes_x_width` / `lanes_x_12ft_assumed` / `none` | How `roadway_width_ft` was derived. |
 | `median_type` | text | `Raised` / `Depressed` / `TWLT` / `Undivided` / `Divided (unspecified)` | Median design. `TWLT` = continuous center two-way left-turn lane. `Divided (unspecified)` = a merged divided road with no city median record. |
 | `median_source` | text | `city` / `merged_dual` / `default_local_undivided` / `none` | Where `median_type` came from. |
-| `median_width_ft` | float | feet | City-measured median width (not defaulted; 16% covered). |
+| `median_width_ft` | float | feet | City-measured median width (not defaulted; 16.3% covered). |
 | `geom_match_frac` | float | 0–1 | Share of the segment's sample points that snapped to a city line in this conflation. |
 
 Lane semantics note: the city's `NO_OF_LANES` is **total cross-section** on its orientation-coded lines (verified Memorial Dr = 6 = 3+3), matching our merged `lanes`. ~14% of city lines are per-direction coded — a residual ambiguity, mitigated by preferring whole-road matches and the OSM cross-check.
@@ -119,11 +119,11 @@ Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count rea
 
 | Variable | Type | Units | Description |
 |---|---|---|---|
-| `adt` | float | vehicles/day | **Average daily traffic — the exposure confounder.** Coverage: **98% of primary, 97% of secondary** arterials; 34% tertiary, 6% residential; 30% overall (ADT is measured at ~320 stations citywide-in-district, so it's dense on big roads, sparse on locals). |
+| `adt` | float | vehicles/day | **Average daily traffic — the exposure confounder.** Coverage: **84.6% of primary, 81.3% of secondary** arterials; 34.7% tertiary, 4.4% residential; 25.2% overall (ADT is measured at ~2,494 count stations citywide, so it's dense on big roads, sparse on locals). |
 | `adt_source` | text | `measured` / `street_median` / *(blank)* | `measured` = a count station on this segment; `street_median` = inherited from same-named corridor; blank = no count (NOT imputed here — ADT imputation is a deliberate, separate modeling step). |
 | `adt_year` | int | year | Year of the reading used (range 2012–2026). |
 | `n_adt_stations` | int | count | Number of count stations mapped onto the segment. |
-| `op_speed_85_mph` | float | mph | **85th-percentile measured (operating) speed** — the design→severity **MEDIATOR** in the DAG. ~4% coverage. **Model as the mechanism; do NOT adjust for it.** Not a risk predictor. Distinct from `posted_speed_mph`. |
+| `op_speed_85_mph` | float | mph | **85th-percentile measured (operating) speed** — the design→severity **MEDIATOR** in the DAG. ~3.1% coverage (2,370 segments). **Model as the mechanism; do NOT adjust for it.** Not a risk predictor. Distinct from `posted_speed_mph`. |
 | `op_speed_source` | text | `measured` / *(blank)* | Provenance of `op_speed_85_mph`. |
 
 > ADT is treated as total (both directions) at the count location. Most local streets have no station; we intentionally leave their ADT blank rather than class-impute, because imputing a confounder is a modeling choice to be made (and sensitivity-tested) explicitly.
@@ -154,7 +154,7 @@ Houston publishes no complete sidewalk inventory, so this is built from OSM's ~2
 | `sw_left_frac`, `sw_right_frac` | float | 0–1 | Continuous per-side coverage (share of the segment's sample points with a sidewalk on that side). Side is relative to digitized direction, not compass — it separates "both vs one side", not which cardinal side. |
 | `sidewalk_source` | text | `osm_footway` / `osm_road_tag` | Inferred from separate footway lines, or (fallback where none mapped) the road's OSM `sidewalk=*` tag. |
 
-Coverage: at least one side on ~29% of segments; both sides ~5%; `none` on ~71% (OSM completeness is uneven).
+Coverage: at least one side on 29.2% of segments; both sides 4.9%; `none` on 70.8% (OSM completeness is uneven).
 
 > **Missing ≠ absent**, strongly here: `none` means no sidewalk *mapped* within the search distance. It's good evidence of a gap, but OSM completeness is uneven — not a field survey. Supersedes the raw OSM `sidewalk` column (16% coverage) for analysis.
 
@@ -210,6 +210,23 @@ Added by `src/assign_crashes.py`: each crash credited to its single nearest segm
 
 > 98.2% of surface-street crashes assigned (median 4 ft to segment) now that freeways are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 1,261 segments citywide — distinct from these CRIS-derived counts.
 
+## Dashboard export fields (derived in `src/export_webmap_data.py` / `src/assign_crashes.py`)
+
+These are not columns in the processed `.gpkg`; they are computed at export time for the web map (`docs/`).
+
+| Variable | Where | Description |
+|---|---|---|
+| `on_hin` | per segment | True if >=50% of the segment's length runs within 50 ft of a 2022 HIN line (`docs/hin.geojson`), so a cross-street merely crossing an HIN arterial is not flagged. Attached to each crash point via its nearest segment. |
+| `on_txdot` | per segment | True if the segment runs ALONG a TxDOT on-system roadway (within 60 ft AND bearing within 30 deg for >=50% of its length); interstates (`RTE_PRFX` 'IH') are excluded from the match set and ~42 hand-curated false-positive `seg_id`s are forced city-owned. ~1,438 segments labeled TxDOT. A LABEL (ownership view), not an exclusion. Also attached to each crash point via its nearest segment. |
+| `seg_id` (on crash) | per crash | The nearest segment to each crash point, so the dashboard can cross-filter every panel to a clicked street/segment. |
+
+**Exported files for the dashboard:**
+
+- `docs/segments.geojson` — full per-segment property set (Street Explorer / `index.html`).
+- `docs/segments_vz.geojson` — slim copy for the Vision Zero dashboard (`vision-zero.html`), only the 19 fields in `WEB_KEEP`: `seg_id`, `name`, `road_class`, `district`, `on_txdot`, `on_hin`, `n_crash`, `n_severe`, `n_fatal`, `n_ped`, `n_ped_severe`, `n_bike`, `n_bike_severe`, `length_ft`, `lanes_final`, `roadway_width_ft`, `posted_speed_mph`, `sidewalk_presence`, `adt`.
+- `docs/crash_points.json` — one array per crash, 15 fields in order: `[lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id]`.
+- `docs/crash_year.json` — per-segment-per-year counts, `{seg_id: {year: [n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]}}` (replaces the old per-crash `crash_records.json`).
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |
@@ -235,6 +252,6 @@ Merge method (see `reports/dual_merge_report.md`): twins = same-named, antiparal
 
 1. **Missing ≠ absent.** Every tier-2 OSM feature gap means "nobody tagged it," not "it isn't there." Coverage percentages above tell you how much to trust each column.
 2. **Merged divided-road geometry is one half's line**, not the true median axis — fine for analysis and mapping, but don't measure median widths from it.
-3. **Sliver cleanup applied** (p5 length now 145 ft). 31 named short segments without a same-named neighbor were conservatively kept; `*_link` turn lanes live in `removed_slivers`, not the network.
+3. **Sliver cleanup applied** (p5 length now 134 ft). 292 named short segments without a same-named neighbor were conservatively kept; `*_link` turn lanes live in `removed_slivers`, not the network.
 4. **`maxspeed` is posted speed**, not the operating speed that mediates crash severity in the causal model.
-5. **Operating speed is sparse** (`op_speed_85_mph`, ~4% coverage) — the design→severity mediator is measured at only a handful of count stations, so any analysis using it leans on those few segments. ADT, demographics, and crash counts are all now conflated in (see sections above); land use is deferred at city scale.
+5. **Operating speed is sparse** (`op_speed_85_mph`, ~3.1% coverage) — the design→severity mediator is measured at only a handful of count stations, so any analysis using it leans on those few segments. ADT, demographics, and crash counts are all now conflated in (see sections above); land use is deferred at city scale.

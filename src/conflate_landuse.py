@@ -1,4 +1,4 @@
-"""Conflate adjacent land use onto District C segments — a DAG confounder.
+"""Conflate adjacent land use onto the study area's segments — a DAG confounder.
 
 Land use shapes both how a street is built and how much harm occurs there
 (commercial/industrial frontage -> more driveways, turning, deliveries, foot

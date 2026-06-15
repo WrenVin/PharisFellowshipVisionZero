@@ -25,6 +25,9 @@ its way to safety — it has to *design* its way there. That makes "which street
 are dangerously designed?" not just interesting, but the main lever the city
 actually has.
 
+This is the author's Pharis Fellowship project, done with Council Member
+Panzarella's office.
+
 We started in one slice of Houston — **City Council District C** (the inner-loop
 area: Heights, Montrose, Museum District, Meyerland, Braeswood), in partnership
 with that district's council office.
@@ -33,18 +36,18 @@ with that district's council office.
 > whole process worked for District C, expanding was mostly a matter of swapping
 > in the city's outline and re-running everything. The story below was written as
 > we built District C step by step (so it still says "District C" in places), but
-> the **current maps and numbers now cover all ~75,000 city street segments**, not
+> the **current maps and numbers now cover all ~75,260 city street segments**, not
 > just the one district. The citywide toll is at the end.
 
 ---
 
-## Where we are right now
+## How we built the foundation
 
 Before you can study streets, you need a clean, accurate list of them. That
-sounds trivial. It is not. **Everything we've done so far is building that
-list** — a trustworthy map of every street in District C, chopped into pieces,
-with what we know about each piece. No crash analysis yet; that comes once the
-crash data arrives. We've been laying the foundation the whole house sits on.
+sounds trivial. It is not. The first big chunk of this project was building that
+list — a trustworthy map of every street in Houston, chopped into pieces, with
+what we know about each piece. It's the foundation the whole house sits on, and
+it's now done; the crash data has since been layered on top (more on that below).
 
 Here's the story of how we built it, step by step.
 
@@ -79,8 +82,8 @@ For every segment we recorded what the map data told us: how many lanes, the
 posted speed limit, whether it's one-way, whether there's a sidewalk or bike
 lane, whether the intersections at its ends have traffic signals, and so on.
 
-Here's an honest catch we found and wrote down: the map data is **patchy**.
-Number of lanes? Known for ~85% of streets — great. Speed limit? Only ~14%.
+Here's an honest catch we found and wrote down: the raw map data is **patchy**.
+Number of lanes? Known for only about half the streets. Speed limit? Under 10%.
 Street width? Basically zero. Importantly, "we don't know" is *not* the same as
 "it's not there" — a missing sidewalk in the data usually just means nobody
 typed it in, not that the sidewalk doesn't exist. We're tracking exactly how
@@ -118,14 +121,14 @@ it. After this, the network is clean — no more confusing scraps.
 ### Keeping everything honest and shareable
 Alongside the street-building, we set up the habit stuff so this project stays
 trustworthy and isn't a black box:
-- **An interactive Street Explorer — live on the web** at
+- **Interactive dashboards — live on the web** at
   https://wrenvin.github.io/PharisFellowshipVisionZero/ (no software needed,
-  just open the link). You can **color the streets by anything** (traffic,
-  speed, lanes, income…), **filter** to just the streets you care about — e.g.
-  "show me wide, fast streets with no sidewalk," which instantly highlights the
-  most worrying streets — **search** for a street by name, and **click any
-  street** to pin a panel with everything we know about it. It's the seed of
-  the public dashboard the project will grow into.
+  just open the link). There are now two: a data-first **Street Explorer**
+  where you can color the streets by anything (traffic, speed, lanes, income…),
+  filter to just the streets you care about (e.g. "show me wide, fast streets
+  with no sidewalk"), search by name, and click any street to see everything we
+  know about it; and a public-friendly **Vision Zero dashboard** focused on
+  safety, described at the end of this file.
 - **Four documents we keep updated:** the README (quick facts), the LOG (a
   dated diary of every decision and *why*), the CODEBOOK (what every piece of
   data means), and this ELI5.
@@ -134,10 +137,10 @@ trustworthy and isn't a black box:
 
 ---
 
-## What's next
+## Filling in the blanks
 
-The streets are ready, and we've started **filling in the blanks** — adding
-facts about each street from the city's own datasets.
+With the street list built, we **filled in the blanks** — adding facts about
+each street from the city's own datasets.
 
 **Just done: speed limits.** We found the City of Houston's official speed-limit
 data and matched it onto our streets. A real-world wrinkle we handled honestly:
@@ -152,7 +155,7 @@ city measured this" with "the law says it's this." Every street now has a speed.
 for each street, how many lanes it has, how wide the pavement is, and whether
 it has a median (a raised divider, a center turn lane, or nothing). Two nice
 wins here: street *width* was completely blank before — now it's filled in for
-99% of streets. And the city's median info independently confirmed the
+about 95% of streets. And the city's median info independently confirmed the
 divided-road fix we did earlier (the streets we'd flagged as divided really are
 divided). As always, we labeled where every number came from — the city's
 measurement, or a sensible default for small neighborhood streets.
@@ -161,9 +164,10 @@ measurement, or a sensible default for small neighborhood streets.
 day (the city measures this with road sensors). This matters a lot: a wide,
 fast street isn't automatically "more dangerous" if barely anyone drives it —
 you have to account for how many people are actually exposed. The city measures
-traffic at a few hundred spots across the district, so we have real numbers for
-nearly all the *big* streets (98%) and fewer of the small residential ones —
-which is fine, because the big streets are where the danger is. We were careful
+traffic at a few hundred spots across the city, so we have real numbers on the
+*big* streets (counts cover about a quarter of all streets, dense on arterials)
+and fewer of the small residential ones — which is fine, because the big streets
+are where the danger is. We were careful
 *not* to make up numbers for streets with no count; we'd rather leave a blank
 than guess. (Bonus: the same sensors also recorded how fast cars *actually*
 drive — not just the posted limit — which will matter a lot later.)
@@ -230,9 +234,9 @@ and 712 injured; the whole city is far larger.)
 We then figured out **which crashes involved people walking or biking** (the
 crash records list everyone involved, so we flagged any crash with a pedestrian
 or cyclist). The finding is sobering and important: people on foot or bike are
-only **2% of crashes but about a third of the deaths** — they're rarely in
-crashes, but when they are, it's far more likely to be fatal. That's exactly
-why this project focuses on street *design*.
+only about **3% of crashes but roughly 27% of the serious injuries and 41% of
+the deaths** — they're rarely in crashes, but when they are, it's far more
+likely to be fatal. That's exactly why this project focuses on street *design*.
 
 Then we **connected each crash to its street**: we matched every crash to the
 nearest street (within about 200 feet, which absorbs the small errors in where
@@ -241,7 +245,7 @@ tally — total crashes, severe crashes, and pedestrian/bike crashes. We
 double-checked that every crash got counted exactly once, and the streets that
 came out worst (Memorial, Westheimer, Montrose, Kirby…) are exactly the ones
 Houston already knows are dangerous — a reassuring sign we did it right. Telling
-detail: **93% of street blocks have had zero severe crashes** — which is the
+detail: **about 92% of street blocks have had zero severe crashes** — which is the
 whole reason the city's "wait for crashes" approach has blind spots, and why our
 design-based approach can help.
 
@@ -255,19 +259,52 @@ model will be compared against.
 
 We also built a **second, public-friendly dashboard focused purely on safety**
 (a "Vision Zero" view, alongside the data-explorer one). Instead of letting you
-browse every kind of data, it leads with what matters: how many people have been
-killed or seriously hurt, **how many years of life that lost** (a powerful way to
-show a young person's death counts for more than the bare number "1"), *which*
-streets carry almost all of that harm (just 6% of streets account for ~71% of it citywide),
-a switch to focus on a single travel mode (everyone, driving, walking, or biking),
-and breakdowns of who's being hurt (in a vehicle vs. walking vs. biking), of when
-it happens **by time of day**, and **by year — and you can click a year to break
-it down into that year's twelve months**. There's also a switch
-between shaded streets and individual crash dots, and the city's own official
-"most dangerous streets" list (its High Injury Network) laid over the top for
-comparison. It's modeled on how cities like Austin and New York present their
-traffic-safety data to the public — it shows what has actually happened, and
-stays out of conclusions we haven't proven yet.
+browse every kind of data, it leads with what matters. Here's what a visitor
+actually sees and can do:
+
+- **The toll, up top.** Headline numbers: how many people have been killed or
+  seriously hurt, and **how many years of life that lost** (a powerful way to
+  show that a young person's death counts for more than the bare number "1").
+  Citywide that's **1,687 killed, 8,241 seriously injured (9,928 "killed or
+  seriously injured"), and about 69,500 years of life lost** over 2016–2025
+  (plus a partial 2026).
+- **A big map of Houston** you can shade three ways: whole **streets**,
+  individual **blocks** (segments), or every **crash as a dot**.
+- **Filters down the left:** search for a street by name, pick a council
+  district, choose who to look at (everyone / driving / walking / biking),
+  filter by who owns the road (city vs. TxDOT/state), switch between
+  deaths-and-serious-injuries vs. all crashes, and toggle the City's official
+  **High Injury Network** on top for comparison.
+- **Click any street** (or one block) and the *whole* dashboard updates to just
+  that street; a popup shows the road's design (lanes, width, speed, sidewalks,
+  traffic, owner), and you can expand a single block to the whole street.
+- **Charts below:** a year-by-year trend you can **click into months**, with a
+  trend line and a plain-English note on whether things are improving (they
+  aren't, as it turns out); plus breakdowns **by time of day**, **by travel mode**, **by
+  neighborhood income**, **by road owner**, and a **"most dangerous streets"
+  top-5 list** you can click to filter to.
+- **Easy to use:** when you filter down to just a few crashes it **flashes them**
+  so they're easy to find on the map, and you can **share a link** that reopens
+  the exact view you're looking at.
+
+It's modeled on how cities like Austin and New York present their traffic-safety
+data to the public — it shows what has actually happened, and stays out of
+conclusions we haven't proven yet.
+
+A few things the dashboard makes plain:
+
+- **The toll is not going down.** Killed-or-seriously-injured are up about
+  **19%** versus 2016–2018, while the City's official goal is **zero traffic
+  deaths by 2030**. We're moving the wrong way.
+- **The harm is wildly concentrated.** About **6% of streets carry roughly 69%**
+  of the serious harm; most streets have had none. That's the whole reason a
+  "where crashes happened" map is so striking, and why a design-based approach
+  could help.
+- **It falls unequally.** Neighborhoods with median income under $100k bear
+  about **81%** of the serious harm.
+- **State vs. city roads.** Roughly **1 in 9 (~11%)** of the serious crashes
+  shown are on TxDOT (state)-owned arterials, the rest on city streets. Those
+  are the ones the City can't fix alone and has to push the state to redesign.
 
 Next: build the model that answers the project's real question — **which
 dangerous streets is the city's current crash-only method missing?**
