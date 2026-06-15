@@ -101,6 +101,14 @@
   .pulse.oth{background:#f0884c;animation:pulseOth 1.5s ease-out infinite}
   @keyframes pulseSev{0%{box-shadow:0 0 0 0 rgba(192,21,26,.6)}70%{box-shadow:0 0 0 15px rgba(192,21,26,0)}100%{box-shadow:0 0 0 0 rgba(192,21,26,0)}}
   @keyframes pulseOth{0%{box-shadow:0 0 0 0 rgba(240,136,76,.6)}70%{box-shadow:0 0 0 13px rgba(240,136,76,0)}100%{box-shadow:0 0 0 0 rgba(240,136,76,0)}}
+  /* manual "blink" burst: a few emphatic flashes, then it removes itself */
+  .blink{width:11px;height:11px;border-radius:50%;background:#c0151a;animation:blinkBurst .75s ease-out 5}
+  .blink.oth{background:#f0884c}
+  @keyframes blinkBurst{0%{box-shadow:0 0 0 0 rgba(192,21,26,.75);opacity:1}60%{box-shadow:0 0 0 20px rgba(192,21,26,0);opacity:.55}100%{box-shadow:0 0 0 0 rgba(192,21,26,0);opacity:1}}
+  .blinkbtn{width:100%;padding:8px 10px;border:1px solid var(--accent);border-radius:8px;background:#fbe9ea;
+    color:#7a1419;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+  .blinkbtn:hover:not(:disabled){background:#f7d9db}
+  .blinkbtn:disabled{border-color:var(--line);background:var(--panel);color:var(--muted);cursor:default}
   /* Data & methods modal */
   #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
@@ -125,9 +133,12 @@
   <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
   <div class="top">
-    <div>
-      <h1>Vision Zero · Houston</h1>
-      <div class="tag">Traffic deaths and serious injuries on city streets in the City of Houston.</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="HoustonVisionZeroLogo.png" alt="Houston Vision Zero" style="height:56px;width:auto;border-radius:12px;display:block;flex:none">
+      <div>
+        <h1>Vision Zero · Houston</h1>
+        <div class="tag">Traffic deaths and serious injuries on city streets in the City of Houston.</div>
+      </div>
     </div>
   </div>
 
@@ -177,6 +188,10 @@
         <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
         <div class="tip">The streets the City officially flags as carrying the most severe crashes (2022). Turn it on to compare with where crashes actually fall.</div>
+      </div>
+      <div class="grp">
+        <button id="blink" class="blinkbtn">Blink crash locations</button>
+        <div class="note" id="blink-note">Filter down (district, year, month, or a street) to flash where the crashes are.</div>
       </div>
     </div>
 
@@ -282,8 +297,10 @@ const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, selStreet=null, selSeg=null, selIds=new Set();
-const PULSE_MAX=50;   // when the filtered view has <= this many crashes, flash each so it's easy to find
+let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+const PULSE_MAX=50;     // <= this many crashes: auto-flash each so it's easy to find
+const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
+let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
@@ -342,6 +359,7 @@ function computeCounts(){
       if(!inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
       const c=segCountYear(a); if(c>0) activeCounts[seg]=c; } }
   const r=buildRamp(activeCounts); _breaks=r.breaks; _segCap=r.cap; _segMax=r.max;
+  _shownCount=0; for(const k in activeCounts) _shownCount+=activeCounts[k];   // ~crashes shown, for the Blink button
 }
 // Geometric color breaks for a counts map. The scale tops out at the 97th
 // percentile of nonzero values, not the max, so a single 773-crash outlier
@@ -538,22 +556,49 @@ function buildPoints(){
 // in every display mode; non-interactive so clicks pass through to the streets.
 function buildPulse(){
   if(pulseLayer){ map.removeLayer(pulseLayer); pulseLayer=null; }
+  const hits=filteredCrashes(PULSE_MAX); if(!hits) return;   // none, or too many to auto-flash
+  const g=L.layerGroup();
+  for(const p of hits){
+    const icon=L.divIcon({className:'', iconSize:[9,9], iconAnchor:[4,4],
+      html:'<div class="pulse '+(p[2]===1?'sev':'oth')+'"></div>'});
+    L.marker([p[0],p[1]], {interactive:false, keyboard:false, icon}).addTo(g);
+  }
+  pulseLayer=g.addTo(map);
+}
+// the filtered crashes (same predicate as buildPoints/buildPulse), capped at `cap`.
+// returns null if there are none or more than cap.
+function filteredCrashes(cap){
   const hits=[];
   for(const p of pts){
     if(year!==null && p[6]!==year) continue;
     if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     if(sev==='ksi' && p[2]!==1) continue;
-    hits.push(p);
-    if(hits.length > PULSE_MAX) return;   // too many to flash; the normal view reads fine
+    hits.push(p); if(hits.length>cap) return null;
   }
-  if(!hits.length) return;
+  return hits.length ? hits : null;
+}
+// manual "Blink": a short, emphatic flash on each crash in the current view,
+// then it clears itself. Works at any filtered level up to BLINK_MAX.
+function doBlink(){
+  if(blinkLayer){ map.removeLayer(blinkLayer); blinkLayer=null; }
+  if(blinkTimer){ clearTimeout(blinkTimer); blinkTimer=null; }
+  const hits=filteredCrashes(BLINK_MAX);
+  if(!hits) return;
   const g=L.layerGroup();
   for(const p of hits){
-    const icon=L.divIcon({className:'', iconSize:[9,9], iconAnchor:[4,4],
-      html:'<div class="pulse '+(p[2]===1?'sev':'oth')+'"></div>'});
+    const icon=L.divIcon({className:'', iconSize:[11,11], iconAnchor:[5,5],
+      html:'<div class="blink'+(p[2]===1?'':' oth')+'"></div>'});
     L.marker([p[0],p[1]], {icon, interactive:false, keyboard:false}).addTo(g);
   }
-  pulseLayer=g.addTo(map);
+  blinkLayer=g.addTo(map);
+  blinkTimer=setTimeout(()=>{ if(blinkLayer){ map.removeLayer(blinkLayer); blinkLayer=null; } }, 4000);   // matches .blink (5 x .75s)
+}
+// enable the Blink button only when the view is filtered down to a workable size
+function updateBlinkBtn(){
+  const btn=document.getElementById('blink'), note=document.getElementById('blink-note');
+  if(_shownCount===0){ btn.disabled=true; note.textContent='No crashes in this view.'; }
+  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash here. Filter down (district, year, month, or a street) first.'; }
+  else { btn.disabled=false; note.textContent='Flash where the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' are.'; }
 }
 function render(){
   computeCounts();
@@ -573,7 +618,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   buildPulse();
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -971,6 +1016,7 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend();
 };
+document.getElementById('blink').onclick=doBlink;
 (()=>{ const m=document.getElementById('modal');
   const open=e=>{e.preventDefault(); m.classList.add('show');};
   const close=()=>m.classList.remove('show');

@@ -16,6 +16,13 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: manual Blink button + logo in the header
+
+- **Logo.** Added the Houston Vision Zero logo to the header (top-left, beside the title), 56px tall with the same 12px corner radius as the cards. Copied `HoustonVisionZeroLogo.png` into `docs/` so Pages serves it.
+- **Manual "Blink crash locations" button.** Complements the automatic pulse (which only fires at <=50 crashes): the button flashes every crash in the current filtered view on demand, as a short burst (5 quick pulses, ~4 s, then it clears itself). Works at any filtered level up to `BLINK_MAX=800` crashes; it's disabled (with a note) at the citywide default or other very large views, where flashing hundreds/thousands of markers isn't useful. Enable state is driven by `_shownCount` (sum of activeCounts) computed in computeCounts. Refactored the shared crash filter into `filteredCrashes(cap)` used by both the auto-pulse and the button.
+
+Verified: logo loads with 12px radius; button disabled citywide ("too many"), enabled at District C 2019 (68 crashes) and flashes 68 markers; no console errors.
+
 ## 2026-06-14 — VZ dashboard: pulsing locators when the filtered view is sparse
 
 Per Vincent: when you filter down hard (e.g. District C, April 2020 → a death and a few injuries), the few crashes are tiny and faint on the citywide map and hard to find. Added a pulsing locator on each crash when the filtered set is small (`PULSE_MAX=50`). `buildPulse()` collects the crashes matching all active filters (year/month/mode/sev/district/owner/selection), and if there are 1–50 it drops an animated DOM marker (`L.divIcon`, CSS box-shadow pulse) on each; >50 shows nothing (the normal view reads fine). Severe crashes pulse red, others orange. Markers are non-interactive so clicks pass through to the streets, and they show in every display mode (the canvas renderer can't animate, so DOM markers sit on top). Verified: citywide 0 pulses; District C Sep 2019 shows 9 clearly visible pulses; clearing returns to 0. No console errors.
