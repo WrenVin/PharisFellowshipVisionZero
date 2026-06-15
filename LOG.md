@@ -16,6 +16,16 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: controls back in the sidebar (compact) + contrast bump
+
+Vincent's feedback on the map toolbar: move it to the left (it ate vertical map space), "HIN" was undefined jargon, and the sidebar now had whitespace; also the whole thing was too white-on-white.
+
+- **Selectors back in the left sidebar.** Removed the on-map toolbar; Show, Display-as, Overlay, and Blink return to the sidebar, filling the whitespace below the four primary filters (sidebar content 476 ≈ box 478, no gap). To avoid re-growing the map's height, Show and Display-as are now compact **segmented pills** (`.seg`, `:has(input:checked)` styling) instead of stacked radio rows. Map height ~478, fits one screen at 1512x1180 with no scroll.
+- **HIN defined.** The overlay is labeled "City's High Injury Network" (not "HIN") with an 'i' explaining it in plain words ("the City's official map of the streets with the most severe crashes..."). Show pill reads "Killed/injured" rather than the KSI acronym.
+- **Contrast.** Page background is now a light gray (#e9edf2) with white cards/KPIs/controls (added `background:#fff` + borders) and a slightly stronger line color (--line #d7dce2), so elements separate cleanly instead of white-on-white. "Viewing/tip" banner moved back to the map top.
+
+Verified: segmented controls drive the map, 'i' tips work, fits one screen, no console errors.
+
 ## 2026-06-14 — VZ dashboard: secondary controls moved to a map toolbar (single-screen)
 
 Per Vincent: to fit one screen without shrinking the map or squishing the panels, moved the four secondary controls (Show, Display-as, Overlay/HIN, Blink) out of the left sidebar into a compact toolbar overlaid on the top of the map (`#maptools`), styled as segmented pills (KSI/All; Streets/Segments/Points) + an HIN toggle + the Blink button. Kept Find a street, District, Travel mode, Road owner in the sidebar. The inputs keep their original name/id, so all existing handlers (sev/view radios, #hin, #blink) work unchanged; the per-control tooltips became `title=` attributes and the Blink note became the button's title. Moved the "Viewing / tip" banner to the bottom of the map to clear the toolbar; dropped the map min-height to 460.
