@@ -97,8 +97,8 @@
   .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
   .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
-  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px;animation:wipeIn .5s cubic-bezier(.22,.61,.36,1)}
-  .stack div{transition:width .45s cubic-bezier(.22,.61,.36,1)}
+  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack div{white-space:nowrap;overflow:hidden;transition:width .55s cubic-bezier(.4,0,.2,1)}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
   .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .legrow span{display:flex;align-items:center;gap:5px}
@@ -141,7 +141,6 @@
   /* --- filter-transition polish: panels animate in as the data updates --- */
   .chartsvg{animation:riseIn .5s cubic-bezier(.22,.61,.36,1)}
   .kpi .v{transition:color .3s ease}
-  @keyframes wipeIn{from{clip-path:inset(0 100% 0 0);opacity:.4}to{clip-path:inset(0 0 0 0);opacity:1}}
   @keyframes riseIn{from{opacity:0;clip-path:inset(14% 0 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
   @keyframes rowIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:none}}
   @keyframes panelFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -840,22 +839,36 @@ function drawLegend(){
   el.innerHTML=h;
 }
 
+// stacked bars morph in place: one persistent div per category, so widths slide
+// from their old values to the new ones (CSS width transition) instead of the bar
+// rebuilding on every filter change. segs: [{key, pct, color, label}] (stable keys/order).
+function setStack(id, segs){
+  const el=document.getElementById(id); if(!el) return;
+  let map=el._segs; if(!map){ map={}; el._segs=map; el.textContent=''; }
+  for(const s of segs){
+    let d=map[s.key];
+    if(!d){ d=document.createElement('div'); d.style.width='0%'; el.appendChild(d); map[s.key]=d; }
+    d.style.background=s.color;
+    d.style.width=Math.max(0,s.pct)+'%';
+    d.textContent=s.label||'';
+  }
+}
 function drawMode(){
   const t=tally(year), ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
   document.getElementById('mode-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
-  if(t.ksi<=0){ document.getElementById('modebar').innerHTML=''; document.getElementById('modeleg').innerHTML='';
+  if(t.ksi<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
+    document.getElementById('modeleg').innerHTML='';
     document.getElementById('modedeaths').textContent='No one killed or seriously injured was recorded'+(year?' in '+year:'')+' for this view.'; return; }
   const pct=x=>Math.round(100*x/t.ksi);
-  document.getElementById('modebar').innerHTML=
-    '<div style="width:'+pct(veh)+'%;background:#9aa3ad">'+pct(veh)+'%</div>'
-   +'<div style="width:'+pct(ped)+'%;background:#d7301f">'+pct(ped)+'%</div>'
-   +'<div style="width:'+pct(bike)+'%;background:#fc8d59">'+pct(bike)+'%</div>';
+  setStack('modebar',[
+    {key:'veh',pct:pct(veh),color:'#9aa3ad',label:pct(veh)+'%'},
+    {key:'ped',pct:pct(ped),color:'#d7301f',label:pct(ped)+'%'},
+    {key:'bike',pct:pct(bike),color:'#fc8d59',label:pct(bike)+'%'}]);
   document.getElementById('modeleg').innerHTML=
     '<span><span class="dot" style="background:#9aa3ad"></span>In a vehicle ('+fmt(veh)+')</span>'
    +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
    +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
   document.getElementById('modedeaths').innerHTML=t.killed+' people killed: '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
-  reveal(document.getElementById('modebar'));
 }
 
 // --- equity: KSI by neighborhood median household income (mode/year/district aware) ---
@@ -868,17 +881,15 @@ function drawEquity(){
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
-  if(tot<=0){ document.getElementById('eqbar').innerHTML=''; document.getElementById('eqleg').innerHTML='';
+  if(tot<=0){ setStack('eqbar',[0,1,2,3].map(i=>({key:'t'+i,pct:0,color:INC_COL[i]}))); document.getElementById('eqleg').innerHTML='';
     document.getElementById('eqnote').textContent='No KSI with a known neighborhood income for this view.'; return; }
   const pct=x=>Math.round(100*x/tot);
-  document.getElementById('eqbar').innerHTML=c.map((v,i)=>
-    v>0?'<div style="width:'+pct(v)+'%;background:'+INC_COL[i]+'">'+(pct(v)>=8?pct(v)+'%':'')+'</div>':'').join('');
+  setStack('eqbar', c.map((v,i)=>({key:'t'+i,pct:pct(v),color:INC_COL[i],label:pct(v)>=8?pct(v)+'%':''})));
   document.getElementById('eqleg').innerHTML=c.map((v,i)=>
     '<span><span class="dot" style="background:'+INC_COL[i]+'"></span>'+INC_LAB[i]+' ('+fmt(v)+')</span>').join('');
   const low=pct(c[0]+c[1]);
   document.getElementById('eqnote').innerHTML='Neighborhoods under $100k median income account for <b>'+low
     +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
-  reveal(document.getElementById('eqbar'));
 }
 
 // --- by road owner: KSI on city-owned vs TxDOT-owned roads (mode/year/district aware) ---
@@ -890,16 +901,15 @@ function drawOwnership(){
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
-  if(tot<=0){ document.getElementById('ownbar').innerHTML='';
+  if(tot<=0){ setStack('ownbar',[{key:'city',pct:0,color:OWN_COL.city},{key:'txdot',pct:0,color:OWN_COL.txdot}]);
     document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No KSI for this view.</span>'; return; }
   const pct=x=>Math.round(100*x/tot);
-  document.getElementById('ownbar').innerHTML=
-    '<div style="width:'+pct(cityN)+'%;background:'+OWN_COL.city+'">'+(pct(cityN)>=8?pct(cityN)+'%':'')+'</div>'
-   +'<div style="width:'+pct(txN)+'%;background:'+OWN_COL.txdot+'">'+(pct(txN)>=8?pct(txN)+'%':'')+'</div>';
+  setStack('ownbar',[
+    {key:'city',pct:pct(cityN),color:OWN_COL.city,label:pct(cityN)>=8?pct(cityN)+'%':''},
+    {key:'txdot',pct:pct(txN),color:OWN_COL.txdot,label:pct(txN)>=8?pct(txN)+'%':''}]);
   document.getElementById('ownleg').innerHTML=
     '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
-  reveal(document.getElementById('ownbar'));
 }
 // --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
 let seg2name=null;
