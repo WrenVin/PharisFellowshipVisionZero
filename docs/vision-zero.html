@@ -1147,8 +1147,11 @@ function streetKsiRank(name){
       if(district!==null && p.district!==district) return;
       if(sn!==null && +p.sn!==sn) return;
       tot[p.name]=(tot[p.name]||0)+(p.n_severe||0); });
-    const list=Object.keys(tot).map(nm=>[nm,tot[nm]]).sort((a,b)=>b[1]-a[1]);
-    const rankOf={}; list.forEach((r,i)=>{ rankOf[r[0]]=i+1; });
+    // rank only streets that HAVE a severe crash. (Including the ~92% of streets with
+    // zero KSI made every crash street read as "top 1-2%", which was not useful.)
+    const list=Object.keys(tot).filter(n=>tot[n]>0).map(n=>[n,tot[n]]).sort((a,b)=>b[1]-a[1]);
+    const rankOf={}; let lastK=null, lastRank=0;
+    list.forEach((r,i)=>{ if(r[1]!==lastK){ lastRank=i+1; lastK=r[1]; } rankOf[r[0]]=lastRank; });   // competition rank (ties share)
     streetKsiRanking[key]={total:list.length, rankOf, ksiOf:tot};
   }
   const r=streetKsiRanking[key]; const ksi=r.ksiOf[name]||0; if(ksi<=0) return null;
@@ -1439,7 +1442,7 @@ function openInfoSeg(p){
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
     +(()=>{ const b=streetKsiRank(p.name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of '+b.label+' streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' '+(b.label==='Houston'?'':b.label+' ')+'streets with a severe crash'+(b.pct<=10?' <span style="color:#7a1419">(top '+b.pct+'%)</span>':'')+'</div>'
       : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this block is in the panels below.</div>'
     +whole;
@@ -1476,7 +1479,7 @@ function openInfoStreet(name, props){
       +row('Sidewalks',sw)
       +row('Traffic volume',range('adt',' veh/day'))+'</div>'
     +(()=>{ const b=streetKsiRank(name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of '+b.label+' streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' '+(b.label==='Houston'?'':b.label+' ')+'streets with a severe crash'+(b.pct<=10?' <span style="color:#7a1419">(top '+b.pct+'%)</span>':'')+'</div>'
       : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
   const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
@@ -1521,8 +1524,16 @@ function syncSlider(id, lo, hi){
 function wireSlider(id, setFn){
   const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
   if(!mn||!mx) return;
-  const upd=()=>{ let a=+mn.value, b=+mx.value; if(a>b){ [a,b]=[b,a]; } setFn(a,b); render(); };
-  mn.oninput=upd; mx.oninput=upd;
+  // during drag (input): cheap visual preview only (fill bar + label), no recompute
+  const preview=()=>{ const A=+mn.min, B=+mn.max; if(B<=A) return;
+    const lo=Math.min(+mn.value,+mx.value), hi=Math.max(+mn.value,+mx.value);
+    const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
+    if(fill){ fill.style.left=((lo-A)/(B-A)*100)+'%'; fill.style.right=(100-(hi-A)/(B-A)*100)+'%'; }
+    if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); } };
+  // on release (change): commit to the globals and recompute the whole dashboard once
+  const commit=()=>{ let a=+mn.value, b=+mx.value; if(a>b){ [a,b]=[b,a]; } setFn(a,b); render(); };
+  mn.oninput=preview; mx.oninput=preview;
+  mn.onchange=commit; mx.onchange=commit;
 }
 // the year slider's bounds depend on the loaded data, so set them once here
 function setupYearSlider(){

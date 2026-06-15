@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: fix street-rank usefulness + slider drag lag
+
+Two fixes from Vincent's testing of the prior change.
+- **Street benchmark was useless** (almost every crash street read "top 1-2%") because the denominator was all named streets, ~92% of which have zero KSI. Now `streetKsiRank()` ranks only streets that HAVE a severe crash (1,755 citywide, vs 14,582 before), with competition ranking (ties share). The info panel leads with the ordinal "#N of M streets with a severe crash" and only adds a "(top X%)" badge when it is genuinely top-tier (pct <= 10). Result: Westheimer "#1 of 1,755 (top 1%)", a 2-KSI street "#582 of 1,755" (no badge), a 1-KSI street "#868 of 1,755" (no badge) instead of the old misleading "top 1%". Region scoping unchanged.
+- **Range-slider drag was laggy** because `render()` (a full 421k-point rescan) ran on every `input` event. Split `wireSlider` into a cheap `preview` on `input` (updates only the fill bar + label) and a `commit` on `change` (fires on release: writes the globals and recomputes once). Verified: dragging updates the label live without recomputing; releasing commits and recomputes.
+
+---
+
 ## 2026-06-15 — VZ dashboard: custom range sliders, region-aware benchmark, draggable panels
 
 Three features Vincent requested, drafted by 3 parallel read-only subagents (region benchmark, draggable panels, temporal sliders) and integrated sequentially.
