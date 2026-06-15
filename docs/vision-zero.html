@@ -61,9 +61,22 @@
   .ctrl .note{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.3}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:1px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
-  #mapwrap{flex:1 1 420px;min-width:300px;min-height:540px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  #mapwrap{flex:1 1 420px;min-width:300px;min-height:460px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   #map{height:100%}
-  #viewing{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;
+  /* compact toolbar overlaid on the map (secondary controls moved off the sidebar) */
+  #maptools{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:500;display:flex;
+    align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 110px);
+    background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:10px;padding:5px 9px;
+    font-size:12px;box-shadow:0 1px 6px rgba(16,24,40,.14)}
+  #maptools .mt-lbl{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  #maptools .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  #maptools .seg label{padding:3px 9px;cursor:pointer;background:#fff;color:var(--muted);white-space:nowrap}
+  #maptools .seg label:has(input:checked){background:#fbe9ea;color:#7a1419;font-weight:600}
+  #maptools .seg input{position:absolute;opacity:0;width:0;height:0}
+  #maptools .mt-tog{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:0 2px}
+  #maptools .blinkbtn{width:auto;padding:4px 11px}
+  #maptools .blinkbtn:disabled{border-color:var(--line);background:var(--panel);color:var(--muted)}
+  #viewing{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:500;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;
     padding:5px 13px;font-size:12px;box-shadow:0 1px 4px rgba(16,24,40,.12)}
   #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
@@ -177,31 +190,25 @@
         <label class="opt"><input type="radio" name="owner" value="txdot"> TxDOT (state) only</label>
         <div class="tip">Whether the City or TxDOT owns each road (from TxDOT's roadway inventory). The City can only redesign its own streets; it must partner with the state on TxDOT-owned arterials. Limited-access freeways are excluded from this dashboard entirely.</div>
       </div>
-      <div class="grp">
-        <h3>Show</h3>
-        <label class="opt"><input type="radio" name="sev" value="ksi" checked> Killed or seriously injured</label>
-        <label class="opt"><input type="radio" name="sev" value="all"> All crashes</label>
-      </div>
-      <div class="grp">
-        <h3>Display as <button class="info" onclick="toggleTip(this)" aria-label="About display modes">i</button></h3>
-        <label class="opt"><input type="radio" name="view" value="corridor"> Shaded streets</label>
-        <label class="opt"><input type="radio" name="view" value="streets" checked> Shaded street segments</label>
-        <label class="opt"><input type="radio" name="view" value="points"> Crash locations</label>
-        <div class="tip">Three levels of detail. Shaded streets colors each street as a whole by its total crashes (a street that changes owner, like Westheimer, counts as two). Shaded street segments colors each block on its own. Crash locations plots every crash as a dot.</div>
-      </div>
-      <div class="grp">
-        <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
-        <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <div class="tip">The streets the City officially flags as carrying the most severe crashes (2022). Turn it on to compare with where crashes actually fall.</div>
-      </div>
-      <div class="grp">
-        <button id="blink" class="blinkbtn">Blink crash locations</button>
-        <div class="note" id="blink-note">Filter down (district, year, month, or a street) to flash where the crashes are.</div>
-      </div>
     </div>
 
     <div id="mapwrap">
       <div id="map"></div>
+      <div id="maptools">
+        <span class="mt-lbl">Show</span>
+        <span class="seg">
+          <label title="Killed or seriously injured"><input type="radio" name="sev" value="ksi" checked> KSI</label>
+          <label><input type="radio" name="sev" value="all"> All crashes</label>
+        </span>
+        <span class="mt-lbl">View</span>
+        <span class="seg">
+          <label title="Color each whole street by its total"><input type="radio" name="view" value="corridor"> Streets</label>
+          <label title="Color each block on its own"><input type="radio" name="view" value="streets" checked> Segments</label>
+          <label title="Plot every crash as a dot"><input type="radio" name="view" value="points"> Points</label>
+        </span>
+        <label class="mt-tog" title="City's official High Injury Network (2022)"><input type="checkbox" id="hin"> HIN</label>
+        <button id="blink" class="blinkbtn" title="Flash the crashes in the current view">Blink</button>
+      </div>
       <div id="viewing"></div>
       <div id="legend"></div>
       <div id="info"></div>
@@ -607,10 +614,10 @@ function doBlink(){
 }
 // enable the Blink button only when the view is filtered down to a workable size
 function updateBlinkBtn(){
-  const btn=document.getElementById('blink'), note=document.getElementById('blink-note');
-  if(_shownCount===0){ btn.disabled=true; note.textContent='No crashes in this view.'; }
-  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash here. Filter down (district, year, month, or a street) first.'; }
-  else { btn.disabled=false; note.textContent='Flash where the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' are.'; }
+  const btn=document.getElementById('blink');
+  if(_shownCount===0){ btn.disabled=true; btn.title='No crashes in this view'; }
+  else if(_shownCount>BLINK_MAX){ btn.disabled=true; btn.title='Too many to flash; filter down first'; }
+  else { btn.disabled=false; btn.title='Flash the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' in view'; }
 }
 // --- shareable URL state -----------------------------------------------------
 // write the current non-default state into the URL (replaceState, so filter

@@ -16,6 +16,12 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: secondary controls moved to a map toolbar (single-screen)
+
+Per Vincent: to fit one screen without shrinking the map or squishing the panels, moved the four secondary controls (Show, Display-as, Overlay/HIN, Blink) out of the left sidebar into a compact toolbar overlaid on the top of the map (`#maptools`), styled as segmented pills (KSI/All; Streets/Segments/Points) + an HIN toggle + the Blink button. Kept Find a street, District, Travel mode, Road owner in the sidebar. The inputs keep their original name/id, so all existing handlers (sev/view radios, #hin, #blink) work unchanged; the per-control tooltips became `title=` attributes and the Blink note became the button's title. Moved the "Viewing / tip" banner to the bottom of the map to clear the toolbar; dropped the map min-height to 460.
+
+This frees the map from being anchored to the (tall) control column, so total content is ~1150-1180px: fits a large display with zero scroll (verified at 1512x1180), map stays prominent (~460), and the 3x2 data panels stay roomy. Narrower screens drop the panel grid to 2 then 1 column; mobile wraps the toolbar. updateBlinkBtn no longer references the removed #blink-note.
+
 ## 2026-06-14 — VZ dashboard: balanced vertical layout (reverted the forced 100vh shell)
 
 The two single-screen attempts both read badly: the app-shell put panels in a right column (whitespace, awkward), and the forced-100vh vertical version made the map balloon on big screens while squishing the bottom panels into a thin strip. Reverted the layout to the normal document flow (`git checkout 763fb27 -- docs/vision-zero.html`, which kept every feature) and re-tuned for balance instead of a hard 100vh:
