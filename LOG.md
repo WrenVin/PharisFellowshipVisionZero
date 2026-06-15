@@ -16,6 +16,20 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: clicking a street/segment cross-filters the whole dashboard
+
+Per Vincent: a click is now a filter for the entire dashboard, not just a popup. Selecting a street (search or click) or a single block narrows every KPI and panel (by-year, time-of-day, travel mode, neighborhood income, road owner) to that selection; the map popup now holds the road's physical makeup (lanes, width, speed, sidewalks, traffic, owner) and points crash data to the panels.
+
+- **Crash to segment link.** This needed each crash tagged with its street, which the per-crash points lacked. Added the nearest segment id to every crash point (`export_webmap_data.py`, captured from the existing nearest-segment join) as field [14]; crash_points.json 26 -> 30 MB. A `selOk(p)` predicate (`selIds.size===0 || selIds.has(p[SEG])`) now gates tally, yllTotal, modeKSI (so by-year/month/hour), drawEquity, drawOwnership, buildPoints, and the crash-dot picker.
+- **Selection drives a full render.** selectSeg / selectStreet / clearSel now call render(), which resolves the selection within the active district/owner filter, redraws all panels, and opens the makeup popup. Compounds with year/district/owner/mode.
+- **KPIs:** the concentration KPI (citywide-only) swaps to "All crashes on this street/block" when a selection is active; killed/injured subtitles read "on this street/block."
+- **Popups:** openInfoSeg / openInfoStreet now show road makeup + owner only (single values for a block, min–max ranges for a street, plus block count + miles), with a "crash data is in the panels below" note. "View this whole street" link retained.
+- **Banner:** the "Viewing …" strip now leads with the selected street/block name; clear ✕ resets selection + year + district.
+
+Verified in-browser: Westheimer narrows to 75 killed / 191 injured / 9,804 crashes with mode/income/time-of-day all street-specific; street+year compounds; single-block click works; clear restores citywide; no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: default to block view; higher-contrast color ramp
 
 Per Vincent: corridor view read messy as the default, so switched the default back to block ("Shaded street segments"). Also reworked the color ramp after he noted safe streets were hard to see.

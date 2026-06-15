@@ -283,6 +283,10 @@ let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + tr
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
+const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
+// clicking a street/segment cross-filters the whole dashboard: when a selection is
+// active, every crash panel narrows to crashes on the selected segment(s).
+const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
@@ -359,10 +363,11 @@ function styleFor(f){
 // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
-  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13])) continue;
-    const s=p[2],f=p[3],pe=p[4],bi=p[5];
+  let crashes=0;
+  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
+    crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
-  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi};
+  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,crashes};
 }
 // HIN-style concentration within the active district: top 6% of street-miles by KSI -> % of KSI
 function concentration(){
@@ -418,7 +423,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue;
+      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -462,19 +467,17 @@ function clearSearch(){ document.getElementById('search').value=''; document.get
 // select a SINGLE segment (a map click): show just that segment's info, with a
 // "View this whole street" action in the panel. Street-wide highlight is reserved
 // for the search box / that action.
-function selectSeg(p){
-  selStreet=null; selSeg=p; selIds=new Set([p.seg_id]);
-  restyle(); openInfoSeg(p);
-}
+// selecting cross-filters the whole dashboard; render() resolves selIds, redraws
+// every panel for the selection, and opens the road-makeup popup.
+function selectSeg(p){ selStreet=null; selSeg=p; render(); }
 function selectStreet(name, fitView){
   selStreet=name; selSeg=null;
   const props=collectStreetProps();
+  if(!props.length){ selStreet=null; selIds=new Set(); render(); return []; }
   selIds=new Set(props.map(p=>p.seg_id));
-  restyle();
-  if(!props.length){ selStreet=null; document.getElementById('info').style.display='none'; return []; }
   if(fitView){ const ll=[]; geo.eachLayer(l=>{ if(selIds.has(l.feature.properties.seg_id)) ll.push(l); });
     if(ll.length){ try{ map.fitBounds(L.featureGroup(ll).getBounds().pad(0.2)); }catch(e){} } }
-  openInfoStreet(name, props);
+  render();
   return [...selIds];
 }
 // the in-filter properties for the current selStreet (handles the __seg__ fallback)
@@ -492,8 +495,7 @@ function collectStreetProps(){
   }
   return out;
 }
-function clearSel(){ selStreet=null; selSeg=null; selIds=new Set();
-  document.getElementById('info').style.display='none'; restyle(); }
+function clearSel(){ selStreet=null; selSeg=null; selIds=new Set(); render(); }
 
 function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
   if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5, opacity:.9};
@@ -507,9 +509,9 @@ function buildPoints(){
   const z=map.getZoom();
   const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
   const rSev=base, rOth=Math.max(1, base*0.6);
-  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier]
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id]
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue;
+    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -519,21 +521,32 @@ function buildPoints(){
 function render(){
   computeCounts();
   if(view==='corridor') computeCorridorCounts();
-  if(selStreet!==null){   // re-derive a street selection within the (possibly new) filter
-    const props=collectStreetProps();
-    if(props.length){ selIds=new Set(props.map(p=>p.seg_id)); openInfoStreet(selStreet, props); }
-    else clearSel();
-  } else if(selSeg!==null){   // single-segment selection: clear if filtered out
-    if(!inDist(selSeg.district) || !ownerOk(selSeg.on_txdot)) clearSel();
-  }
+  // resolve the active selection within the current filter (before the panels,
+  // which cross-filter to selIds via selOk). Drops a selection the filter hides.
+  let selProps=null;
+  if(selStreet!==null){
+    selProps=collectStreetProps();
+    if(selProps.length){ selIds=new Set(selProps.map(p=>p.seg_id)); }
+    else { selStreet=null; selProps=null; selIds=new Set(); }
+  } else if(selSeg!==null){
+    if(inDist(selSeg.district) && ownerOk(selSeg.on_txdot)) selIds=new Set([selSeg.seg_id]);
+    else { selSeg=null; selIds=new Set(); }
+  } else selIds=new Set();
   restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing();
+  // map popup: road makeup for the active selection (crash data lives in the panels)
+  if(selStreet!==null) openInfoStreet(selStreet, selProps);
+  else if(selSeg!==null) openInfoSeg(selSeg);
+  else document.getElementById('info').style.display='none';
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
   const parts=[];
+  const selName = selStreet!==null ? (selStreet.startsWith('__seg__')?'this block':selStreet)
+                : selSeg!==null ? (selSeg.name||'this block') : null;
+  if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(year!==null) parts.push('<b>'+year+'</b>');
   if(parts.length){
@@ -568,9 +581,9 @@ function selectDistrict(d){
   render();
 }
 function clearView(){
-  year=null; clearSel();
+  year=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year + selection
   const sel=document.getElementById('district'); if(sel) sel.value='';
-  selectDistrict(null);   // resets district, refits, renders
+  selectDistrict(null);   // resets district, refits, renders once
 }
 
 function drawKPIs(){
@@ -580,16 +593,26 @@ function drawKPIs(){
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
   else if(mode==='bike'){killed=t.bike_killed;ksi=t.bike_ksi;}
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
-  const who=mode==='all'?'on city streets':mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
+  const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : 'on city streets';
+  const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2]) : String(year);
-  const conSub='of streets → of '+(sev==='all'?'crashes':'KSI')+(year===null?'':' (all years)');
-  const yll=Math.round(yllTotal()), serious=ksi-killed, con=concentration();
+  const yll=Math.round(yllTotal()), serious=ksi-killed;
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
+  // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
+  // (concentration of a single street is meaningless).
+  let kpi4;
+  if(selIds.size>0){
+    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+year), true);
+  } else {
+    const con=concentration();
+    const conSub='of streets → of '+(sev==='all'?'crashes':'KSI')+(year===null?'':' (all years)');
+    kpi4=kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
+  }
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false)
    +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip)
    +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false)
-   +kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
+   +kpi4;
 }
 function kpi(ic,l,v,s,neutral,tip){
   const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
@@ -597,7 +620,7 @@ function kpi(ic,l,v,s,neutral,tip){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])&&selOk(p)) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -647,7 +670,7 @@ const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13])) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
@@ -668,7 +691,7 @@ const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
   let cityN=0, txN=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !selOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
@@ -708,7 +731,7 @@ function drawHIN(){
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]) && ownerOk(p[13]); }   // severe + lens + district + owner
+function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
 function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
 function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;
@@ -830,12 +853,12 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   L.popup({closeButton:true,maxWidth:260}).setLatLng([p[0],p[1]]).setContent(h).openOn(map);
 }
 
-// sum crash counts across all selected segments of a street; show design as ranges
-// single-segment info panel (a map click), with a "View this whole street" action
+// road makeup for ONE clicked block (crash data is cross-filtered into the panels).
+// includes a "View this whole street" action.
 function openInfoSeg(p){
   const I=document.getElementById('info');
   const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'n/a';
-  const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
+  const row=(k,v)=>'<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
   const hasName = !!(p.name && p.name.trim());
   // wired via JS below, not an inline onclick, so a name with quotes/apostrophes can't break it
   const whole = hasName
@@ -844,18 +867,13 @@ function openInfoSeg(p){
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
     +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
       +' · '+(p.on_txdot?'TxDOT (state)':'City of Houston')+'</div></div>'
-    +'<div class="g"><h4>This block, crash history (2016–2026)</h4>'
-      +row('Killed or seriously injured',(p.n_severe||0),p.n_severe>0)
-      +row('People killed',(p.n_fatal||0),p.n_fatal>0)
-      +row('Severe (walking)',(p.n_ped_severe||0))
-      +row('Severe (biking)',(p.n_bike_severe||0))
-      +row('All crashes',(p.n_crash||0))+'</div>'
-    +'<div class="g"><h4>Street design</h4>'
+    +'<div class="g"><h4>This block · road makeup</h4>'
       +row('Lanes',(p.lanes_final!=null?p.lanes_final:'n/a'))
       +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'n/a'))
       +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'n/a'))
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
+    +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this block is in the panels below.</div>'
     +whole;
   if(hasName){ const vw=document.getElementById('view-whole-street');
     if(vw) vw.onclick=e=>{ e.preventDefault(); selectStreet(p.name, true); }; }
@@ -863,9 +881,6 @@ function openInfoSeg(p){
 }
 function openInfoStreet(name, props){
   const I=document.getElementById('info');
-  const sum=f=>props.reduce((a,p)=>a+(p[f]||0),0);
-  const S={n_severe:sum('n_severe'),n_fatal:sum('n_fatal'),n_ped_severe:sum('n_ped_severe'),
-    n_bike_severe:sum('n_bike_severe'),n_crash:sum('n_crash')};
   // range "min–max" (or single value if uniform) for design fields that don't add up
   const range=(f,suf)=>{ const vs=props.map(p=>p[f]).filter(v=>v!=null);
     if(!vs.length) return 'n/a';
@@ -879,23 +894,20 @@ function openInfoStreet(name, props){
   const miles=props.reduce((a,p)=>a+(p.length_ft||0),0)/5280;
   const cls=props[0]?props[0].road_class:'';
   const nBlocks=props.length;
-  const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
+  const txN=props.filter(p=>p.on_txdot).length;
+  const owner = txN===0?'City of Houston' : txN===nBlocks?'TxDOT (state)' : 'City + TxDOT';
+  const row=(k,v)=>'<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
   const title=name.startsWith('__seg__')?'(unnamed street)':name;
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
-    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls
+    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls+' · '+owner
       +' · '+nBlocks+' block'+(nBlocks>1?'s':'')+' · '+miles.toFixed(2)+' mi</div></div>'
-    +'<div class="g"><h4>Crash history (2016–2026)</h4>'
-      +row('Killed or seriously injured',fmt(S.n_severe),S.n_severe>0)
-      +row('People killed',fmt(S.n_fatal),S.n_fatal>0)
-      +row('Severe (walking)',fmt(S.n_ped_severe))
-      +row('Severe (biking)',fmt(S.n_bike_severe))
-      +row('All crashes',fmt(S.n_crash))+'</div>'
-    +'<div class="g"><h4>Street design</h4>'
+    +'<div class="g"><h4>Road makeup</h4>'
       +row('Lanes',range('lanes_final'))
       +row('Roadway width',range('roadway_width_ft',' ft'))
       +row('Posted speed',range('posted_speed_mph',' mph'))
       +row('Sidewalks',sw)
-      +row('Traffic volume',range('adt',' veh/day'))+'</div>';
+      +row('Traffic volume',range('adt',' veh/day'))+'</div>'
+    +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
   I.style.display='block';
 }
 

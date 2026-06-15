@@ -281,13 +281,15 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, years-of-life-lost, and by-neighborhood-income panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot]
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id]
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
 # nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
-# and whether its road is TxDOT-owned (state) — the last is a LABEL (for the
-# ownership view), not an exclusion; at-grade state arterials stay in.
-nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "on_hin", "on_txdot", "geometry"]], how="left")
+# whether its road is TxDOT-owned (state), and the segment id itself (so the
+# dashboard can cross-filter every panel to a clicked street/segment). on_txdot
+# is a LABEL (for the ownership view), not an exclusion; at-grade arterials stay.
+nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "median_hh_income", "on_hin", "on_txdot", "geometry"]], how="left")
 nj = nj[~nj.index.duplicated()]
+cr["seg_id"] = nj["seg_id"].values
 cr["inc_tier"] = pd.Series(pd.to_numeric(nj["median_hh_income"].values,
                                          errors="coerce")).map(inc_tier).values
 cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
@@ -302,9 +304,9 @@ if districts_4326 is not None:  # council district per crash, for the per-distri
 else:
     cr["district"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -315,7 +317,8 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx in zip(
                 dist if isinstance(dist, str) else None,
                 int(it) if pd.notna(it) else None,
                 1 if oh else 0,
-                1 if otx else 0])
+                1 if otx else 0,
+                sid if isinstance(sid, str) else None])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
