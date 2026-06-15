@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: filter-transition polish (animations)
+
+Vincent wanted a little polish: smoother transitions when filters change. Everything re-renders via `innerHTML` on each `render()`, so the animations are entrance/refresh effects re-fired per update, all gated by `prefers-reduced-motion`.
+
+- **KPI numbers count up.** The three numeric KPIs (people killed, years of life lost, seriously injured, and the "all crashes" figure when a street is selected) carry `data-key`/`data-num`; `animateKPIs()` tweens each from its previous value to the new one (easeOutCubic, ~520 ms) on every filter change, with a generation counter so a newer render cancels an in-flight tween. The concentration KPI ("6% → 69%") is text, not a single number, so it's left static.
+- **Stacked bars wipe in** (travel mode, neighborhood income, road owner): a left-to-right `clip-path` reveal on `.stack`, re-fired each draw via a small `reveal()` helper (sets `animation:none`, forces reflow, restores) since the container persists while its bars are rebuilt. Child bars also get a `width` transition.
+- **SVG charts rise/fade in** (`.chartsvg` on the by-year and time-of-day charts): a fresh `<svg>` each render auto-plays a short upward clip+fade.
+- **Most-dangerous-streets rows** fade/slide in with a 45 ms stagger.
+- **Info panel** fades in, but only when it first opens (not on every filter change while a selection is held).
+
+All animations are pure CSS with no destructive resting state (no-fill animations revert to the fully visible base; the worst-row uses `both` and ends visible), so nothing is left hidden if an animation is skipped. Verified in-browser: data loads, no console errors, KPI `data-num` updates correctly across mode switches, layout intact. (The motion itself can't be screenshotted because the headless preview freezes CSS animations / rAF at frame 0; it runs normally in a real painting browser.)
+
+---
+
 ## 2026-06-14 — Repo accuracy pass: docs refreshed, source de-"District C"-ed
 
 Vincent: "walk through the repo and clean any old/outdated info and make sure everything is accurate." Anchored everything to the canonical citywide numbers in `docs/vz_summary.json` and the current `docs/vision-zero.html` feature set. Done with parallel subagents (one per file; disjoint files so edits don't collide), then verified.

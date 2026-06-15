@@ -77,7 +77,7 @@
   #legend .ends{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
   #legend .key{display:flex;align-items:center;gap:6px;margin-top:7px}
   #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
-    background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none}
+    background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none;animation:panelFade .28s ease}
   #info .hd{padding:11px 13px 8px;border-bottom:1px solid var(--line)}
   #info .hd .n{font-size:15px;font-weight:700}
   #info .hd .c{font-size:11px;color:var(--muted);margin-top:2px}
@@ -92,12 +92,13 @@
   .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px}
   .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:9px;min-height:15px}
-  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer}
+  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer;animation:rowIn .32s ease both}
   .worst-row:hover{background:#f3f4f6}
   .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
   .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
-  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px;animation:wipeIn .5s cubic-bezier(.22,.61,.36,1)}
+  .stack div{transition:width .45s cubic-bezier(.22,.61,.36,1)}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
   .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .legrow span{display:flex;align-items:center;gap:5px}
@@ -137,6 +138,16 @@
   .sheet section p:last-child{margin-bottom:0}
   .sheet section .lbl{font-weight:600}
   .sheet a{color:#1d4ed8}
+  /* --- filter-transition polish: panels animate in as the data updates --- */
+  .chartsvg{animation:riseIn .5s cubic-bezier(.22,.61,.36,1)}
+  .kpi .v{transition:color .3s ease}
+  @keyframes wipeIn{from{clip-path:inset(0 100% 0 0);opacity:.4}to{clip-path:inset(0 0 0 0);opacity:1}}
+  @keyframes riseIn{from{opacity:0;clip-path:inset(14% 0 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+  @keyframes rowIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:none}}
+  @keyframes panelFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){
+    .stack,.stack div,.chartsvg,.worst-row,#info,.kpi .v{animation:none!important;transition:none!important}
+  }
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
 </style>
@@ -324,6 +335,29 @@ let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, dis
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
 const fmt=n=>Number(n).toLocaleString();
+// --- transition polish helpers -----------------------------------------------
+const _reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+// re-fire a CSS animation on a persistent element (its content changed but the node didn't)
+function reveal(el){ if(!el || _reduceMotion) return; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; }
+// count the KPI numbers from their previous value to the new one when filters change
+let _kpiPrev={}, _kpiGen=0;
+function animateKPIs(){
+  const gen=++_kpiGen;
+  document.querySelectorAll('#kpis .kpi .v[data-num]').forEach(el=>{
+    const key=el.getAttribute('data-key'), to=+el.getAttribute('data-num');
+    const prev=_kpiPrev[key]; _kpiPrev[key]=to;
+    if(_reduceMotion || prev==null || prev===to){ el.textContent=fmt(to); return; }   // first time / no change: just set
+    const from=prev, dur=520, t0=performance.now();
+    el.textContent=fmt(Math.round(from));
+    (function step(now){
+      if(gen!==_kpiGen) return;                 // a newer render superseded this tween
+      let k=(now-t0)/dur; if(k>1)k=1;
+      const e=1-Math.pow(1-k,3);                // easeOutCubic
+      el.textContent=fmt(Math.round(from+(to-from)*e));
+      if(k<1) requestAnimationFrame(step);
+    })(t0);
+  });
+}
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
 const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
@@ -759,22 +793,24 @@ function drawKPIs(){
   // (concentration of a single street is meaningless).
   let kpi4;
   if(selIds.size>0){
-    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+span), true);
+    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+span), true, null, 'extra', t.crashes);
   } else {
     const con=concentration();
     const conSub='of streets → of '+(sev==='all'?'crashes':'KSI');
     kpi4=kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
   }
   document.getElementById('kpis').innerHTML=
-    kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false)
-   +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip)
-   +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false)
+    kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false, null, 'killed', killed)
+   +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip, 'yll', yll)
+   +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false, null, 'serious', serious)
    +kpi4;
+  animateKPIs();
 }
-function kpi(ic,l,v,s,neutral,tip){
+function kpi(ic,l,v,s,neutral,tip,key,num){
   const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
   const tipDiv = tip ? '<div class="tip ktip">'+tip+'</div>' : '';
-  return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
+  const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"' : '';   // numeric KPIs count up on filter change
+  return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
 function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])&&selOk(p)&&monthOk(p)) s+=p[9]||0; } return s; }
@@ -819,6 +855,7 @@ function drawMode(){
    +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
    +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
   document.getElementById('modedeaths').innerHTML=t.killed+' people killed: '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
+  reveal(document.getElementById('modebar'));
 }
 
 // --- equity: KSI by neighborhood median household income (mode/year/district aware) ---
@@ -841,6 +878,7 @@ function drawEquity(){
   const low=pct(c[0]+c[1]);
   document.getElementById('eqnote').innerHTML='Neighborhoods under $100k median income account for <b>'+low
     +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
+  reveal(document.getElementById('eqbar'));
 }
 
 // --- by road owner: KSI on city-owned vs TxDOT-owned roads (mode/year/district aware) ---
@@ -861,6 +899,7 @@ function drawOwnership(){
   document.getElementById('ownleg').innerHTML=
     '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
+  reveal(document.getElementById('ownbar'));
 }
 // --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
 let seg2name=null;
@@ -875,7 +914,7 @@ function drawWorstStreets(){
   const el=document.getElementById('worst-list');
   if(!rows.length){ el.innerHTML='<div style="font-size:12.5px;color:var(--muted)">No streets in this view.</div>'; return; }
   el.innerHTML=rows.map((r,i)=>
-    '<div class="worst-row" tabindex="0" role="button" aria-label="'+r[0].replace(/"/g,'&quot;').replace(/</g,'&lt;')+', '+r[1]+'" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
+    '<div class="worst-row" style="animation-delay:'+(i*45)+'ms" tabindex="0" role="button" aria-label="'+r[0].replace(/"/g,'&quot;').replace(/</g,'&lt;')+', '+r[1]+'" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
     +'<span class="worst-name"><span class="worst-rank">'+(i+1)+'</span>'+r[0].replace(/</g,'&lt;')+'</span>'
     +'<span class="worst-n">'+fmt(r[1])+'</span></div>').join('');
 }
@@ -922,7 +961,7 @@ function barChartSVG(labels, fatal, serious, opt){
   const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
   const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
   const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
-  let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
+  let s='<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
   [0,nice/2,nice].forEach(t=>{const yy=y(t);
     s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
       +'<text x="'+(L-5)+'" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#5b6672">'+t+'</text>'; });
@@ -1095,7 +1134,7 @@ function openInfoSeg(p){
     +whole;
   if(hasName){ const vw=document.getElementById('view-whole-street');
     if(vw) vw.onclick=e=>{ e.preventDefault(); selectStreet(p.name, true); }; }
-  I.style.display='block';
+  const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
 }
 function openInfoStreet(name, props){
   const I=document.getElementById('info');
@@ -1126,7 +1165,7 @@ function openInfoStreet(name, props){
       +row('Sidewalks',sw)
       +row('Traffic volume',range('adt',' veh/day'))+'</div>'
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
-  I.style.display='block';
+  const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
 }
 
 (()=>{ const sb=document.getElementById('search');
