@@ -85,6 +85,11 @@
   .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
   .card h3{font-size:14px;margin:0 0 1px;font-weight:700}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px;min-height:15px}
+  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer}
+  .worst-row:hover{background:#f3f4f6}
+  .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
+  .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
   .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
   .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
@@ -237,6 +242,11 @@
       <div class="stack" id="ownbar"></div>
       <div class="legrow" id="ownleg"></div>
       <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
+    </div>
+    <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
+      <div class="sub" id="worst-sub">Killed or seriously injured</div>
+      <div id="worst-list"></div>
     </div>
     <div class="card" id="hin-card" style="display:none">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 6H15a3 3 0 0 1 3 3v6.5"/></svg></span>Crashes vs. the High Injury Network <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
@@ -615,7 +625,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   buildPulse();
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing(); updateBlinkBtn();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -785,6 +795,23 @@ function drawOwnership(){
   document.getElementById('ownleg').innerHTML=
     '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
+}
+// --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
+let seg2name=null;
+function drawWorstStreets(){
+  if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties;
+    if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
+  document.getElementById('worst-sub').textContent='Top 10 by '+(sev==='all'?'crashes':'KSI')+', in this view · click to select';
+  const totals={};
+  for(const sid in activeCounts){ const nm=seg2name[sid]; if(!nm) continue;
+    totals[nm]=(totals[nm]||0)+activeCounts[sid]; }
+  const rows=Object.keys(totals).map(nm=>[nm,totals[nm]]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const el=document.getElementById('worst-list');
+  if(!rows.length){ el.innerHTML='<div style="font-size:12.5px;color:var(--muted)">No streets in this view.</div>'; return; }
+  el.innerHTML=rows.map((r,i)=>
+    '<div class="worst-row" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
+    +'<span class="worst-name"><span class="worst-rank">'+(i+1)+'</span>'+r[0].replace(/</g,'&lt;')+'</span>'
+    +'<span class="worst-n">'+fmt(r[1])+'</span></div>').join('');
 }
 // --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
 function drawHIN(){
