@@ -16,6 +16,20 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: default to block view; higher-contrast color ramp
+
+Per Vincent: corridor view read messy as the default, so switched the default back to block ("Shaded street segments"). Also reworked the color ramp after he noted safe streets were hard to see.
+
+Discussion captured: kept the map count-based (not normalized). The dashboard is descriptive ("where is the harm"), which is what counts and the City's HIN measure; rate/exposure normalization (per-VMT) is the systemic-risk model's job and isn't viable as a map anyway (ADT covers ~25% of streets). Defaulting to block segments also sidesteps the main length confound, since blocks are near-uniform units; the only view that confounds length is corridor (a per-mile toggle could be added there later).
+
+Color changes (kept red = dangerous, sequential):
+- **Percentile cap.** The ramp now tops out at the 97th percentile of nonzero counts, not the max, so a single outlier (one street has 773 crashes; max KSI on a block is 16) no longer squashes everything into the palest bucket. Values above the cap clamp to the deepest red; the legend shows e.g. "0 … 5+" (KSI) or "0 … 69+" (all crashes). Shared `buildRamp()` used by both block and corridor.
+- **Muted low end / popped high end.** New palette starts paler (`#ffe2ba`) and ends deeper (`#a50f15`); weight and opacity now scale with severity (low buckets thin + slightly transparent so they recede, high buckets thick + solid so dangerous streets pop). 0-crash streets fainter (opacity .3).
+
+Verified KSI and all-crashes block views in-browser: dangerous blocks clearly stand out, safe streets recede; no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: three display granularities (corridor / block / point)
 
 Per Vincent: added a third "Display as" level so the map reads at three zooms of detail:

@@ -271,13 +271,15 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const REDS=['#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
+// sequential ramp: pale/recessive for low counts, deep red for the dangerous tail
+const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
 let mode='all', sev='ksi', year=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
+let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
 const fmt=n=>Number(n).toLocaleString();
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
@@ -320,17 +322,26 @@ function computeCounts(){
     for(const seg in segYear){ const a=segYear[seg][yr]; if(!a) continue;
       if(!inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
       const c=segCountYear(a); if(c>0) activeCounts[seg]=c; } }
-  let mx=0; for(const k in activeCounts) if(activeCounts[k]>mx) mx=activeCounts[k];
-  _breaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _breaks.push(Math.pow(M,i/REDS.length));
+  const r=buildRamp(activeCounts); _breaks=r.breaks; _segCap=r.cap; _segMax=r.max;
 }
-function activeMax(){let m=0;for(const k in activeCounts)if(activeCounts[k]>m)m=activeCounts[k];return m;}
-function corridorMax(){let m=0;for(const k in corrTotal)if(corrTotal[k]>m)m=corrTotal[k];return m;}
+// Geometric color breaks for a counts map. The scale tops out at the 97th
+// percentile of nonzero values, not the max, so a single 773-crash outlier
+// doesn't squash every other street into the palest bucket. Values above the cap
+// just clamp to the deepest red. Returns the cap + true max for the legend.
+function buildRamp(counts){
+  const vals=[]; for(const k in counts){ const v=counts[k]; if(v>0) vals.push(v); }
+  vals.sort((a,b)=>a-b);
+  const max=vals.length?vals[vals.length-1]:0;
+  const cap=vals.length?Math.max(4, vals[Math.floor(0.97*(vals.length-1))]):2;
+  const M=Math.max(cap,2), br=[];
+  for(let i=1;i<REDS.length;i++) br.push(Math.pow(M,i/REDS.length));
+  return {breaks:br, cap, max};
+}
 // corridor view: roll the per-segment counts up to whole streets (name+owner)
 function computeCorridorCounts(){
   corrTotal={};
   for(const sid in activeCounts){ const k=seg2corr[sid]; if(k==null) continue; corrTotal[k]=(corrTotal[k]||0)+activeCounts[sid]; }
-  let mx=0; for(const k in corrTotal) if(corrTotal[k]>mx) mx=corrTotal[k];
-  _cbreaks=[]; const M=Math.max(mx,2); for(let i=1;i<REDS.length;i++) _cbreaks.push(Math.pow(M,i/REDS.length));
+  const r=buildRamp(corrTotal); _cbreaks=r.breaks; _corrCap=r.cap; _corrMax=r.max;
 }
 function styleFor(f){
   const p=f.properties;
@@ -338,9 +349,10 @@ function styleFor(f){
   if(selIds.has(p.seg_id)) return {color:'#1d4ed8', weight:5.5, opacity:.95};  // selected street/segment
   const corr = view==='corridor';
   const v = corr ? (corrTotal[seg2corr[p.seg_id]]||0) : (activeCounts[p.seg_id]||0);
-  if(!(v>0)) return {color:ZERO, weight:1, opacity:.45};
+  if(!(v>0)) return {color:ZERO, weight:1, opacity:.3};   // 0 crashes: recessive
   const br = corr ? _cbreaks : _breaks; let i=0; while(i<br.length && v>br[i]) i++;
-  return {color:REDS[i], weight: 3.2+i*0.9, opacity:.95};
+  // low buckets stay thin + a touch transparent (recede); high buckets are thick + solid (pop)
+  return {color:REDS[i], weight: 2.2+i*1.05, opacity: 0.55+i*0.08};
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
@@ -601,11 +613,12 @@ function drawLegend(){
     h+='<div style="color:var(--muted);margin-top:4px">Each dot is one crash location.</div>';
   } else {
     const corr=view==='corridor';
-    const mx=corr?corridorMax():activeMax();
-    const cap=corr?'Whole streets shaded by their total':'Streets shaded by count on each block';
-    h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">'+cap+'</div>'
+    const cap=corr?_corrCap:_segCap, max=corr?_corrMax:_segMax;
+    const right = max>cap ? Math.round(cap)+'+' : Math.round(max);   // scale tops out at p97
+    const capt=corr?'Whole streets shaded by their total':'Streets shaded by count on each block';
+    h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">'+capt+'</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
-      +'<div class="ends"><span>0</span><span>'+Math.round(mx)+'</span></div>';
+      +'<div class="ends"><span>0</span><span>'+right+'</span></div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
   el.innerHTML=h;
