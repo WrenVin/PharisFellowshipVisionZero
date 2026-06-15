@@ -1762,6 +1762,24 @@ function captureMap(){
   try{ return draw(true).toDataURL('image/png'); }
   catch(e){ try{ return draw(false).toDataURL('image/png'); }catch(e2){ return null; } }
 }
+// snap the map (no animation) to the active area's bounds and wait for its tiles,
+// so the captured image is zoomed to the filtered view (not mid-animation / citywide).
+function settleMap(){
+  return new Promise(res=>{
+    let b=null;
+    try{
+      if(selIds.size){ const ll=[]; geo.eachLayer(l=>{ if(selIds.has(l.feature.properties.seg_id)) ll.push(l); }); if(ll.length) b=L.featureGroup(ll).getBounds(); }
+      if(!b){ if(district!==null && distLayer) b=distLayer.getBounds();
+        else if(sn!==null && snLayer) b=snLayer.getBounds();
+        else b=geo.getBounds(); }
+    }catch(e){}
+    if(b){ try{ if(b.isValid()) map.fitBounds(b, {animate:false, padding:[16,16]}); }catch(e){} }
+    let base=null; map.eachLayer(l=>{ if(!base && l instanceof L.TileLayer) base=l; });
+    let done=false; const fin=()=>{ if(done) return; done=true; if(base) base.off('load',fin); res(); };
+    if(base) base.on('load', fin);
+    setTimeout(fin, 1400);   // hard cap so it never hangs
+  });
+}
 // human-readable description of the active view
 function viewDesc(){
   const region = district!==null ? 'District '+district
@@ -1810,6 +1828,7 @@ async function generateReport(cfg){
   // map (gated)
   let mapHTML='';
   if(S.map){
+    await settleMap();   // zoom to the active area + let tiles load before capturing
     const mapURL=captureMap();
     const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
     const capLeft = view==='points' ? 'Each dot is one crash location.' : 'Streets shaded by '+metric+' on each block (darker = more).';
