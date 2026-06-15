@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ report: config modal + page-break-safe layout + text dedup
+
+Vincent printed the first report and flagged: charts clipped by page breaks, and too much redundant prose (the narrative restated the stats and the chart notes). He also wanted a pre-report selector to choose what to include. Designed + drafted via a 3-agent workflow (report-redesign drafter, config-modal drafter, adversarial reviewer with a shared generateReport(cfg) contract), then integrated + verified in-browser.
+- **Config modal.** "Create report" now opens a full-screen "Build your report" overlay (#rcfg) instead of generating directly. It pre-fills filters from the current view (district / super neighborhood, travel mode, road owner, show KSI-vs-all, year range, map display-as, HIN overlay) and has a checkbox per section (summary, map, by year, time of day, day of week, travel mode, neighborhood income, road owner, most dangerous streets; headline stats always on) plus a report-title field. Generate applies the chosen filters to the dashboard (render()), gathers cfg, closes the overlay, and prints. District/SN mutually exclusive; Escape/backdrop/Cancel close it.
+- **Page-break fix.** The report charts were a CSS grid; grid rows clip across page boundaries. Switched to inline-block 2-up with break-inside:avoid + legacy page-break-inside:avoid on every atomic block (stats, map, each chart, the table), so a chart+title+legend stays together and pushes to the next page instead of clipping. Verified 2-up rows [2,2,2], uniform width.
+- **Text dedup.** Replaced the 5-sentence narrative (which restated the stats + chart notes) with at most ONE qualitative synthesis sentence (no restated numbers), gated by the summary checkbox. Removed the duplicate per-chart prose notes; kept only the by-year trend takeaway. Verified: old narrative gone, exactly 1 chart note.
+- **buildReport -> generateReport(cfg)**: section flags gate inclusion (stats always); captureMap only runs when the map is included; title is escaped. Made the pre-print image wait timeout-bounded (was an unconditional `img.decode()` await that could hang) so it never stalls.
+Verified in-browser: modal opens + prefills (District C), deselecting Map + road-owner omits them, filter changes apply (Walking + 2020-2023 reflected in the subtitle + data), single synthesis sentence, 6 charts 2-up, map captured, no console errors, no em dashes.
+
+---
+
 ## 2026-06-15 — VZ dashboard: "Create report" PDF export (council-ready)
 
 New substantive feature: a "Create report" button (header) that turns the current view into a clean, static, printable PDF for city-council offices, with the map + data + narrative but none of the interactive UI.

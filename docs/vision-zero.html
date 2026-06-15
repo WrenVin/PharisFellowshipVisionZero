@@ -182,6 +182,40 @@
   .sheet section p:last-child{margin-bottom:0}
   .sheet section .lbl{font-weight:600}
   .sheet a{color:#1d4ed8}
+  /* "Build your report" configuration overlay (separate from #modal; never printed) */
+  #rcfg{position:fixed;inset:0;z-index:2100;display:none;align-items:flex-start;justify-content:center;
+    background:rgba(16,24,40,.5);padding:32px 16px;overflow-y:auto}
+  #rcfg.show{display:flex}
+  .rc-sheet{background:#fff;border-radius:14px;max-width:720px;width:100%;box-shadow:0 18px 50px rgba(16,24,40,.3);
+    display:flex;flex-direction:column;max-height:calc(100vh - 64px)}
+  .rc-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    padding:18px 22px 14px;border-bottom:1px solid var(--line)}
+  .rc-hd h2{font-size:18px;margin:0;font-weight:700}
+  .rc-lede{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .rc-hd .x{border:none;background:none;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;padding:0 2px}
+  .rc-body{padding:6px 22px 8px;overflow-y:auto}
+  .rc-sec{padding:13px 0;border-bottom:1px solid var(--panel)}
+  .rc-sec:last-child{border-bottom:none}
+  .rc-sec h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 9px;font-weight:700}
+  .rc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px 14px}
+  .rc-field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+  .rc-field>span{font-weight:600;color:var(--ink)}
+  .rc-field select,.rc-field input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);
+    border-radius:7px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
+  .rc-field select{cursor:pointer}
+  .rc-field select:focus,.rc-field input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .rc-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px}
+  .rc-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;padding:2px 0}
+  .rc-check input{margin:0}
+  .rc-overlay{margin-top:11px}
+  .rc-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+  .rc-always{margin-top:0;margin-bottom:9px}
+  .rc-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 18px;border-top:1px solid var(--line)}
+  .rc-btn{padding:8px 16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+    font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+  .rc-btn:hover{border-color:var(--accent);color:#7a1419}
+  .rc-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .rc-primary:hover{background:#9a1d23;border-color:#9a1d23;color:#fff}
   /* --- filter-transition polish: panels animate in as the data updates --- */
   .chartsvg rect.bar{transition:y .55s cubic-bezier(.4,0,.2,1),height .55s cubic-bezier(.4,0,.2,1),opacity .35s ease}
   .kpi .v{transition:color .3s ease}
@@ -200,27 +234,28 @@
   #report .r-hd{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:14px;
     display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
   #report .r-date{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
-  #report .r-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}
+  #report .r-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
   #report .r-stat{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
   #report .r-statv{font-size:23px;font-weight:700;color:#7a1419;line-height:1.1}
   #report .r-statl{font-size:11px;color:var(--muted);margin-top:2px}
-  #report .r-narr{font-size:13px;line-height:1.6;margin:0 0 14px}
-  #report .r-narr p{margin:0 0 6px}
-  #report .r-map{margin:0 0 14px;break-inside:avoid}
+  #report .r-synth{font-size:13px;line-height:1.55;margin:0 0 14px}
+  #report .r-map{margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
   #report .r-map img{width:100%;border:1px solid var(--line);border-radius:6px;display:block}
   #report .r-mapcap{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   #report .r-mapcap .grad{height:9px;border-radius:3px;width:150px}
   #report .r-mapcap .ends{display:flex;justify-content:space-between;width:150px}
   #report h2.r-sec{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);
-    margin:16px 0 8px;border-top:1px solid var(--line);padding-top:10px;break-after:avoid}
-  #report .r-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
-  #report .r-chart{break-inside:avoid}
+    margin:16px 0 8px;border-top:1px solid var(--line);padding-top:10px;break-after:avoid;page-break-after:avoid}
+  /* print-reliable: inline-block (not grid) so each chart is its own break unit and never clips across a page */
+  #report .r-charts{font-size:0}
+  #report .r-chart{display:inline-block;width:49%;vertical-align:top;margin:0 0 14px;font-size:13px;break-inside:avoid;page-break-inside:avoid}
+  #report .r-chart:nth-child(odd){margin-right:2%}
   #report .r-chart h3{font-size:13px;font-weight:700;margin:0 0 2px}
   #report .r-chart .bleg,#report .r-chart .legrow{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:5px}
   #report .r-chart .bleg span,#report .r-chart .legrow span{display:flex;align-items:center;gap:4px}
   #report .r-chart .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
   #report .r-note{font-size:11px;color:var(--muted);margin-top:5px}
-  #report .r-worst{width:100%;border-collapse:collapse;font-size:12.5px}
+  #report .r-worst{width:100%;border-collapse:collapse;font-size:12.5px;break-inside:avoid;page-break-inside:avoid}
   #report .r-worst td{padding:4px 6px;border-bottom:1px solid var(--line)}
   #report .r-worst td:last-child{text-align:right;font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums}
   #report .r-worst td:first-child{color:var(--muted);width:26px}
@@ -230,7 +265,7 @@
   @media print{
     @page{size:letter;margin:0.5in}
     html,body{background:#fff !important}
-    .wrap,#modal{display:none !important}
+    .wrap,#modal,#rcfg{display:none !important}
     #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
     a{color:var(--ink);text-decoration:none}
   }
@@ -461,6 +496,102 @@
 
 <!-- printable report (built on demand from the current view; shown only when printing) -->
 <div id="report" aria-hidden="true"></div>
+
+<!-- "Build your report" configuration overlay (full-screen; opened by the Create report button) -->
+<div id="rcfg" role="dialog" aria-modal="true" aria-labelledby="rcfg-title" aria-hidden="true">
+  <div class="rc-sheet">
+    <div class="rc-hd">
+      <div>
+        <h2 id="rcfg-title">Build your report</h2>
+        <div class="rc-lede">Choose what to include. Filters are pre-filled from your current view.</div>
+      </div>
+      <button class="x" id="rcfg-x" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="rc-body">
+
+      <section class="rc-sec">
+        <h3>Filters</h3>
+        <div class="rc-grid">
+          <label class="rc-field">
+            <span>Report title</span>
+            <input type="text" id="rc-title" autocomplete="off" />
+          </label>
+          <label class="rc-field">
+            <span>Council district</span>
+            <select id="rc-district"></select>
+          </label>
+          <label class="rc-field">
+            <span>Super neighborhood</span>
+            <select id="rc-sn"></select>
+          </label>
+          <label class="rc-field">
+            <span>Travel mode</span>
+            <select id="rc-mode">
+              <option value="all">Everyone</option>
+              <option value="veh">Driving</option>
+              <option value="ped">Walking</option>
+              <option value="bike">Biking</option>
+            </select>
+          </label>
+          <label class="rc-field">
+            <span>Road owner</span>
+            <select id="rc-owner">
+              <option value="all">All</option>
+              <option value="city">City</option>
+              <option value="txdot">TxDOT</option>
+            </select>
+          </label>
+          <label class="rc-field">
+            <span>Show</span>
+            <select id="rc-sev">
+              <option value="ksi">Killed or seriously injured</option>
+              <option value="all">All crashes</option>
+            </select>
+          </label>
+          <label class="rc-field">
+            <span>From year</span>
+            <select id="rc-yrlo"></select>
+          </label>
+          <label class="rc-field">
+            <span>To year</span>
+            <select id="rc-yrhi"></select>
+          </label>
+          <label class="rc-field">
+            <span>Display map as</span>
+            <select id="rc-view">
+              <option value="corridor">Streets</option>
+              <option value="streets">Segments</option>
+              <option value="points">Points</option>
+            </select>
+          </label>
+        </div>
+        <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City High Injury Network overlay</span></label>
+        <div class="rc-note">Choosing a district clears the super neighborhood, and the reverse: you can use one or the other, not both.</div>
+      </section>
+
+      <section class="rc-sec">
+        <h3>Include in report</h3>
+        <div class="rc-note rc-always">Headline stats (people killed, seriously injured, years of life lost) are always included.</div>
+        <div class="rc-checks">
+          <label class="rc-check"><input type="checkbox" id="rc-s-summary" checked> <span>Summary sentence</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-map" checked> <span>Map</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-trend" checked> <span>By year</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-tod" checked> <span>By time of day</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-dow" checked> <span>By day of week</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-mode" checked> <span>By travel mode</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-eq" checked> <span>By neighborhood income</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-own" checked> <span>By road owner (city vs state)</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-worst" checked> <span>Most dangerous streets</span></label>
+        </div>
+      </section>
+
+    </div>
+    <div class="rc-foot">
+      <button class="rc-btn" id="rcfg-cancel" type="button">Cancel</button>
+      <button class="rc-btn rc-primary" id="rcfg-go" type="button">Generate PDF</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1647,7 +1778,10 @@ function viewDesc(){
   return {region, when, modeTxt, sel, extras};
 }
 const _ih=id=>{ const e=document.getElementById(id); return e?e.innerHTML:''; };
-function buildReport(){
+const RSECT_DEFAULT={summary:true,map:true,trend:true,tod:true,dow:true,mode:true,eq:true,own:true,worst:true};
+// build the report honoring cfg, await the map image decode, then print
+async function generateReport(cfg){
+  cfg=cfg||{}; const S=Object.assign({},RSECT_DEFAULT,cfg.sections||{});
   const R=document.getElementById('report'); if(!R) return;
   const d=viewDesc();
   const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed);
@@ -1656,65 +1790,181 @@ function buildReport(){
   const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
   if(d.modeTxt) chips.push(d.modeTxt); d.extras.forEach(e=>chips.push(e));
   const subtitle=chips.join('&nbsp;&nbsp;·&nbsp;&nbsp;');
-  // narrative
   const where = d.sel?('on '+d.sel) : (district!==null||sn!==null)?('on '+d.region+' streets') : 'on City of Houston streets';
-  const sents=[];
-  sents.push((d.when.indexOf('–')>0?('From '+d.when+', '):('In '+d.when+', '))+'<b>'+fmt(t.killed)+'</b> '+(t.killed===1?'person was':'people were')+' killed and <b>'+fmt(serious)+'</b> seriously injured '+where+(d.modeTxt?(' ('+d.modeTxt+')'):'')+', an estimated <b>'+fmt(yll)+'</b> years of life lost.');
-  if(con && con.pct_ksi>0) sents.push('Harm is concentrated: about <b>'+con.pct_streets+'%</b> of streets account for <b>'+con.pct_ksi+'%</b> of those killed or seriously injured.');
-  if((t.ped_killed+t.bike_killed)>0) sents.push('Of those killed, <b>'+t.ped_killed+'</b> '+(t.ped_killed===1?'was':'were')+' walking and <b>'+t.bike_killed+'</b> biking.');
-  const eqTxt=((document.getElementById('eqnote')||{}).textContent||'').trim(); if(eqTxt && !/^No /.test(eqTxt)) sents.push(eqTxt);
-  const wr=document.querySelector('#worst-list .worst-row');
-  if(wr){ const cleanNm=((wr.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim(); const n=(wr.querySelector('.worst-n')||{}).textContent||'';
-    if(cleanNm) sents.push('The most affected street in this view is <b>'+cleanNm+'</b>, with '+n+'.'); }
-  const narr='<p>'+sents.join('</p><p>')+'</p>';
-  // stats
+  // synthesis: ONE qualitative takeaway, no restated numbers (gated by S.summary)
+  let synthHTML='';
+  if(S.summary){
+    const trDir=(()=>{ const ys=vz.years.slice(0,-1); if(ys.length<4) return null;
+      const base=ys.slice(0,3), recent=ys.slice(-3);
+      const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
+      const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return null;
+      const ch=(r-b)/b; return ch>0.05?'rising':ch<-0.05?'falling':'roughly flat'; })();
+    const conPhrase = (con && con.pct_ksi>0) ? 'most of the harm falls on a small share of streets' : 'the harm is spread across this view';
+    const trPhrase = trDir ? (', and the yearly trend is '+trDir+' against the 2016–2018 baseline') : '';
+    synthHTML='<p class="r-synth">In short, '+conPhrase+trPhrase+'.</p>';
+  }
+  // stats (ALWAYS)
   const stat=(v,l)=>'<div class="r-stat"><div class="r-statv">'+v+'</div><div class="r-statl">'+l+'</div></div>';
   const statsHTML = stat(fmt(t.killed),'People killed')+stat(fmt(serious),'Seriously injured')+stat(fmt(yll),'Years of life lost')
     +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(con.pct_streets+'% → '+con.pct_ksi+'%','Streets → share of harm'));
-  // map
-  const mapURL=captureMap();
-  const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
-  const capLeft = view==='points' ? 'Each dot is one crash location.' : 'Streets shaded by '+metric+' on each block (darker = more).';
-  const mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+'&nbsp;·&nbsp;'+d.when+'</span></div></div>') : '';
-  // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector)
+  // map (gated)
+  let mapHTML='';
+  if(S.map){
+    const mapURL=captureMap();
+    const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
+    const capLeft = view==='points' ? 'Each dot is one crash location.' : 'Streets shaded by '+metric+' on each block (darker = more).';
+    mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+'&nbsp;·&nbsp;'+d.when+'</span></div></div>') : '';
+  }
+  // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector). title + chart + legend only.
   const chart=(title,bodyHTML,legHtml,noteHtml)=>'<div class="r-chart"><h3>'+title+'</h3>'+bodyHTML+(legHtml?('<div class="bleg">'+legHtml+'</div>'):'')+(noteHtml||'')+'</div>';
   const stackBody=id=>'<div class="stack">'+_ih(id)+'</div>';
-  const note=id=>{ const x=((document.getElementById(id)||{}).textContent||'').trim(); return x?('<div class="r-note">'+x+'</div>'):''; };
-  const chartsHTML =
-      chart('Killed or seriously injured, by year', _ih('trend'), _ih('trend-leg'), note('trend-note'))
-    + chart('By time of day', _ih('tod'), _ih('tod-leg'))
-    + chart('By day of week', _ih('dow'), _ih('dow-leg'))
-    + chart('By travel mode', stackBody('modebar'), _ih('modeleg'), note('modedeaths'))
-    + chart('By neighborhood income', stackBody('eqbar'), _ih('eqleg'), note('eqnote'))
-    + chart('By road owner (city vs TxDOT)', stackBody('ownbar'), _ih('ownleg'));
-  // worst-streets table
-  let worstRows=''; document.querySelectorAll('#worst-list .worst-row').forEach((row,i)=>{
-    const nm=((row.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim();
-    const n=(row.querySelector('.worst-n')||{}).textContent||''; worstRows+='<tr><td>'+(i+1)+'</td><td>'+nm+'</td><td>'+n+'</td></tr>'; });
-  const worstHTML = worstRows ? ('<table class="r-worst"><tbody>'+worstRows+'</tbody></table>') : '';
+  // the ONE kept takeaway: trend direction vs the 2016-2018 baseline + the zero-by-2030 goal (not shown elsewhere)
+  const trendNote=(()=>{ const ys=vz.years.slice(0,-1); if(ys.length<4) return '';
+    const base=ys.slice(0,3), recent=ys.slice(-3);
+    const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
+    const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return '';
+    const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
+    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline; Vision Zero targets zero by 2030.</div>'; })();
+  let chartsHTML='';
+  if(S.trend) chartsHTML += chart('Killed or seriously injured, by year', _ih('trend'), _ih('trend-leg'), trendNote);
+  if(S.tod)   chartsHTML += chart('By time of day', _ih('tod'), _ih('tod-leg'));
+  if(S.dow)   chartsHTML += chart('By day of week', _ih('dow'), _ih('dow-leg'));
+  if(S.mode)  chartsHTML += chart('By travel mode', stackBody('modebar'), _ih('modeleg'));
+  if(S.eq)    chartsHTML += chart('By neighborhood income', stackBody('eqbar'), _ih('eqleg'));
+  if(S.own)   chartsHTML += chart('By road owner (city vs TxDOT)', stackBody('ownbar'), _ih('ownleg'));
+  // worst-streets table (gated)
+  let worstHTML='';
+  if(S.worst){
+    let worstRows=''; document.querySelectorAll('#worst-list .worst-row').forEach((row,i)=>{
+      const nm=((row.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim();
+      const n=(row.querySelector('.worst-n')||{}).textContent||''; worstRows+='<tr><td>'+(i+1)+'</td><td>'+nm+'</td><td>'+n+'</td></tr>'; });
+    worstHTML = worstRows ? ('<table class="r-worst"><tbody>'+worstRows+'</tbody></table>') : '';
+  }
+  const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   R.innerHTML =
     '<div class="r-hd"><div><div class="r-eyebrow">Vision Zero · Houston</div>'
-      +'<h1 class="r-title">Traffic deaths &amp; serious injuries</h1>'
+      +'<h1 class="r-title">'+rTitle+'</h1>'
       +'<div class="r-sub">'+subtitle+'</div></div>'
       +'<div class="r-date">Prepared '+today+'<br>wrenvin.github.io/PharisFellowshipVisionZero</div></div>'
     +'<div class="r-stats">'+statsHTML+'</div>'
-    +'<div class="r-narr">'+narr+'</div>'
+    +synthHTML
     +mapHTML
-    +'<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2>'
-    +'<div class="r-charts">'+chartsHTML+'</div>'
+    +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
     +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
-}
-async function makeReport(){
-  buildReport();
-  const img=document.querySelector('#report .r-map img');   // let the map data-URL image decode before printing
-  if(img){ try{ await img.decode(); }catch(e){ await new Promise(r=>{ img.onload=img.onerror=r; setTimeout(r,500); }); } }
+  const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
+  if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }
   window.print();
 }
-document.getElementById('report-btn').onclick=makeReport;
-window.addEventListener('beforeprint', ()=>{ if(!document.getElementById('report').dataset.built) buildReport(); });
+// ---- "Build your report" configuration overlay -------------------------------
+// Opened by the Create report button. Pre-fills every control from the current
+// dashboard state, lets the user verify/change filters and deselect sections,
+// then applies the chosen filters and hands a cfg to generateReport().
+const _rcEl=id=>document.getElementById(id);
+let _rcLastFocus=null;
+// (re)populate the district + super-neighborhood + year selects from loaded data
+function _rcFillSelects(){
+  const ds=_rcEl('rc-district');
+  if(ds){
+    const opts=['<option value="">All districts</option>'];
+    (distFeats||[]).map(f=>f.properties.DISTRICT).sort()
+      .forEach(d=>opts.push('<option value="'+d+'">District '+d+'</option>'));
+    ds.innerHTML=opts.join('');
+  }
+  const ss=_rcEl('rc-sn');
+  if(ss){
+    const opts=['<option value="">All neighborhoods</option>'];
+    (snFeats||[]).map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
+      .sort((a,b)=>a[0]-b[0])
+      .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
+    ss.innerHTML=opts.join('');
+  }
+  const lo=_rcEl('rc-yrlo'), hi=_rcEl('rc-yrhi');
+  if(lo && hi && vz && vz.years){
+    const opts=vz.years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+    lo.innerHTML=opts; hi.innerHTML=opts;
+  }
+}
+function openReportModal(){
+  const ov=_rcEl('rcfg'); if(!ov) return;
+  _rcFillSelects();
+  // pre-fill filters from the current globals
+  _rcEl('rc-title').value='Traffic deaths & serious injuries';
+  _rcEl('rc-district').value = district!==null ? district : '';
+  _rcEl('rc-sn').value = sn!==null ? String(sn) : '';
+  _rcEl('rc-mode').value = mode;
+  _rcEl('rc-owner').value = owner;
+  _rcEl('rc-sev').value = sev;
+  _rcEl('rc-view').value = view;
+  if(vz && vz.years){
+    _rcEl('rc-yrlo').value = String(yrLo!==null ? yrLo : vz.years[0]);
+    _rcEl('rc-yrhi').value = String(yrHi!==null ? yrHi : vz.years[vz.years.length-1]);
+  }
+  const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
+  // sections: all checked by default each time the modal opens
+  ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
+  ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
+  _rcLastFocus=document.activeElement;
+  const first=_rcEl('rc-title'); if(first) first.focus();
+}
+function closeReportModal(){
+  const ov=_rcEl('rcfg'); if(!ov) return;
+  ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
+  if(_rcLastFocus && _rcLastFocus.focus){ try{ _rcLastFocus.focus(); }catch(e){} }
+}
+// district and super neighborhood are mutually exclusive: picking one clears the other in the modal
+_rcEl('rc-district').addEventListener('change',()=>{ if(_rcEl('rc-district').value) _rcEl('rc-sn').value=''; });
+_rcEl('rc-sn').addEventListener('change',()=>{ if(_rcEl('rc-sn').value) _rcEl('rc-district').value=''; });
+// apply the chosen filters to the live dashboard, then build cfg and print
+async function _rcGenerate(){
+  // mode: set the global + reflect the sidebar pills (no extra render; render() runs once at the end)
+  const m=_rcEl('rc-mode').value;
+  if(['all','veh','ped','bike'].includes(m)){
+    mode=m;
+    document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode===m; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
+  }
+  // sev / owner / view: set the global + check the matching sidebar radio
+  const setRadio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
+  const sv=_rcEl('rc-sev').value; if(sv==='ksi'||sv==='all'){ sev=sv; setRadio('sev',sv); }
+  const ow=_rcEl('rc-owner').value; if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
+  const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
+  // year range: set globals + sync the sidebar slider, resolve year/month
+  const a=+_rcEl('rc-yrlo').value, b=+_rcEl('rc-yrhi').value;
+  if(!isNaN(a) && !isNaN(b)){ yrLo=Math.min(a,b); yrHi=Math.max(a,b); month=null; deriveYear();
+    if(typeof syncSlider==='function') syncSlider('yr', yrLo, yrHi); }
+  // High Injury Network overlay: match the sidebar checkbox + layer
+  const wantHin=_rcEl('rc-hin').checked, hinBox=_rcEl('hin');
+  if(hinBox){ hinBox.checked=wantHin;
+    if(wantHin){ if(!map.hasLayer(hinLayer)) hinLayer.addTo(map); }
+    else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); } }
+  // area: district / super neighborhood are mutually exclusive. selectDistrict / selectSN
+  // each clear the other global, sync their own sidebar select, and call render() themselves.
+  const dVal=_rcEl('rc-district').value, snVal=_rcEl('rc-sn').value;
+  if(dVal){ const sel=_rcEl('district'); if(sel) sel.value=dVal; selectDistrict(dVal); }
+  else if(snVal){ const sel=_rcEl('snsel'); if(sel) sel.value=snVal; selectSN(+snVal); }
+  else { if(typeof selectSN==='function') selectSN(''); const sel=_rcEl('district'); if(sel) sel.value=''; selectDistrict(''); }   // clear SN then district, refit, render
+  render();   // final recompute so the cloned charts + captured map reflect every chosen filter
+  // gather the config: headline stats are always on; a section renders only if its box is checked
+  const cfg={ title:(_rcEl('rc-title').value||'').trim()||'Traffic deaths & serious injuries',
+    sections:{
+      summary:_rcEl('rc-s-summary').checked, map:_rcEl('rc-s-map').checked, trend:_rcEl('rc-s-trend').checked,
+      tod:_rcEl('rc-s-tod').checked, dow:_rcEl('rc-s-dow').checked, mode:_rcEl('rc-s-mode').checked,
+      eq:_rcEl('rc-s-eq').checked, own:_rcEl('rc-s-own').checked, worst:_rcEl('rc-s-worst').checked
+    } };
+  closeReportModal();   // remove the overlay before printing so it is not in the PDF
+  await generateReport(cfg);
+}
+(()=>{ const ov=_rcEl('rcfg'); if(!ov) return;
+  _rcEl('rcfg-x').onclick=closeReportModal;
+  _rcEl('rcfg-cancel').onclick=closeReportModal;
+  _rcEl('rcfg-go').onclick=_rcGenerate;
+  ov.addEventListener('click',e=>{ if(e.target===ov) closeReportModal(); });   // click backdrop to dismiss
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape' && ov.classList.contains('show')) closeReportModal(); });
+})();
+document.getElementById('report-btn').onclick=openReportModal;
+window.addEventListener('beforeprint', ()=>{ const R=document.getElementById('report'); if(R && !R.dataset.built) R.innerHTML='<div class="r-foot">Use the Create report button to build a printable report.</div>'; });
 window.addEventListener('afterprint', ()=>{ const R=document.getElementById('report'); R.innerHTML=''; R.removeAttribute('data-built'); });
 // keyboard activation for the generated worst-street rows (Enter/Space)
 document.getElementById('worst-list').addEventListener('keydown',e=>{
