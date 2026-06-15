@@ -139,13 +139,12 @@
   .sheet section .lbl{font-weight:600}
   .sheet a{color:#1d4ed8}
   /* --- filter-transition polish: panels animate in as the data updates --- */
-  .chartsvg{animation:riseIn .5s cubic-bezier(.22,.61,.36,1)}
+  .chartsvg rect.bar{transition:y .55s cubic-bezier(.4,0,.2,1),height .55s cubic-bezier(.4,0,.2,1),opacity .35s ease}
   .kpi .v{transition:color .3s ease}
-  @keyframes riseIn{from{opacity:0;clip-path:inset(14% 0 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
   @keyframes rowIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:none}}
   @keyframes panelFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
   @media(prefers-reduced-motion:reduce){
-    .stack,.stack div,.chartsvg,.worst-row,#info,.kpi .v{animation:none!important;transition:none!important}
+    .stack,.stack div,.chartsvg,.chartsvg rect,.worst-row,#info,.kpi .v{animation:none!important;transition:none!important}
   }
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
@@ -965,32 +964,54 @@ function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
 function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
   +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>'; }
-// labels[], fatal[], serious[]; opt:{clickKeys?, fadeIdx?:Set, h?}
-function barChartSVG(labels, fatal, serious, opt){
+// SVG charts morph in place: the bars (rect.bar) keep their identity across
+// renders and transition their height/y to the new values (CSS) instead of the
+// chart being rebuilt and fading in. The SVG is only rebuilt when the bar set
+// itself changes (e.g. drilling year -> month), where a morph isn't meaningful.
+const _SVGNS='http://www.w3.org/2000/svg';
+function _svg(tag,attrs){ const e=document.createElementNS(_SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+// labels[], fatal[], serious[]; opt:{clickKeys?, fadeIdx?:Set, h?, line?}
+function drawBarChart(container, labels, fatal, serious, opt){
   opt=opt||{}; const W=340, H=opt.h||156, L=30, R=6, T=10, B=26;
   const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
   const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
   const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
-  let s='<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">';
-  [0,nice/2,nice].forEach(t=>{const yy=y(t);
-    s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#eceef1"/>'
-      +'<text x="'+(L-5)+'" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#5b6672">'+t+'</text>'; });
+  const key=n+'|'+labels.join('|')+'|line:'+(opt.line?1:0)+'|click:'+(opt.clickKeys?1:0);  // structure identity
+  let st=container._chart;
+  if(!st || st.key!==key){   // (re)build from scratch: structure changed
+    container.textContent='';
+    const svg=_svg('svg',{class:'chartsvg',viewBox:'0 0 '+W+' '+H,width:'100%',style:'display:block'});
+    st={key,svg,grid:[],gridT:[],se:[],fa:[],xlab:[],hit:[],line:null};
+    [0,1,2].forEach(()=>{ const ln=_svg('line',{stroke:'#eceef1'}); svg.appendChild(ln); st.grid.push(ln);
+      const tx=_svg('text',{'text-anchor':'end','font-size':12,fill:'#5b6672'}); svg.appendChild(tx); st.gridT.push(tx); });
+    for(let i=0;i<n;i++){
+      const rse=_svg('rect',{class:'bar',rx:1,fill:SERIOUS_C,y:T+ph,height:0}); svg.appendChild(rse); st.se.push(rse);
+      const rfa=_svg('rect',{class:'bar',rx:1,fill:FATAL_C,y:T+ph,height:0}); svg.appendChild(rfa); st.fa.push(rfa);
+      const xl=_svg('text',{'text-anchor':'middle','font-size':12,'font-weight':500,fill:'#5b6672'}); svg.appendChild(xl); st.xlab.push(xl);
+      if(opt.clickKeys){ const hit=_svg('rect',{class:'barhit',style:'cursor:pointer'}); const ti=_svg('title',{}); hit.appendChild(ti); svg.appendChild(hit); st.hit.push(hit); }
+    }
+    if(opt.line){ st.line=_svg('polyline',{fill:'none',stroke:'#15212b','stroke-width':1.5,'stroke-dasharray':'4 3',opacity:0.7}); svg.appendChild(st.line); }
+    container.appendChild(svg); container._chart=st;
+  }
+  [0,nice/2,nice].forEach((t,i)=>{ const yy=y(t);   // gridlines fixed in pixels; only the labels change with the scale
+    st.grid[i].setAttribute('x1',L); st.grid[i].setAttribute('y1',yy); st.grid[i].setAttribute('x2',W-R); st.grid[i].setAttribute('y2',yy);
+    st.gridT[i].setAttribute('x',L-5); st.gridT[i].setAttribute('y',yy+4); st.gridT[i].textContent=t; });
   for(let i=0;i<n;i++){
     const x=L+gap*i+(gap-bw)/2, se=serious[i]||0, fa=fatal[i]||0;
     const hSe=(se/nice)*ph, hFa=(fa/nice)*ph, ySe=T+ph-hSe, yFa=ySe-hFa;
     const op=(opt.fadeIdx&&opt.fadeIdx.has(i))?.45:1;
-    if(se>0) s+='<rect x="'+x+'" y="'+ySe+'" width="'+bw+'" height="'+hSe+'" rx="1" fill="'+SERIOUS_C+'" opacity="'+op+'"/>';
-    if(fa>0) s+='<rect x="'+x+'" y="'+yFa+'" width="'+bw+'" height="'+hFa+'" rx="1" fill="'+FATAL_C+'" opacity="'+op+'"/>';
-    if(opt.clickKeys) s+='<rect class="barhit" x="'+(x-1)+'" y="'+T+'" width="'+(bw+2)+'" height="'+ph+'" style="cursor:pointer" onclick="'+opt.clickKeys[i]+'"><title>'+tot[i]+' KSI · click to view</title></rect>';
-    if(labels[i]) s+='<text x="'+(x+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-size="12" font-weight="500" fill="#5b6672">'+labels[i]+'</text>';
+    const rse=st.se[i]; rse.setAttribute('x',x); rse.setAttribute('width',bw);
+    rse.setAttribute('y',se>0?ySe:T+ph); rse.setAttribute('height',se>0?hSe:0); rse.setAttribute('opacity',op);
+    const rfa=st.fa[i]; rfa.setAttribute('x',x); rfa.setAttribute('width',bw);
+    rfa.setAttribute('y',fa>0?yFa:(se>0?ySe:T+ph)); rfa.setAttribute('height',fa>0?hFa:0); rfa.setAttribute('opacity',op);
+    const xl=st.xlab[i]; xl.setAttribute('x',x+bw/2); xl.setAttribute('y',H-9); xl.textContent=labels[i]||'';
+    if(opt.clickKeys){ const hit=st.hit[i]; hit.setAttribute('x',x-1); hit.setAttribute('y',T); hit.setAttribute('width',bw+2); hit.setAttribute('height',ph);
+      hit.setAttribute('onclick',opt.clickKeys[i]); hit.firstChild.textContent=tot[i]+' KSI · click to view'; }
   }
-  if(opt.line){
-    const lp=[];
-    for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue;
-      lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
-    if(lp.length>1) s+='<polyline points="'+lp.join(' ')+'" fill="none" stroke="#15212b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>';
+  if(st.line){
+    const lp=[]; for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue; lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
+    if(lp.length>1){ st.line.setAttribute('points',lp.join(' ')); st.line.style.display=''; } else st.line.style.display='none';
   }
-  return s+'</svg>';
 }
 function drawTrend(){
   let labels=[], fatal=[], serious=[], clickKeys=null, fadeIdx=new Set();
@@ -1030,7 +1051,7 @@ function drawTrend(){
       }
     }
   }
-  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:78});
+  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
@@ -1052,7 +1073,7 @@ function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:78});
+  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78});
   const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
   document.getElementById('tod-sub').textContent='By hour of day, '+span;
