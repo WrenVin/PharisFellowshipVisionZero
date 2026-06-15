@@ -147,12 +147,6 @@
   .spinner{width:34px;height:34px;border:3px solid #e3e7ec;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   #loading.err .spinner{display:none}
   @keyframes spin{to{transform:rotate(360deg)}}
-  /* pulsing locators shown when the filtered view has only a few crashes, so they're easy to spot */
-  .pulse{width:9px;height:9px;border-radius:50%}
-  .pulse.sev{background:#c0151a;animation:pulseSev 1.5s ease-out infinite}
-  .pulse.oth{background:#f0884c;animation:pulseOth 1.5s ease-out infinite}
-  @keyframes pulseSev{0%{box-shadow:0 0 0 0 rgba(192,21,26,.6)}70%{box-shadow:0 0 0 15px rgba(192,21,26,0)}100%{box-shadow:0 0 0 0 rgba(192,21,26,0)}}
-  @keyframes pulseOth{0%{box-shadow:0 0 0 0 rgba(240,136,76,.6)}70%{box-shadow:0 0 0 13px rgba(240,136,76,0)}100%{box-shadow:0 0 0 0 rgba(240,136,76,0)}}
   /* manual "blink" burst: a few emphatic flashes, then it removes itself */
   .blink{width:11px;height:11px;border-radius:50%;background:#c0151a;animation:blinkBurst .75s ease-out 5}
   .blink.oth{background:#f0884c}
@@ -430,11 +424,10 @@ const REDS=['#fdae61','#f98e52','#f16d43','#e0451f','#c0151a','#8a0b12'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
-const PULSE_MAX=50;     // <= this many crashes: auto-flash each so it's easy to find
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[];
@@ -750,21 +743,7 @@ function buildPoints(){
   }
   ptLayer=g.addTo(map);
 }
-// When the active filters leave only a handful of crashes, they're tiny and easy
-// to miss on the citywide map. Drop a pulsing locator on each so they pop. Shown
-// in every display mode; non-interactive so clicks pass through to the streets.
-function buildPulse(){
-  if(pulseLayer){ map.removeLayer(pulseLayer); pulseLayer=null; }
-  const hits=filteredCrashes(PULSE_MAX); if(!hits) return;   // none, or too many to auto-flash
-  const g=L.layerGroup();
-  for(const p of hits){
-    const icon=L.divIcon({className:'', iconSize:[9,9], iconAnchor:[4,4],
-      html:'<div class="pulse '+(p[2]===1?'sev':'oth')+'"></div>'});
-    L.marker([p[0],p[1]], {interactive:false, keyboard:false, icon}).addTo(g);
-  }
-  pulseLayer=g.addTo(map);
-}
-// the filtered crashes (same predicate as buildPoints/buildPulse), capped at `cap`.
+// the filtered crashes (same predicate as buildPoints), capped at `cap`.
 // returns null if there are none or more than cap.
 function filteredCrashes(cap){
   const hits=[];
@@ -879,7 +858,6 @@ function render(){
   restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  buildPulse();
   drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
