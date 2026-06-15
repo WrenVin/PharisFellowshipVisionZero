@@ -836,9 +836,10 @@ function openInfoSeg(p){
   const I=document.getElementById('info');
   const sw={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'}[p.sidewalk_presence]||'n/a';
   const row=(k,v,bad)=>'<div class="kv"><span class="k">'+k+'</span><span class="v'+(bad?' bad':'')+'">'+v+'</span></div>';
-  const whole = (p.name && p.name.trim())
-    ? '<div class="g" style="padding-top:2px"><a href="#" onclick="event.preventDefault();selectStreet('
-       + JSON.stringify(p.name) + ',true)" style="font-size:12.5px">View this whole street →</a></div>'
+  const hasName = !!(p.name && p.name.trim());
+  // wired via JS below, not an inline onclick, so a name with quotes/apostrophes can't break it
+  const whole = hasName
+    ? '<div class="g" style="padding-top:2px"><a href="#" id="view-whole-street" style="font-size:12.5px">View this whole street →</a></div>'
     : '';
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
     +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
@@ -856,6 +857,8 @@ function openInfoSeg(p){
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
     +whole;
+  if(hasName){ const vw=document.getElementById('view-whole-street');
+    if(vw) vw.onclick=e=>{ e.preventDefault(); selectStreet(p.name, true); }; }
   I.style.display='block';
 }
 function openInfoStreet(name, props){
