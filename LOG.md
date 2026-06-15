@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — Street Explorer (index.html): brought over the VZ dashboard upgrades
+
+The Street Explorer had drifted behind the Vision Zero dashboard. Ported the relevant improvements (the morph/count-up animations don't apply: no charts/KPIs here):
+- **Shareable URL state + Share button.** New `syncURL()`/`applyURLState()` encode the full view in the query string: color field, basemap, the three category chip filters (road type / sidewalks / land use), the four numeric dual-range filters (only when moved off their ends), line width/opacity, and the selected segment. A copied link reopens the exact view (restoring controls and reselecting/zooming to the street). A "Share this view" button in the panel copies the link with a "Link copied" confirmation, and uses the native share sheet on touch devices. Wired `syncURL` into refresh/selection/appearance/basemap; chips got a `data-key` so the URL can re-check them. Guard: `_suspend` starts true and the params are captured at parse time, so the dual-range sliders' initial `setTimeout` `upd()` calls (which fire before `applyURLState`) can't clobber the incoming URL.
+- **Loading spinner.** The big-file load now shows a spinning ring + "Loading the street network… (large file, may take a moment)" instead of bare text.
+- **Load-failure handling.** The `Promise.all` (which fetches the ~69 MB `segments.geojson`) has a `.catch` that swaps the spinner for "Could not load the street network… Reload" instead of hanging forever.
+- Minor: a `:focus-visible` outline for keyboard users, matching the VZ dashboard.
+
+Verified in-browser: 75,260 streets load; changing color/chip/basemap/width writes the URL; reloading restores color + basemap + chip + width (3,017 major arterials) and a `sev=3-16` range + `sel=H-00041` (reopens Chimney Rock Road's info panel and pans to it); Share copies; dark basemap layer confirmed active; no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: loading spinner, load-failure handling, mobile share, Reset
 
 Four small robustness/UX touches:

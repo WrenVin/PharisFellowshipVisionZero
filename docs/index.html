@@ -75,12 +75,25 @@
   #info .kv .k{color:var(--muted)}
   #info .kv .v{text-align:right;font-weight:600}
   #info .src{color:#94a3b8;font-weight:400;font-size:11px}
-  #loading{position:absolute;inset:0;z-index:700;background:rgba(255,255,255,.9);display:flex;
-    align-items:center;justify-content:center;font-size:14px;color:var(--muted)}
+  #loading{position:absolute;inset:0;z-index:700;background:rgba(255,255,255,.92);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;font-size:13px;color:var(--muted);text-align:center;padding:0 16px}
+  #loading.err{color:var(--ink)}
+  #loading.err a{color:var(--accent)}
+  #loading.err .spinner{display:none}
+  .spinner{width:34px;height:34px;border:3px solid #e3e7ec;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.spinner{animation:none}}
   .foot{font-size:11px;color:var(--muted);padding:12px 16px;line-height:1.5}
   a{color:var(--accent)}
   .aboutbtn{display:inline-block;margin:2px 16px 10px;font-size:12px;color:var(--accent);
     cursor:pointer;background:none;border:none;padding:0;text-decoration:underline}
+  .sharebtn{display:inline-flex;align-items:center;gap:6px;margin:0 16px 12px;padding:7px 12px;border:1px solid var(--line);
+    border-radius:7px;background:#fff;color:var(--ink);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;
+    transition:border-color .2s,color .2s,background .2s}
+  .sharebtn:hover{border-color:var(--accent);color:var(--accent)}
+  .sharebtn svg{width:14px;height:14px}
+  .sharebtn.ok{background:#e7f0ff;border-color:var(--accent);color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
   /* panel toggle (mobile) */
   #panel-toggle{position:absolute;top:10px;left:10px;z-index:900;display:none;align-items:center;gap:7px;
     background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;
@@ -115,6 +128,10 @@
     <h1>Houston Street Explorer</h1>
     <div class="sub">Every public street in the City of Houston. Color, filter, and click any street to inspect it.</div>
     <a class="aboutbtn" href="vision-zero.html">→ Vision Zero dashboard</a>
+    <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+      <span class="lbl">Share this view</span>
+    </button>
 
     <div class="section">
       <h2>Color streets by</h2>
@@ -168,7 +185,7 @@
     <div id="map"></div>
     <div id="count"></div>
     <div id="info"></div>
-    <div id="loading">Loading street network…</div>
+    <div id="loading"><div class="spinner"></div><div>Loading the street network…<br>(large file, may take a moment)</div></div>
   </div>
 </div>
 
@@ -291,7 +308,8 @@ const bases = {
 let curBase = bases.light.addTo(map);
 
 // ---------- state ----------
-let colorBy='road_class', lineWidth=2.5, lineOpacity=0.9, selectedId=null;
+let colorBy='road_class', lineWidth=2.5, lineOpacity=0.9, selectedId=null, _suspend=true;
+const _initialParams=new URLSearchParams(location.search);   // captured before any syncURL can rewrite the URL
 const breaksCache={};
 const filt = {roadclass:new Set(), sidewalk:new Set(), landuse:new Set(),
   posted_speed_mph:null, lanes_final:null, adt:null};
@@ -349,6 +367,55 @@ function styleFor(feature){
   return {color:colorFor(p), weight: sel?lineWidth+3:lineWidth, opacity:lineOpacity};
 }
 
+// ---------- shareable URL state ----------
+// write the current view (color/basemap/filters/appearance/selection) into the URL
+// with replaceState, so a copied link reopens the exact same view.
+function syncURL(){
+  if(_suspend) return;
+  const q=[];
+  if(colorBy!=='road_class') q.push('color='+colorBy);
+  const baseName=Object.keys(bases).find(k=>bases[k]===curBase);
+  if(baseName && baseName!=='light') q.push('base='+baseName);
+  if(filt.roadclass.size) q.push('rc='+encodeURIComponent([...filt.roadclass].join(',')));
+  if(filt.sidewalk.size)  q.push('sw='+encodeURIComponent([...filt.sidewalk].join(',')));
+  if(filt.landuse.size)   q.push('lu='+encodeURIComponent([...filt.landuse].join(',')));
+  for(const [f,k] of [['posted_speed_mph','speed'],['lanes_final','lanes'],['adt','adt'],['n_severe','sev']]){
+    const r=filt[f], d=DOMAIN[f]; if(r && d && (r[0]>d[0] || r[1]<d[1])) q.push(k+'='+r[0]+'-'+r[1]);
+  }
+  if(Math.abs(lineWidth-2.5)>1e-9) q.push('w='+lineWidth);
+  if(Math.abs(lineOpacity-0.9)>1e-9) q.push('op='+lineOpacity);
+  if(selectedId!=null) q.push('sel='+encodeURIComponent(selectedId));
+  try{ history.replaceState(null,'',location.pathname+(q.length?'?'+q.join('&'):'')); }catch(e){}
+}
+// restore color, basemap, filters, appearance, and selection from the URL on load
+function applyURLState(){
+  const p=_initialParams;
+  if(!p.toString()){ _suspend=false; refresh(); return; }
+  // _suspend is still true (set at init), so the control updates below don't each refresh or clobber the URL
+  const c=p.get('color'); if(c && FIELDS[c]){ colorBy=c; document.getElementById('colorby').value=c; }
+  const base=p.get('base'); if(base && bases[base] && bases[base]!==curBase){
+    map.removeLayer(curBase); curBase=bases[base].addTo(map); curBase.bringToBack();
+    document.getElementById('basemap').value=base; }
+  const applyChips=(param,set,id)=>{ const v=p.get(param); if(!v) return; const want=new Set(v.split(','));
+    document.querySelectorAll('#'+id+' .chip input').forEach(inp=>{ if(want.has(inp.dataset.key)){ inp.checked=true; set.add(inp.dataset.key); } }); };
+  applyChips('rc',filt.roadclass,'f-roadclass');
+  applyChips('sw',filt.sidewalk,'f-sidewalk');
+  applyChips('lu',filt.landuse,'f-landuse');
+  const applyRange=(param,f)=>{ const v=p.get(param); if(!v) return; const mm=v.split('-').map(Number);
+    if(mm.length!==2 || mm.some(isNaN)) return;
+    const mn=document.getElementById(f+'-min'), mx=document.getElementById(f+'-max');
+    if(mn && mx){ mn.value=mm[0]; mx.value=mm[1]; mn.dispatchEvent(new Event('input')); } };   // upd() reads both handles
+  applyRange('speed','posted_speed_mph'); applyRange('lanes','lanes_final');
+  applyRange('adt','adt'); applyRange('sev','n_severe');
+  const w=p.get('w'); if(w!=null && !isNaN(+w)){ lineWidth=+w; const s=document.getElementById('width'); if(s){ s.value=w; document.getElementById('width-v').textContent=w; } }
+  const op=p.get('op'); if(op!=null && !isNaN(+op)){ lineOpacity=+op; const s=document.getElementById('opacity'); if(s){ s.value=op; document.getElementById('opacity-v').textContent=op; } }
+  _suspend=false;
+  refresh();
+  const sel=p.get('sel');
+  if(sel!=null){ let target=null; geo.eachLayer(l=>{ if(String(l.feature.properties.seg_id)===String(sel)) target=l; });
+    if(target){ selectFeature(target.feature, target); try{ map.fitBounds(target.getBounds(),{maxZoom:16,padding:[40,40]}); }catch(e){} } }
+}
+
 // ---------- load ----------
 let geo, nShown=0;
 Promise.all([
@@ -364,15 +431,21 @@ Promise.all([
   try{ map.fitBounds(geo.getBounds()); }catch(e){}
   document.getElementById('loading').style.display='none';
   buildControls(seg.features);
-  refresh();
+  setTimeout(applyURLState,0);   // after dualRange handlers are wired; restores any shared state, then refreshes
+}).catch(err=>{   // a data file failed to load: show a message instead of spinning forever
+  console.error('Street data failed to load', err);
+  const l=document.getElementById('loading');
+  if(l){ l.classList.add('err');
+    l.innerHTML='<div style="max-width:240px"><b>Could not load the street network.</b><br>It is a large file; check your connection and try again.<br><a href="#" id="reload-link">Reload</a></div>';
+    const rl=document.getElementById('reload-link'); if(rl) rl.onclick=e=>{ e.preventDefault(); location.reload(); }; }
 });
 
 // ---------- selection / info ----------
 const info=document.getElementById('info');
 function selectFeature(f,l){
-  selectedId=f.properties.seg_id; restyle();
+  selectedId=f.properties.seg_id; restyle(); syncURL();
   info.innerHTML=infoHTML(f.properties); info.style.display='block';
-  document.getElementById('info-close').onclick=()=>{info.style.display='none';selectedId=null;restyle();};
+  document.getElementById('info-close').onclick=()=>{info.style.display='none';selectedId=null;restyle();syncURL();};
 }
 function infoHTML(p){
   let h='<div class="hd"><button class="close" id="info-close">×</button>'
@@ -390,9 +463,11 @@ function infoHTML(p){
 // ---------- redraw ----------
 function restyle(){ geo.setStyle(styleFor); }
 function refresh(){
+  if(_suspend) return;
   restyle(); drawLegend();
   nShown=0; geo.eachLayer(l=>{ if(passFilters(l.feature.properties)) nShown++; });
   document.getElementById('count').textContent=nShown.toLocaleString()+' of '+geo.getLayers().length.toLocaleString()+' streets shown';
+  syncURL();
 }
 
 // ---------- legend ----------
@@ -458,10 +533,28 @@ function buildControls(features){
   sb.addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(sb.value); });
 
   // appearance
-  bindSlider('width','width-v',v=>{lineWidth=+v; restyle();});
-  bindSlider('opacity','opacity-v',v=>{lineOpacity=+v; restyle();});
+  bindSlider('width','width-v',v=>{lineWidth=+v; restyle(); syncURL();});
+  bindSlider('opacity','opacity-v',v=>{lineOpacity=+v; restyle(); syncURL();});
   document.getElementById('basemap').onchange=e=>{
-    map.removeLayer(curBase); curBase=bases[e.target.value].addTo(map); curBase.bringToBack();
+    map.removeLayer(curBase); curBase=bases[e.target.value].addTo(map); curBase.bringToBack(); syncURL();
+  };
+
+  // share this view (copies the URL, which encodes the current color/filters/selection)
+  let _shareTimer=null;
+  document.getElementById('share').onclick=async()=>{
+    syncURL();
+    const url=location.href, btn=document.getElementById('share'), lbl=btn.querySelector('.lbl');
+    if(navigator.share && window.matchMedia && window.matchMedia('(pointer:coarse)').matches){
+      try{ await navigator.share({title:document.title, url}); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
+    let ok=true;
+    try{ await navigator.clipboard.writeText(url); }
+    catch(e){ try{ const ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }catch(_){ ok=false; } }
+    if(_shareTimer) clearTimeout(_shareTimer);
+    if(ok){ btn.classList.add('ok'); lbl.textContent='Link copied'; } else { lbl.textContent='Press Ctrl+C to copy'; }
+    _shareTimer=setTimeout(()=>{ btn.classList.remove('ok'); lbl.textContent='Share this view'; }, 2000);
   };
 
   // about/data modal
@@ -480,7 +573,8 @@ function chipFilter(id,keys,set,cats,labf){
     const lab=labf?labf(k):k;
     const c=document.createElement('label'); c.className='chip';
     c.innerHTML='<input type="checkbox"><span class="sw" style="background:'+(cats[k]||MISSING)+'"></span>'+lab;
-    c.querySelector('input').onchange=e=>{ e.target.checked?set.add(k):set.delete(k); refresh(); };
+    const inp=c.querySelector('input'); inp.dataset.key=k;
+    inp.onchange=e=>{ e.target.checked?set.add(k):set.delete(k); refresh(); };
     el.appendChild(c);
   });
 }
