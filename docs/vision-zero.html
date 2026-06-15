@@ -475,7 +475,9 @@ Promise.all([
   buildStreetIndex();
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
+  const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
   render();
+  if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
 });
 
 // --- find a street ------------------------------------------------------------
@@ -607,6 +609,57 @@ function updateBlinkBtn(){
   else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash here. Filter down (district, year, month, or a street) first.'; }
   else { btn.disabled=false; note.textContent='Flash where the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+' are.'; }
 }
+// --- shareable URL state -----------------------------------------------------
+// write the current non-default state into the URL (replaceState, so filter
+// clicks don't spam browser history). read back by applyURL() on load.
+function syncURL(){
+  const q=[];
+  if(mode!=='all') q.push('mode='+mode);
+  if(sev!=='ksi') q.push('sev='+sev);
+  if(year!=null) q.push('year='+year);
+  if(month!=null) q.push('month='+month);
+  if(district!=null) q.push('district='+encodeURIComponent(district));
+  if(owner!=='all') q.push('owner='+owner);
+  if(view!=='streets') q.push('view='+view);
+  if(selSeg!=null && selSeg.seg_id!=null) q.push('seg='+encodeURIComponent(selSeg.seg_id));
+  else if(selStreet!=null){
+    if(selStreet.startsWith('__seg__')) q.push('seg='+encodeURIComponent(selStreet.slice(7)));
+    else q.push('street='+encodeURIComponent(selStreet));
+  }
+  const url=location.pathname+(q.length?'?'+q.join('&'):'');
+  try{ history.replaceState(null,'',url); }catch(e){}
+}
+// read the URL on load: set globals + sync the UI controls, then return a
+// deferred street/segment selection to run AFTER the load's render() (those
+// call render() themselves and need streetIndex / the geo layer built).
+function applyURL(){
+  const p=new URLSearchParams(location.search);
+  if(!p.toString()) return null;
+  const m=p.get('mode');
+  if(m && ['all','veh','ped','bike'].includes(m)){
+    mode=m;
+    document.querySelectorAll('.pill').forEach(x=>x.classList.toggle('on', x.dataset.mode===m));
+  }
+  const setRadio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
+  const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
+  const vw=p.get('view'); if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
+  const ow=p.get('owner'); if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
+  const y=p.get('year'); if(y!=null && y!=='' && !isNaN(+y)) year=+y;
+  const mo=p.get('month'); if(mo!=null && mo!=='' && +mo>=1 && +mo<=12) month=+mo;
+  const d=p.get('district');
+  if(d && distFeats.length && distFeats.some(f=>f.properties.DISTRICT===d)){
+    const sel=document.getElementById('district'); if(sel) sel.value=d;
+    selectDistrict(d);
+  }
+  const seg=p.get('seg'), street=p.get('street');
+  if(seg!=null){
+    return ()=>{ let props=null;
+      geo.eachLayer(l=>{ if(String(l.feature.properties.seg_id)===String(seg)) props=l.feature.properties; });
+      if(props) selectSeg(props); };
+  }
+  if(street!=null){ return ()=>selectStreet(street, true); }
+  return null;
+}
 function render(){
   computeCounts();
   if(view==='corridor') computeCorridorCounts();
@@ -630,6 +683,7 @@ function render(){
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
   else document.getElementById('info').style.display='none';
+  syncURL();
 }
 function drawViewing(){
   const v=document.getElementById('viewing');
