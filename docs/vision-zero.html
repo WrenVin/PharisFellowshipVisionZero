@@ -214,9 +214,11 @@
       </div>
       <div class="grp">
         <h3>Road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
-        <label class="opt"><input type="radio" name="owner" value="all" checked> All roads</label>
-        <label class="opt"><input type="radio" name="owner" value="city"> City-owned only</label>
-        <label class="opt"><input type="radio" name="owner" value="txdot"> TxDOT (state) only</label>
+        <span class="seg">
+          <label title="All roads"><input type="radio" name="owner" value="all" checked> All</label>
+          <label title="City-owned only"><input type="radio" name="owner" value="city"> City</label>
+          <label title="TxDOT (state) only"><input type="radio" name="owner" value="txdot"> TxDOT</label>
+        </span>
         <div class="tip">Whether the City or TxDOT owns each road (from TxDOT's roadway inventory). The City can only redesign its own streets; it must partner with the state on TxDOT-owned arterials. Limited-access freeways are excluded from this dashboard entirely.</div>
       </div>
       <div class="grp">
