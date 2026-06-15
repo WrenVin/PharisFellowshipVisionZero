@@ -15,5 +15,3 @@ data/raw/CRIS/
 # secrets — never commit API keys
 data/external/.census_api_key
 *.census_api_key
-# generated, ~11 MB, regenerate with src/make_map.py
-reports/network_map.html

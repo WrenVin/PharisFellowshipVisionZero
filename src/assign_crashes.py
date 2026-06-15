@@ -14,7 +14,6 @@ Outputs:
   reports/crash_assignment_report.md
 """
 
-import json
 from pathlib import Path
 
 import geopandas as gpd
@@ -77,30 +76,6 @@ for c in OWNED:
 out = cfg.processed("segments_enriched.gpkg")
 seg.to_file(out, layer="segments", driver="GPKG")
 print(f"Saved crash counts -> {out}")
-
-# Per-segment, per-year crash counts for the dashboard's year drill-down. We used
-# to ship one row per crash (~414k rows, ~10 MB) and recount client-side; that was
-# a big chunk of the browser's memory. Instead pre-aggregate to
-#   {seg_id: {year: [n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]}}
-# (~152k small arrays, ~3.7 MB) — the six counts the map shading needs for any
-# mode/severity combo. ~halves the crash payload's in-memory footprint.
-rec = assigned[["target", "year", "severe", "involves_ped", "involves_bike"]]
-agg = {}
-for t, y, s, p, b in rec.itertuples(index=False):
-    if pd.isna(y):
-        continue
-    yr = str(int(y))
-    a = agg.setdefault(t, {}).setdefault(yr, [0, 0, 0, 0, 0, 0])
-    a[0] += 1
-    if s: a[1] += 1
-    if p: a[2] += 1
-    if p and s: a[3] += 1
-    if b: a[4] += 1
-    if b and s: a[5] += 1
-DOCS.mkdir(exist_ok=True)
-(DOCS / "crash_year.json").write_text(json.dumps(agg, separators=(",", ":")))
-npairs = sum(len(d) for d in agg.values())
-print(f"Saved {len(agg):,} segments / {npairs:,} segment-year cells -> {DOCS / 'crash_year.json'}")
 
 # --- report -------------------------------------------------------------------
 # identity check: per-segment sums must equal assigned totals (counted once)

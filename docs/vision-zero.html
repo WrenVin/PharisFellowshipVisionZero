@@ -431,14 +431,6 @@
       <div class="sub" id="worst-sub">Killed or seriously injured</div>
       <div id="worst-list"></div>
     </div>
-    <div class="card" id="hin-card" style="display:none">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 6H15a3 3 0 0 1 3 3v6.5"/></svg></span>Crashes vs. the High Injury Network <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
-      <div class="sub" id="hin-sub">Killed or seriously injured</div>
-      <div class="stack" id="hinbar"></div>
-      <div class="legrow" id="hinleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="hinnote"></div>
-      <div class="tip">The City's official 2022 High Injury Network: the streets it flagged from past severe crashes. "On the HIN" = a crash on one of those streets. The gap is the harm the official, crash-based map doesn't yet cover.</div>
-    </div>
   </div>
 
   <div class="foot">
@@ -608,7 +600,7 @@ let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner=
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
-let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[];
+let pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[], dowArr=null;
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
 const fmt=n=>Number(n).toLocaleString();
@@ -678,17 +670,6 @@ const KICON={
   ksi:'<svg viewBox="0 0 24 24" fill="none" stroke="#e0982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M12 11v5M9.5 13.5h5"/></svg>',
   conc:'<svg viewBox="0 0 24 24" fill="none" stroke="#3a9e78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="21" x2="5" y2="13"/><line x1="12" y1="21" x2="12" y2="4"/><line x1="19" y1="21" x2="19" y2="9"/></svg>'};
 
-// per segment-year counts -> the one number the shading needs, for the active
-// mode+severity. a=[n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]
-function segCountYear(a){
-  if(mode==='veh'){
-    const tot=sev==='ksi'?a[1]:a[0], p=sev==='ksi'?a[3]:a[2], b=sev==='ksi'?a[5]:a[4];
-    return Math.max(0, tot-p-b);
-  }
-  if(mode==='ped')  return sev==='ksi'?a[3]:a[2];
-  if(mode==='bike') return sev==='ksi'?a[5]:a[4];
-  return sev==='ksi'?a[1]:a[0];   // all modes
-}
 // shared mode test: ped/bike flags -> does this crash belong to the active lens?
 function modeMatch(ped, bike){
   return mode==='all' || (mode==='ped'&&ped) || (mode==='bike'&&bike) || (mode==='veh'&&!ped&&!bike);
@@ -785,12 +766,13 @@ Promise.all([
   fetch('boundary.geojson').then(r=>r.json()),
   fetch('segments_vz.geojson').then(r=>r.json()),
   fetch('hin.geojson').then(r=>r.json()),
-  fetch('crash_year.json').then(r=>r.json()),
   fetch('crash_points.json').then(r=>r.json()),
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
-]).then(([summary,bnd,seg,hin,cyear,points,dists,sns])=>{
-  vz=summary; segYear=cyear; pts=points;
+]).then(([summary,bnd,seg,hin,points,dists,sns])=>{
+  vz=summary; pts=points;
+  dowArr=new Uint8Array(pts.length);   // precompute each crash's weekday once (Mon=0..Sun=6; 7=no date)
+  for(let i=0;i<pts.length;i++){ const ds=pts[i][7]; dowArr[i]= ds ? (new Date(ds+'T00:00:00').getDay()+6)%7 : 7; }
   if(yrLo===null){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }   // full span by default (overridden by applyURL)
   { const y=vz.years, lo=y[0], hi=y[y.length-2], last=y[y.length-1];  // "as of" line (set once)
     const span=lo+'–'+hi+(last>hi?' plus partial '+last:'');
@@ -1036,7 +1018,7 @@ function render(){
   restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
+  const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1146,8 +1128,8 @@ function updateResetBtn(){
   rb.style.display = def ? 'none' : '';
 }
 
-function drawKPIs(){
-  const t=tally(year);
+function drawKPIs(t){
+  if(!t) t=tally(year);
   let killed,ksi;
   if(mode==='all'){killed=t.killed;ksi=t.ksi;}
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
@@ -1225,9 +1207,9 @@ function setStack(id, segs){
     d.textContent=s.label||'';
   }
 }
-function drawMode(){
-  const t=tally(year), ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
-  document.getElementById('mode-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
+function drawMode(t){
+  if(!t) t=tally(year); const ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
+  document.getElementById('mode-sub').textContent='Killed or seriously injured'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
   if(t.ksi<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
     document.getElementById('modeleg').innerHTML='';
     document.getElementById('modedeaths').textContent='No one killed or seriously injured was recorded'+(year?' in '+year:'')+' for this view.'; return; }
@@ -1252,7 +1234,7 @@ function drawEquity(){
     if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
-  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
+  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
   if(tot<=0){ setStack('eqbar',[0,1,2,3].map(i=>({key:'t'+i,pct:0,color:INC_COL[i]}))); document.getElementById('eqleg').innerHTML='';
     document.getElementById('eqnote').textContent='No KSI with a known neighborhood income for this view.'; return; }
   const pct=x=>Math.round(100*x/tot);
@@ -1272,7 +1254,7 @@ function drawOwnership(){
     if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
-  document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
+  document.getElementById('own-sub').textContent='Killed or seriously injured'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
   if(tot<=0){ setStack('ownbar',[{key:'city',pct:0,color:OWN_COL.city},{key:'txdot',pct:0,color:OWN_COL.txdot}]);
     document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No KSI for this view.</span>'; return; }
   const pct=x=>Math.round(100*x/tot);
@@ -1333,30 +1315,6 @@ function drawWorstStreets(){
     +'<span class="worst-name"><span class="worst-rank">'+(i+1)+'</span>'+r[0].replace(/</g,'&lt;')+'</span>'
     +'<span class="worst-n">'+fmt(r[1])+'</span></div>').join('');
 }
-// --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
-function drawHIN(){
-  let on=0, off=0;
-  for(const p of pts){
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
-    if(p[12]===1) on++; else off++; }
-  const tot=on+off;
-  let hinMi=0, allMi=0;   // street-mile share on the HIN (district-aware)
-  geo.eachLayer(l=>{const pr=l.feature.properties; if(!inDist(pr.district) || !snOk(pr.sn)) return;
-    const mi=(pr.length_ft||0)/5280; allMi+=mi; if(pr.on_hin) hinMi+=mi;});
-  const milePct = allMi>0 ? Math.round(100*hinMi/allMi) : 0;
-  document.getElementById('hin-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
-  if(tot<=0){ document.getElementById('hinbar').innerHTML=''; document.getElementById('hinleg').innerHTML='';
-    document.getElementById('hinnote').textContent='No KSI for this view.'; return; }
-  const pct=x=>Math.round(100*x/tot);
-  document.getElementById('hinbar').innerHTML=
-    '<div style="width:'+pct(on)+'%;background:'+HINCOLOR+'">'+(pct(on)>=8?pct(on)+'%':'')+'</div>'
-   +'<div style="width:'+pct(off)+'%;background:#e0584f">'+(pct(off)>=8?pct(off)+'%':'')+'</div>';
-  document.getElementById('hinleg').innerHTML=
-    '<span><span class="dot" style="background:'+HINCOLOR+'"></span>On the HIN ('+fmt(on)+')</span>'
-   +'<span><span class="dot" style="background:#e0584f"></span>Off the HIN ('+fmt(off)+')</span>';
-  document.getElementById('hinnote').innerHTML='The High Injury Network is <b>'+milePct
-    +'%</b> of street-miles here but carries <b>'+pct(on)+'%</b> of KSI; <b>'+pct(off)+'%</b> fall off it.';
-}
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
 function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inArea(p) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
@@ -1366,8 +1324,8 @@ function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!t
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
 function hourStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'hour')||!modeKSI(p))continue;
   const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
-function dayStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'dow')||!modeKSI(p))continue;
-  if(!p[7])continue; const d=dowOf(p[7]); if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun
+function dayStacks(){ const f={},s={}; for(let i=0;i<pts.length;i++){ const p=pts[i]; if(!timeOk(p,'dow')||!modeKSI(p))continue;
+  if(!p[7])continue; const d=dowArr[i]; if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun (precomputed)
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
 function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
@@ -1519,7 +1477,6 @@ function selectYear(y){
   month=null; deriveYear(); render();
 }
 function selectMonth(m){ month = (m===month) ? null : m; render(); }
-const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
 // nearest street segment to a crash, found geometrically at click time (crash
 // points carry no segment link, so this avoids bloating crash_points.json).
@@ -1550,7 +1507,7 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   rows.push(['When', when + (tm?' · '+tm:'')]);
   rows.push(['Mode', modeTxt]);
   if(p[10]) rows.push(['Council district', p[10]]);
-  if(p[11]!=null) rows.push(['Neighborhood income', INC_LABELS[p[11]]]);
+  if(p[11]!=null) rows.push(['Neighborhood income', INC_LAB[p[11]]]);
   if(p[3] && p[9]) rows.push(['Years of life lost', Math.round(p[9])]);
   // nearest street + its design, so a crash reads in context of the road it's on
   const sp=nearestSegProps(p[0],p[1]);
@@ -1831,7 +1788,9 @@ async function generateReport(cfg){
     await settleMap();   // zoom to the active area + let tiles load before capturing
     const mapURL=captureMap();
     const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
-    const capLeft = view==='points' ? 'Each dot is one crash location.' : 'Streets shaded by '+metric+' on each block (darker = more).';
+    const capLeft = view==='points' ? 'Each dot is one crash location.'
+      : view==='corridor' ? ('Whole streets shaded by '+metric+' (darker = more).')
+      : ('Streets shaded by '+metric+' on each block (darker = more).');
     mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+'&nbsp;·&nbsp;'+d.when+'</span></div></div>') : '';
   }
   // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector). title + chart + legend only.
@@ -2011,8 +1970,7 @@ document.getElementById('worst-list').addEventListener('keydown',e=>{
     if(!Array.isArray(order)||!order.length) return;
     order.forEach(id=>{
       const card=below.querySelector('.card[data-card="'+id+'"]');
-      const hin=document.getElementById('hin-card');
-      if(card) below.insertBefore(card, hin || null);
+      if(card) below.appendChild(card);
     });
   };
   const save=()=>{

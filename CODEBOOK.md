@@ -8,7 +8,7 @@ Documents every variable in the segment datasets. One row = one **road segment**
 
 | File / layer | What it is | Use for |
 |---|---|---|
-| `houston_segments_enriched.gpkg`, layer `segments` | **The analysis network**, clean network + conflated city data (speed; more to come). Canonical once conflation began. | All analysis and mapping. |
+| `houston_segments_enriched.gpkg`, layer `segments` | **The analysis network**, clean network + all conflated layers (speed, lanes/width/median, ADT + operating speed, sidewalks, ACS demographics, crash counts). Land use deferred at city scale. The canonical dataset. | All analysis and mapping. |
 | `houston_segments_clean.gpkg`, layer `segments` | Clean network before any external conflation (divided roads merged, slivers cleaned). | Provenance / rebuild base for conflation. |
 | `houston_segments_clean.gpkg`, layer `removed_slivers` | Audit: dropped turn lanes/slip roads (`*_link`) and unnamed sub-50-ft fragments, with `removal_reason`. | Audits; crash-assignment context. |
 | `houston_segments_clean.gpkg`, layer `merged_away` | Audit: removed halves of divided roads, `rep_seg_id` points to the representative segment. | Crash assignment (search both geometries, credit the representative). |
@@ -226,7 +226,7 @@ These are not columns in the processed `.gpkg`; they are computed at export time
 - `docs/segments_vz.geojson` — slim copy for the Vision Zero dashboard (`vision-zero.html`), only the 20 fields in `WEB_KEEP`: `seg_id`, `name`, `road_class`, `district`, `sn`, `on_txdot`, `on_hin`, `n_crash`, `n_severe`, `n_fatal`, `n_ped`, `n_ped_severe`, `n_bike`, `n_bike_severe`, `length_ft`, `lanes_final`, `roadway_width_ft`, `posted_speed_mph`, `sidewalk_presence`, `adt`.
 - `docs/crash_points.json` — one array per crash, 16 fields in order: `[lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn]`.
 - `district` (segment + crash) is the council-district letter; `sn` is the **Super Neighborhood POLYID** (1–88, or NA where the segment/crash falls in no Super Neighborhood — they don't tile the whole city). Both are export-time spatial joins from the City GIS Administrative_Boundary service (district by nearest, SN by point-in-polygon). `docs/superneighborhoods.geojson` carries each `POLYID` + `SNBNAME` for the dashboard's SN dropdown and outline; the dashboard treats district and SN as mutually exclusive filters.
-- `docs/crash_year.json` — per-segment-per-year counts, `{seg_id: {year: [n_crash, n_severe, n_ped, n_ped_severe, n_bike, n_bike_severe]}}` (replaces the old per-crash `crash_records.json`).
+- The dashboard's year/month/hour/day shading and charts all filter `crash_points.json` directly by the per-crash `date`/`year`/`hour` fields, so no pre-aggregated per-year file is needed. (An earlier `crash_year.json` served that role and has been removed.)
 
 ## Intersection context (tier 1 — computed from the street graph)
 

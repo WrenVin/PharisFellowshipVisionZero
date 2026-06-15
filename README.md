@@ -52,15 +52,13 @@ docs/                          # public web apps (GitHub Pages)
   superneighborhoods.geojson   # the 88 Super Neighborhood outlines (SN filter + zoom)
   vz_summary.json              # citywide toll / trend / concentration / equity numbers
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
-  crash_year.json              # per-segment, per-year crash counts for the year drill-down
-  crash_points.json            # crash coordinates for the "Crash locations" points view
+  crash_points.json            # one row per crash; powers the points view, KPIs, charts, and all time/area filtering
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
   dual_merge_report.md      # divided-road merge report (generated)
   sliver_cleanup_report.md  # sliver cleanup report (generated)
   speed_conflation_report.md # speed limit conflation report (generated)
   …plus one report per conflation step (lanes/width/median, ADT, demographics, sidewalks, land use)
-notebooks/     # exploratory analysis
 ELI5.md        # plain-English story of the project (start here if non-technical)
 LOG.md         # dated project log: decisions, findings, rationale
 CODEBOOK.md    # definition of every variable in the segment dataset
@@ -128,7 +126,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 - **Vulnerable road users:** walking and biking are only ~3% of all crashes but ~27% of severe crashes and ~41% of deaths. Walking: 597 killed, 2,226 KSI, 8,772 crashes. Biking: 89 killed, 459 KSI, 3,293 crashes.
 - **Equity:** neighborhoods under $100k median household income account for ~81% of KSI; the citywide block-group median is ~$71k.
 - Both dashboards are live and citywide; the Vision Zero page overlays the City's official HIN 2022 (1,261 segments).
-- **Web-app note:** the dashboards load all features client-side. The Vision Zero page loads the slim `segments_vz.geojson` (~34 MB) plus `crash_points.json` (~30 MB), `crash_year.json` (~4 MB), `hin.geojson`, and the boundary/district outlines (~70 MB total); the Street Explorer loads the full `segments.geojson` (~69 MB). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
+- **Web-app note:** the dashboards load all features client-side. The Vision Zero page loads the slim `segments_vz.geojson` (~34 MB) plus `crash_points.json` (~30 MB), `hin.geojson`, and the boundary/district outlines (~65 MB total); the Street Explorer loads the full `segments.geojson` (~66 MB). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
 - **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis (now citywide).
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).

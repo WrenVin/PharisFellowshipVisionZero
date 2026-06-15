@@ -4,6 +4,27 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — Final polish pass: dead-code purge, perf, consistency fixes
+
+A whole-repo cleanup: remove anything old/broken/unused, fix inconsistencies, and speed up the dashboard without changing behavior. Scoped with a 6-agent read-only audit (every finding independently re-verified; zero false positives) and one verifier-caught error before it shipped. All edits verified in-browser (byte-identical chart/KPI numbers where output should be unchanged).
+
+**Dashboard dead code (`vision-zero.html`).** Removed three never-called artifacts left behind by earlier refactors: `drawHIN()` + the hidden `#hin-card` DOM (the HIN *map overlay* stays; only the dead panel went), and `segCountYear()` (superseded by the per-crash `pts` shading path). Deleted the write-only `segYear` variable and the `crash_year.json` fetch it fed — the year/month/hour/day shading and charts already filter `crash_points.json` directly, so the 3.6 MB file was pure download weight. De-duplicated `INC_LABELS` (byte-identical to `INC_LAB`) and simplified the drag-reorder restore (it referenced the deleted hin-card; now a plain `appendChild`).
+
+**Stopped regenerating the dead file.** `crash_year.json` was still emitted by `src/assign_crashes.py` (self-contained block, removed; dropped the now-unused `import json`) so the next pipeline run won't re-add it. `git rm`'d `docs/crash_year.json`.
+
+**Performance (output-identical, verified).** (a) Precompute each crash's weekday once at load into a `Uint8Array` (`dowArr`) instead of constructing a `Date` per crash on every day-of-week redraw; confirmed the stacks are byte-identical to the old `dowOf` path. (b) `render()` now computes `tally(year)` once and passes it to both `drawKPIs` and `drawMode` (was tallying ~422k crashes twice per render).
+- **Verifier catch:** the audit also proposed folding `yllTotal()` into `tally()`, but `yllTotal` filters by `modeMatch` (active-mode YLL) while `tally` is mode-agnostic — folding would have shown all-mode YLL when filtered to Walking/Biking. Rejected that one; kept `yllTotal` separate.
+
+**Consistency fixes.** The Mode / Income / Road-owner panel sub-labels showed a year suffix only for a single selected year, not a multi-year range; now a narrowed range reads e.g. "· 2020–2023". The report map caption gained a corridor-view branch ("Whole streets shaded by …") instead of mislabeling corridor mode as block-level.
+
+**Street Explorer (`index.html`): removed the broken land-use UI.** The `landuse_dominant` / `pct_commercial` columns are absent from all 75,260 segments (land use is deferred at city scale), so the "Adjacent land use" color-by + filter chips were dead — color-by rendered all-gray and the filter hid every street. Pulled all 13 sites (chips, color-by/FIELDS entries, INFO_GROUPS row, `norm()` special-case, filter object, `passFilters`, share-URL `lu=`, chip wiring, reset, the HCAD modal row, the orphaned `hcad_parcels` source label). Verified: no land-use chip, not in the dropdown, `filt` keys clean, no console errors, page loads 75,260 streets. Also pre-declared `n_severe:null` in the `filt` initializer for symmetry with the other numeric filters (it was set at build time, so no behavior change), and fixed two stale "2016–2026" crash-window labels to "2016–2025 + partial 2026".
+
+**Housekeeping.** `git rm`'d the orphaned root `HoustonVisionZeroLogo.png` (305 KB, referenced by nothing; the header-logo feature it was for was reverted). Dropped two stale `.gitignore` lines (`src/make_map.py` / `reports/network_map.html`, neither exists). Removed the empty untracked `notebooks/` from the README repo map. Updated CODEBOOK (the enriched-gpkg row now lists all conflations + land-use-deferred; dropped the `crash_year.json` export entry) and README (repo map + web-app payload note minus `crash_year.json`; sizes refreshed).
+
+**Flagged, not touched:** `docs/vz_summary.json` has a stale `hin.pct_ksi: 71` (the dashboard computes the live ~69% itself and never reads this field; README/ELI5 already say ~69). It's a generated value, so it's a pipeline-regeneration fix, not a hand-edit — left for the next pipeline run.
+
+---
+
 ## 2026-06-15 — VZ report: config modal + page-break-safe layout + text dedup
 
 Vincent printed the first report and flagged: charts clipped by page breaks, and too much redundant prose (the narrative restated the stats and the chart notes). He also wanted a pre-report selector to choose what to include. Designed + drafted via a 3-agent workflow (report-redesign drafter, config-modal drafter, adversarial reviewer with a shared generateReport(cfg) contract), then integrated + verified in-browser.

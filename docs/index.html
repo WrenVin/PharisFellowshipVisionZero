@@ -146,8 +146,6 @@
       <div id="f-numeric"></div>
       <label class="fld">Sidewalks</label>
       <div class="chips" id="f-sidewalk"></div>
-      <label class="fld">Adjacent land use</label>
-      <div class="chips" id="f-landuse"></div>
       <div style="margin-top:12px"><button class="link" id="reset">Reset all filters</button></div>
     </div>
 
@@ -201,7 +199,6 @@
         <tr><td>Street network &amp; sidewalks</td><td>OpenStreetMap, retrieved June&nbsp;2026 (live snapshot)</td></tr>
         <tr><td>Speed limits, lanes, width, median</td><td>City of Houston Public Works (Traffic_gx), retrieved June&nbsp;2026</td></tr>
         <tr><td>Traffic volume (ADT) &amp; operating speed</td><td>City of Houston Public Works count stations; readings span <b>2012–2026</b>, most recent per location used</td></tr>
-        <tr><td>Adjacent land use</td><td>Harris County Appraisal District, via City of Houston, retrieved June&nbsp;2026</td></tr>
         <tr><td>Neighborhood demographics</td><td>U.S. Census ACS <b>2023</b> 5-year estimates (covering 2019–2023)</td></tr>
         <tr><td>Crashes (per-street counts)</td><td>TxDOT CRIS public extracts, <b>2016–2025 + partial 2026</b>; city streets only (freeway crashes excluded); each crash assigned to its nearest street within 200&nbsp;ft</td></tr>
         <tr><td>District boundary</td><td>City of Houston GIS, current council districts (post-2020 redistricting)</td></tr>
@@ -248,10 +245,6 @@ const FIELDS = {
   n_bike:{label:'Bicycle crashes',group:'Crashes',type:'count'},
   sidewalk_presence:{label:'Sidewalks',group:'Pedestrian',type:'cat',fmt:v=>swLabel[v]||'n/a',cats:{
     'both':'#2ca02c','one_side':'#fdae61','partial':'#f46d43','none':'#d73027'}},
-  landuse_dominant:{label:'Adjacent land use',group:'Land use',type:'cat',cats:{
-    'Residential':'#4e79a7','Commercial':'#e15759','Industrial':'#b07aa1','Institutional':'#76b7b2',
-    'Parks/Open':'#59a14f','Undeveloped':'#bab0ac','Other':'#9c755f','Unknown':'#d9dde2'}},
-  pct_commercial:{label:'% commercial nearby',group:'Land use',type:'num',unit:'%'},
   median_hh_income:{label:'Median household income',group:'Neighborhood',type:'num',money:true},
   pct_poverty:{label:'% below poverty',group:'Neighborhood',type:'num',unit:'%'},
   pct_hispanic:{label:'% Hispanic',group:'Neighborhood',type:'num',unit:'%'},
@@ -269,19 +262,14 @@ const INFO_GROUPS = [
   ['Design',['road_class','lanes_final','roadway_width_ft','posted_speed_mph','median_type','oneway']],
   ['Traffic',['adt','op_speed_85_mph']],
   ['Pedestrian',['sidewalk_presence']],
-  ['Land use',['landuse_dominant','pct_commercial']],
   ['Neighborhood (block group)',['median_hh_income','pct_poverty','pct_hispanic','pct_black_nh','pct_white_nh','pct_zero_car_hh','pop_density_sqmi']],
-  ['Crash history (2016–2026)',['n_crash','n_injury','n_severe','n_fatal','n_ped_severe','n_bike_severe']],
+  ['Crash history (2016–2025 + partial 2026)',['n_crash','n_injury','n_severe','n_fatal','n_ped_severe','n_bike_severe']],
 ];
 const srcLabel = {city:'city',osm:'OpenStreetMap',default_30_local:'TX default',
   default_30_unposted:'TX default (unposted)',measured:'measured',street_median:'corridor est.',
-  lanes:'',osm_footway:'OSM',hcad_parcels:'HCAD'};
+  lanes:'',osm_footway:'OSM'};
 
-function norm(field,p){ // normalized value (landuse null -> Unknown)
-  let v = p[field];
-  if(field==='landuse_dominant' && (v===null||v===undefined)) return 'Unknown';
-  return v;
-}
+function norm(field,p){ return p[field]; }
 function fmtVal(field,p){
   const m=FIELDS[field]; let v=p[field];
   if(v===null||v===undefined) return '<span class="src">no data</span>';
@@ -311,8 +299,8 @@ let curBase = bases.light.addTo(map);
 let colorBy='road_class', lineWidth=2.5, lineOpacity=0.9, selectedId=null, _suspend=true;
 const _initialParams=new URLSearchParams(location.search);   // captured before any syncURL can rewrite the URL
 const breaksCache={};
-const filt = {roadclass:new Set(), sidewalk:new Set(), landuse:new Set(),
-  posted_speed_mph:null, lanes_final:null, adt:null};
+const filt = {roadclass:new Set(), sidewalk:new Set(),
+  posted_speed_mph:null, lanes_final:null, adt:null, n_severe:null};
 const DOMAIN = {};                       // field -> [sliderMin, sliderMax]
 const FLOOR = {posted_speed_mph:30};     // slider floor overrides (Texas min posted speed)
 
@@ -349,7 +337,6 @@ function colorFor(p){
 function passFilters(p){
   if(filt.roadclass.size && !filt.roadclass.has(p.road_class)) return false;
   if(filt.sidewalk.size && !filt.sidewalk.has(p.sidewalk_presence)) return false;
-  if(filt.landuse.size && !filt.landuse.has(norm('landuse_dominant',p))) return false;
   for(const f of ['posted_speed_mph','lanes_final','adt','n_severe']){
     const r=filt[f], v=p[f]; if(!r || v==null) continue;
     const [dmin,dmax]=DOMAIN[f];
@@ -378,7 +365,6 @@ function syncURL(){
   if(baseName && baseName!=='light') q.push('base='+baseName);
   if(filt.roadclass.size) q.push('rc='+encodeURIComponent([...filt.roadclass].join(',')));
   if(filt.sidewalk.size)  q.push('sw='+encodeURIComponent([...filt.sidewalk].join(',')));
-  if(filt.landuse.size)   q.push('lu='+encodeURIComponent([...filt.landuse].join(',')));
   for(const [f,k] of [['posted_speed_mph','speed'],['lanes_final','lanes'],['adt','adt'],['n_severe','sev']]){
     const r=filt[f], d=DOMAIN[f]; if(r && d && (r[0]>d[0] || r[1]<d[1])) q.push(k+'='+r[0]+'-'+r[1]);
   }
@@ -400,7 +386,6 @@ function applyURLState(){
     document.querySelectorAll('#'+id+' .chip input').forEach(inp=>{ if(want.has(inp.dataset.key)){ inp.checked=true; set.add(inp.dataset.key); } }); };
   applyChips('rc',filt.roadclass,'f-roadclass');
   applyChips('sw',filt.sidewalk,'f-sidewalk');
-  applyChips('lu',filt.landuse,'f-landuse');
   const applyRange=(param,f)=>{ const v=p.get(param); if(!v) return; const mm=v.split('-').map(Number);
     if(mm.length!==2 || mm.some(isNaN)) return;
     const mn=document.getElementById(f+'-min'), mx=document.getElementById(f+'-max');
@@ -486,7 +471,7 @@ function drawLegend(){
     el.innerHTML='<div class="row"><span class="sw" style="background:'+COUNTZERO+'"></span>0 (none recorded)</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+REDS.join(',')+')"></div>'
       +'<div class="gradlab"><span>1</span><span>'+Math.round(mx)+'</span></div>'
-      +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2026</div>';
+      +'<div class="row" style="margin-top:6px;color:#94a3b8">crashes 2016–2025+</div>';
   } else {
     const br=quantileBreaks(colorBy);
     const fmt=v=> m.money?'$'+Math.round(v).toLocaleString():Math.round(v).toLocaleString()+(m.unit||'');
@@ -514,7 +499,6 @@ function buildControls(features){
   // category chip filters
   chipFilter('f-roadclass', Object.keys(FIELDS.road_class.cats), filt.roadclass, FIELDS.road_class.cats);
   chipFilter('f-sidewalk', Object.keys(FIELDS.sidewalk_presence.cats), filt.sidewalk, FIELDS.sidewalk_presence.cats, v=>swLabel[v]);
-  chipFilter('f-landuse', Object.keys(FIELDS.landuse_dominant.cats), filt.landuse, FIELDS.landuse_dominant.cats);
 
   // numeric dual-range filters
   const numWrap=document.getElementById('f-numeric');
@@ -599,7 +583,7 @@ function dualRange(field,label,lo,hi){
   return wrap;
 }
 function resetFilters(){
-  filt.roadclass.clear(); filt.sidewalk.clear(); filt.landuse.clear();
+  filt.roadclass.clear(); filt.sidewalk.clear();
   document.querySelectorAll('.chip input').forEach(c=>c.checked=false);
   for(const f of ['posted_speed_mph','lanes_final','adt','n_severe']){
     const mn=document.getElementById(f+'-min'), mx=document.getElementById(f+'-max');
