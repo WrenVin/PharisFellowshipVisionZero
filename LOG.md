@@ -16,6 +16,15 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: four additions (progress, worst-streets, share URLs, a11y/mobile)
+
+Drafted via 3 parallel subagents (one per feature), integrated and verified one at a time; the accessibility/mobile pass done last on the integrated file.
+
+- **Progress toward zero.** The by-year chart now shows a linear trend line over the yearly KSI bars, a headline comparing recent full years to the earliest ("KSI are up 19% vs 2016 to 2018", red rising / green falling, partial 2026 excluded), and a note on the city's zero-by-2030 goal. Reflects the active filters. `barChartSVG` gained an optional `opt.line` overlay.
+- **Most dangerous streets.** New card ranking the top 10 streets by KSI (or crashes) within the active filters, each row clickable (and keyboard-operable) to select that street and cross-filter the dashboard. Built from `activeCounts` grouped by street name (`drawWorstStreets`).
+- **Shareable URL state.** The active view (mode/sev/year/month/district/owner/view + selected street or segment) is encoded in the URL via `replaceState` (`syncURL` at the end of render), and restored on load (`applyURL`), syncing the UI controls. A shared link reopens the exact view.
+- **Accessibility + mobile.** Mobile already reflowed cleanly (single column, no horizontal overflow); verified at 375px. A11y: travel-mode pills made keyboard-operable (role=button, tabindex, aria-pressed, Enter/Space) instead of mouse-only spans; aria-labels on the street search and district select; a global `:focus-visible` outline; the worst-street rows made focusable + Enter/Space activatable.
+
 ## 2026-06-14 — VZ dashboard: manual Blink button + logo in the header
 
 - **Logo.** Added the Houston Vision Zero logo to the header (top-left, beside the title), 56px tall with the same 12px corner radius as the cards. Copied `HoustonVisionZeroLogo.png` into `docs/` so Pages serves it.

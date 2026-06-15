@@ -25,6 +25,8 @@
   .pill{font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);
     background:#fff;color:var(--muted);cursor:pointer;user-select:none}
   .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
+  /* visible keyboard focus for all interactive controls */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
   .info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
     border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--muted);
     font:italic 700 10px/1 Georgia,serif;cursor:pointer;margin-left:5px;vertical-align:middle;padding:0}
@@ -150,21 +152,21 @@
     <div class="ctrl">
       <div class="grp">
         <h3>Find a street</h3>
-        <input type="text" id="search" placeholder="e.g. Westheimer, Main St…" autocomplete="off" list="streetnames"/>
+        <input type="text" id="search" placeholder="e.g. Westheimer, Main St…" autocomplete="off" list="streetnames" aria-label="Find a street by name"/>
         <datalist id="streetnames"></datalist>
         <div class="note" id="searchnote"></div>
       </div>
       <div class="grp" id="district-grp" style="display:none">
         <h3>District</h3>
-        <select id="district"></select>
+        <select id="district" aria-label="Filter by council district"></select>
       </div>
       <div class="grp">
-        <h3>Travel mode</h3>
-        <div class="lens">
-          <span class="pill on" data-mode="all">Everyone</span>
-          <span class="pill" data-mode="veh">Driving</span>
-          <span class="pill" data-mode="ped">Walking</span>
-          <span class="pill" data-mode="bike">Biking</span>
+        <h3 id="mode-h">Travel mode</h3>
+        <div class="lens" role="group" aria-labelledby="mode-h">
+          <span class="pill on" data-mode="all" role="button" tabindex="0" aria-pressed="true">Everyone</span>
+          <span class="pill" data-mode="veh" role="button" tabindex="0" aria-pressed="false">Driving</span>
+          <span class="pill" data-mode="ped" role="button" tabindex="0" aria-pressed="false">Walking</span>
+          <span class="pill" data-mode="bike" role="button" tabindex="0" aria-pressed="false">Biking</span>
         </div>
       </div>
       <div class="grp">
@@ -638,7 +640,7 @@ function applyURL(){
   const m=p.get('mode');
   if(m && ['all','veh','ped','bike'].includes(m)){
     mode=m;
-    document.querySelectorAll('.pill').forEach(x=>x.classList.toggle('on', x.dataset.mode===m));
+    document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode===m; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
   }
   const setRadio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
   const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
@@ -863,7 +865,7 @@ function drawWorstStreets(){
   const el=document.getElementById('worst-list');
   if(!rows.length){ el.innerHTML='<div style="font-size:12.5px;color:var(--muted)">No streets in this view.</div>'; return; }
   el.innerHTML=rows.map((r,i)=>
-    '<div class="worst-row" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
+    '<div class="worst-row" tabindex="0" role="button" aria-label="'+r[0].replace(/"/g,'&quot;').replace(/</g,'&lt;')+', '+r[1]+'" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
     +'<span class="worst-name"><span class="worst-rank">'+(i+1)+'</span>'+r[0].replace(/</g,'&lt;')+'</span>'
     +'<span class="worst-n">'+fmt(r[1])+'</span></div>').join('');
 }
@@ -1122,9 +1124,11 @@ function openInfoStreet(name, props){
   sb.addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(sb.value); });
   sb.addEventListener('change',()=>doSearch(sb.value));   // datalist pick
 })();
-document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{
-  document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
-  p.classList.add('on'); mode=p.dataset.mode; render();
+document.querySelectorAll('.pill').forEach(p=>{
+  const pick=()=>{ document.querySelectorAll('.pill').forEach(x=>{ const on=x===p; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
+    mode=p.dataset.mode; render(); };
+  p.onclick=pick;
+  p.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } };   // keyboard operable
 });
 document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=document.querySelector('input[name=sev]:checked').value; render();});
 document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});
@@ -1134,6 +1138,10 @@ document.getElementById('hin').onchange=e=>{
   drawLegend();
 };
 document.getElementById('blink').onclick=doBlink;
+// keyboard activation for the generated worst-street rows (Enter/Space)
+document.getElementById('worst-list').addEventListener('keydown',e=>{
+  const row=e.target.closest('.worst-row'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
+});
 (()=>{ const m=document.getElementById('modal');
   const open=e=>{e.preventDefault(); m.classList.add('show');};
   const close=()=>m.classList.remove('show');
