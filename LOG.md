@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: custom range sliders, region-aware benchmark, draggable panels
+
+Three features Vincent requested, drafted by 3 parallel read-only subagents (region benchmark, draggable panels, temporal sliders) and integrated sequentially.
+
+- **Region-aware "Top X%" benchmark.** The info-panel street benchmark now ranks within the active region: with a district or super neighborhood selected it reads "Top X% of District C streets by KSI (#N of M)" (or the SN name), else "Houston". Reworked `streetKsiRank()` to scope by `district`/`sn` and cache per region; `regionLabel()` supplies the wording. Verified: Memorial Drive is #30 of 14,582 citywide but #1 of 954 in District C.
+- **Custom range sliders (year, time of day, day of week).** Dual-handle sliders under each of those three charts let you set a custom range that filters the whole dashboard. Centralized all temporal filtering in one `timeOk(p, skip)` predicate (year-range + month + hour-range + dow-range); `skip` lets each chart show its own full distribution while filtered by the other two, with out-of-range bars faded. The single-`year` model is preserved as a derived value (`yrLo===yrHi ? yrLo : null`) so month drill-down and all labels keep working; clicking a year bar collapses the range to that year. `computeCounts()` now counts from crash points whenever any temporal filter is narrowed (else the fast geo path). Reused the Street Explorer's proven `.dual` slider component. Ranges are in the URL (`yr`/`hr`/`dow=lo-hi`), Reset, the Reset-button visibility, and the Viewing banner. Verified: 2020–2023 → 706 killed; 6–10am → 1,302 KSI; weekend → 2,781 KSI; and all compose with district/SN.
+- **Draggable / swappable data panels.** Each panel header has a grip handle (handle-only drag, so it never fights the charts/sliders inside). Drag to reorder the cards in the `.below` grid; order persists in `localStorage`. Reordering is safe because every draw function targets elements by id. The hidden HIN card stays pinned. Verified: a saved custom order restores on reload and the panels still render correctly.
+
+Verified in-browser: all three slider dimensions filter + fade + label correctly, region benchmark switches denominators, drag order persists, combined filters compose (District C + 2021–2023 + Fri–Sun + 6–11pm = 26 KSI), Reset clears everything, no console errors, no em dashes.
+
+---
+
 ## 2026-06-15 — VZ dashboard: four high-value additions (day of week, freshness, OG tags, street benchmark)
 
 Four small features Vincent picked from a "what are we missing" review. Drafted by 4 parallel read-only subagents (one per feature; disjoint regions of the single file), integrated sequentially.

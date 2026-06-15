@@ -28,6 +28,19 @@
   body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .barhit{fill:transparent;transition:fill .1s}
   .barhit:hover{fill:rgba(122,20,25,.16);stroke:var(--accent);stroke-width:1.5;rx:2}
+  /* dual-handle range slider under the year / hour / day-of-week charts */
+  .rng{margin-top:8px}
+  .rng .lab{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:1px}
+  .rng .lab b{color:var(--ink);font-weight:600}
+  .dual{position:relative;height:22px}
+  .dual input[type=range]{position:absolute;width:100%;margin:0;pointer-events:none;-webkit-appearance:none;
+    background:none;top:6px}
+  .dual input[type=range]::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;height:15px;
+    width:15px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 3px rgba(16,24,40,.35);cursor:pointer}
+  .dual input[type=range]::-moz-range-thumb{pointer-events:auto;height:13px;width:13px;border-radius:50%;
+    background:var(--accent);border:2px solid #fff;cursor:pointer}
+  .dual .track{position:absolute;top:11px;height:4px;left:0;right:0;background:var(--line);border-radius:2px}
+  .dual .fill{position:absolute;top:11px;height:4px;background:var(--accent);border-radius:2px}
   *{box-sizing:border-box}
   html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#e9edf2}
   a{color:#1d4ed8}
@@ -104,7 +117,14 @@
   #info .kv .v.bad{color:#7a1419}
   .below{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;align-items:start}
   .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px}
-  .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700}
+  .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .grip{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;margin:0;border:none;background:none;color:var(--muted);opacity:.55;cursor:grab;border-radius:4px;-webkit-user-select:none;user-select:none}
+  .grip:hover{opacity:1;color:var(--accent);background:var(--panel)}
+  .grip:active{cursor:grabbing}
+  .grip svg{width:13px;height:13px;display:block;pointer-events:none}
+  .card.dragging{opacity:.5}
+  .card.drop-before{box-shadow:-3px 0 0 0 var(--accent)}
+  .card.drop-after{box-shadow:3px 0 0 0 var(--accent)}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:9px;min-height:15px}
   .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer;animation:rowIn .32s ease both}
   .worst-row:hover{background:#f3f4f6}
@@ -272,51 +292,69 @@
   </div>
 
   <div class="below">
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
+    <div class="card" data-card="trend">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
+      <div class="rng" id="yr-rng" style="display:none">
+        <div class="lab"><span>Year range</span><b id="yr-lab"></b></div>
+        <div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div>
+          <input type="range" id="yr-min" aria-label="Earliest year">
+          <input type="range" id="yr-max" aria-label="Latest year"></div>
+      </div>
       <div class="bleg" id="trend-leg"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
+    <div class="card" data-card="tod">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
       <div class="sub" id="tod-sub"></div>
       <div id="tod"></div>
+      <div class="rng">
+        <div class="lab"><span>Hour range</span><b id="hr-lab"></b></div>
+        <div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div>
+          <input type="range" id="hr-min" min="0" max="23" value="0" aria-label="Earliest hour">
+          <input type="range" id="hr-max" min="0" max="23" value="23" aria-label="Latest hour"></div>
+      </div>
       <div class="bleg" id="tod-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows when in the day severe crashes cluster.</div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
+    <div class="card" data-card="dow">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
       <div class="sub" id="dow-sub"></div>
       <div id="dow"></div>
+      <div class="rng">
+        <div class="lab"><span>Day range</span><b id="dow-lab"></b></div>
+        <div class="dual"><div class="track"></div><div class="fill" id="dow-fill"></div>
+          <input type="range" id="dow-min" min="0" max="6" value="0" aria-label="First day">
+          <input type="range" id="dow-max" min="0" max="6" value="6" aria-label="Last day"></div>
+      </div>
       <div class="bleg" id="dow-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows which days severe crashes cluster on.</div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
+    <div class="card" data-card="mode">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
+    <div class="card" data-card="eq">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
       <div class="sub" id="eq-sub">Killed or seriously injured</div>
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
+    <div class="card" data-card="own">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
       <div class="sub" id="own-sub">Killed or seriously injured</div>
       <div class="stack" id="ownbar"></div>
       <div class="legrow" id="ownleg"></div>
       <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
     </div>
-    <div class="card">
-      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
+    <div class="card" data-card="worst">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
       <div class="sub" id="worst-sub">Killed or seriously injured</div>
       <div id="worst-list"></div>
     </div>
@@ -391,6 +429,9 @@ const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
 let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+// temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
+// hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
+let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
 const PULSE_MAX=50;     // <= this many crashes: auto-flash each so it's easy to find
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
@@ -439,6 +480,23 @@ const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
 // month filter (1-12) within the selected year; p[7] is the date string "YYYY-MM-DD"
 const monthOk=p=> month===null || (p[7] && (+p[7].slice(5,7))===month);
+// is the year range narrowed off its full span? (yrLo/yrHi null before data loads)
+const yrNarrow=()=> yrLo!==null && (yrLo!==vz.years[0] || yrHi!==vz.years[vz.years.length-1]);
+const hrNarrow=()=> hrLo>0 || hrHi<23;
+const dowNarrow=()=> dowLo>0 || dowHi<6;
+// keep the legacy single-year drill model: a one-year range behaves like the old `year`;
+// a multi-year range means year=null (and month=null) so existing labels/KPIs still work.
+function deriveYear(){ if(yrLo===null) return; if(yrLo===yrHi){ year=yrLo; } else { year=null; month=null; } }
+// Mon=0..Sun=6 weekday for a "YYYY-MM-DD" date string.
+const dowOf=ds=> (new Date(ds+'T00:00:00').getDay()+6)%7;
+// unified temporal predicate. skip ('year'|'hour'|'dow') excludes ONE dimension so a
+// chart can render its own full distribution while still filtered by the other two.
+function timeOk(p, skip){
+  if(skip!=='year'){ if(yrLo!==null && (p[6]<yrLo || p[6]>yrHi)) return false; if(!monthOk(p)) return false; }
+  if(skip!=='hour' && hrNarrow()){ if(p[8]==null || p[8]<hrLo || p[8]>hrHi) return false; }
+  if(skip!=='dow' && dowNarrow()){ if(!p[7]) return false; const d=dowOf(p[7]); if(d<dowLo || d>dowHi) return false; }
+  return true;
+}
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
@@ -474,16 +532,16 @@ function segCount(pr){
 }
 function computeCounts(){
   activeCounts={};
-  if(month!==null){   // per-segment counts for a specific month, straight from crash points (have seg_id + date)
-    for(const p of pts){ if(p[6]!==year || !monthOk(p)) continue;
+  // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
+  const narrowed = yrNarrow() || month!==null || hrNarrow() || dowNarrow();
+  if(narrowed){
+    for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
       if(sev==='ksi' && p[2]!==1) continue; if(!modeMatch(p[4],p[5])) continue;
       activeCounts[seg]=(activeCounts[seg]||0)+1; }
-  } else if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inAreaProp(p) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
-  else { const yr=String(year);
-    for(const seg in segYear){ const a=segYear[seg][yr]; if(!a) continue;
-      if(!inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
-      const c=segCountYear(a); if(c>0) activeCounts[seg]=c; } }
+  } else {   // full span, no temporal narrowing: use the fast geo n_severe path
+    geo.eachLayer(l=>{const p=l.feature.properties; if(inAreaProp(p) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);});
+  }
   const r=buildRamp(activeCounts); _breaks=r.breaks; _segCap=r.cap; _segMax=r.max;
   _shownCount=0; for(const k in activeCounts) _shownCount+=activeCounts[k];   // ~crashes shown, for the Blink button
 }
@@ -523,7 +581,7 @@ function styleFor(f){
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
   let crashes=0;
-  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+  for(const p of pts){ if(!inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,crashes};
@@ -560,6 +618,7 @@ Promise.all([
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,cyear,points,dists,sns])=>{
   vz=summary; segYear=cyear; pts=points;
+  if(yrLo===null){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }   // full span by default (overridden by applyURL)
   { const y=vz.years, lo=y[0], hi=y[y.length-2], last=y[y.length-1];  // "as of" line (set once)
     const span=lo+'–'+hi+(last>hi?' plus partial '+last:'');
     const el=document.getElementById('data-asof'); if(el) el.textContent='Data: TxDOT CRIS crashes, '+span+'. Compiled June 2026.'; }
@@ -586,8 +645,7 @@ Promise.all([
     if(view!=='points') return;
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
-      if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+      if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -597,6 +655,7 @@ Promise.all([
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
   try{map.fitBounds(geo.getBounds());}catch(e){}
   buildStreetIndex();
+  setupYearSlider();
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
@@ -682,8 +741,7 @@ function buildPoints(){
   const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id]
-    if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -709,8 +767,7 @@ function buildPulse(){
 function filteredCrashes(cap){
   const hits=[];
   for(const p of pts){
-    if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     if(sev==='ksi' && p[2]!==1) continue;
     hits.push(p); if(hits.length>cap) return null;
   }
@@ -746,8 +803,10 @@ function syncURL(){
   const q=[];
   if(mode!=='all') q.push('mode='+mode);
   if(sev!=='ksi') q.push('sev='+sev);
-  if(year!=null) q.push('year='+year);
+  if(yrNarrow()) q.push('yr='+yrLo+'-'+yrHi);   // narrowed year range (a single drilled year is yrLo==yrHi)
   if(month!=null) q.push('month='+month);
+  if(hrNarrow()) q.push('hr='+hrLo+'-'+hrHi);
+  if(dowNarrow()) q.push('dow='+dowLo+'-'+dowHi);
   if(district!=null) q.push('district='+encodeURIComponent(district));
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(owner!=='all') q.push('owner='+owner);
@@ -775,8 +834,13 @@ function applyURL(){
   const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
   const vw=p.get('view'); if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
   const ow=p.get('owner'); if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
-  const y=p.get('year'); if(y!=null && y!=='' && !isNaN(+y)) year=+y;
+  const yr=p.get('yr');   // "lo-hi" year range
+  if(yr && /^\d{4}-\d{4}$/.test(yr)){ const [a,b]=yr.split('-').map(Number); yrLo=Math.min(a,b); yrHi=Math.max(a,b); }
+  else { const y=p.get('year'); if(y!=null && y!=='' && !isNaN(+y)){ yrLo=+y; yrHi=+y; } }   // legacy single-year links
+  const hr=p.get('hr'); if(hr && /^\d{1,2}-\d{1,2}$/.test(hr)){ let [a,b]=hr.split('-').map(Number); if(a>b)[a,b]=[b,a]; hrLo=Math.max(0,a); hrHi=Math.min(23,b); }
+  const dw=p.get('dow'); if(dw && /^\d-\d$/.test(dw)){ let [a,b]=dw.split('-').map(Number); if(a>b)[a,b]=[b,a]; dowLo=Math.max(0,a); dowHi=Math.min(6,b); }
   const mo=p.get('month'); if(mo!=null && mo!=='' && +mo>=1 && +mo<=12) month=+mo;
+  deriveYear();   // resolve year/month from the range now that it's set
   const d=p.get('district');
   if(d && distFeats.length && distFeats.some(f=>f.properties.DISTRICT===d)){
     const sel=document.getElementById('district'); if(sel) sel.value=d;
@@ -831,6 +895,7 @@ function drawViewing(){
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
   if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
+  else if(yrNarrow()) parts.push('<b>'+yrLo+'–'+yrHi+'</b>');   // multi-year range (single year handled above)
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
     v.querySelector('span').onclick=clearView;
@@ -894,6 +959,7 @@ function selectSN(v){
 }
 function clearView(){
   year=null; month=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
+  yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1];   // return the year range to full
   _clearSN();   // clear any super-neighborhood filter too
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
@@ -901,6 +967,7 @@ function clearView(){
 // reset EVERY filter/selection back to the default citywide view in one click
 function resetAll(){
   mode='all'; sev='ksi'; view='streets'; owner='all'; year=null; month=null;
+  yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; hrLo=0; hrHi=23; dowLo=0; dowHi=6;   // ranges back to full
   selStreet=null; selSeg=null; selIds=new Set();
   document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
@@ -916,7 +983,8 @@ function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
-    && year===null && month===null && district===null && sn===null && selIds.size===0 && !hinOn;
+    && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow()
+    && district===null && sn===null && selIds.size===0 && !hinOn;
   rb.style.display = def ? 'none' : '';
 }
 
@@ -929,7 +997,8 @@ function drawKPIs(){
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
   const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : 'on city streets';
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
-  const span = year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2])
+  const span = yrNarrow() ? (yrLo+'–'+yrHi)
+             : year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? MONTHS[month-1].slice(0,3)+' '+year : String(year));
   const yll=Math.round(yllTotal()), serious=ksi-killed;
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
@@ -957,7 +1026,7 @@ function kpi(ic,l,v,s,neutral,tip,key,num){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&monthOk(p)) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -1021,8 +1090,8 @@ const INC_COL=['#7a1419','#d7301f','#fc8d59','#fdd49e'];   // darker = lower inc
 const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
-  for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI
+  for(const p of pts){
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
@@ -1041,8 +1110,8 @@ function drawEquity(){
 const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
   let cityN=0, txN=0;
-  for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+  for(const p of pts){
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
@@ -1057,21 +1126,35 @@ function drawOwnership(){
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
 }
 // --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
-// citywide all-time KSI ranking by street, built once and cached (filter-independent, uses n_severe)
-let streetKsiRanking=null;
+// all-time KSI ranking by street (uses n_severe), scoped to the active region: when a
+// district or super-neighborhood is selected, only segments in that region are ranked.
+// Cached per region so it is not rebuilt on every call (a few regions cached is fine).
+let streetKsiRanking={};
+// label for the region currently being benchmarked against ("Houston" when unfiltered)
+function regionLabel(){
+  if(district!==null) return 'District '+district;
+  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):'Houston'; }
+  return 'Houston';
+}
 function streetKsiRank(name){
   if(!name || !name.trim() || name.startsWith('__seg__')) return null;
-  if(streetKsiRanking===null){
+  // read the active region at call time so the panel updates when the filter changes
+  const key = district!==null ? 'd:'+district : sn!==null ? 's:'+sn : 'city';
+  if(!streetKsiRanking[key]){
     const tot={}; geo.eachLayer(l=>{ const p=l.feature.properties;
-      if(!p.name || !p.name.trim()) return; tot[p.name]=(tot[p.name]||0)+(p.n_severe||0); });
+      if(!p.name || !p.name.trim()) return;
+      // only streets inside the active region (district OR super-neighborhood)
+      if(district!==null && p.district!==district) return;
+      if(sn!==null && +p.sn!==sn) return;
+      tot[p.name]=(tot[p.name]||0)+(p.n_severe||0); });
     const list=Object.keys(tot).map(nm=>[nm,tot[nm]]).sort((a,b)=>b[1]-a[1]);
     const rankOf={}; list.forEach((r,i)=>{ rankOf[r[0]]=i+1; });
-    streetKsiRanking={total:list.length, rankOf, ksiOf:tot};
+    streetKsiRanking[key]={total:list.length, rankOf, ksiOf:tot};
   }
-  const r=streetKsiRanking; const ksi=r.ksiOf[name]||0; if(ksi<=0) return null;
+  const r=streetKsiRanking[key]; const ksi=r.ksiOf[name]||0; if(ksi<=0) return null;
   const rank=r.rankOf[name], total=r.total;
   const pct=Math.max(1, Math.round(100*rank/total));   // top <1% reads as top 1%
-  return {pct, rank, total, ksi};
+  return {pct, rank, total, ksi, label:regionLabel()};
 }
 let seg2name=null;
 function drawWorstStreets(){
@@ -1092,8 +1175,8 @@ function drawWorstStreets(){
 // --- KSI on vs. off the City's official High Injury Network (mode/year/district aware) ---
 function drawHIN(){
   let on=0, off=0;
-  for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inArea(p)) continue; if(p[2]!==1) continue;  // KSI
+  for(const p of pts){
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
     if(p[12]===1) on++; else off++; }
   const tot=on+off;
   let hinMi=0, allMi=0;   // street-mile share on the HIN (district-aware)
@@ -1116,14 +1199,14 @@ function drawHIN(){
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
 function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inArea(p) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
-function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
+function yearStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'year')||!modeKSI(p))continue;
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
-function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;
+function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!timeOk(p,'year')||!modeKSI(p))continue;
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
-function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!monthOk(p)||!modeKSI(p))continue;
+function hourStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'hour')||!modeKSI(p))continue;
   const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
-function dayStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!monthOk(p)||!modeKSI(p))continue;
-  if(!p[7])continue; const d=(new Date(p[7]+'T00:00:00').getDay()+6)%7; if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun
+function dayStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'dow')||!modeKSI(p))continue;
+  if(!p[7])continue; const d=dowOf(p[7]); if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
 function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
@@ -1182,7 +1265,8 @@ function drawTrend(){
   if(year===null){
     const k=yearStacks(); clickKeys=[];
     vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0);
-      serious.push(k.s[yr]||0); clickKeys.push('selectYear('+yr+')'); if(yr===2026) fadeIdx.add(i); });
+      serious.push(k.s[yr]||0); clickKeys.push('selectYear('+yr+')');
+      if(yr===2026 || (yrLo!==null && (yr<yrLo || yr>yrHi))) fadeIdx.add(i); });   // dim partial 2026 + out-of-range years
   } else {
     const k=monthStacks(year), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
     clickKeys=[];
@@ -1218,12 +1302,15 @@ function drawTrend(){
   drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
-  document.getElementById('trend-sub').innerHTML = year===null
-    ? 'Click a year to view it on the map and break it down by month'
+  document.getElementById('trend-sub').innerHTML = (year===null && yrNarrow())
+    ? ('Years <b>'+yrLo+'–'+yrHi+'</b> · drag the slider or click a year · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all years</span>')
+    : year===null
+    ? 'Click a year, or drag the slider, to filter the dashboard'
     : (month!==null
         ? 'Viewing <b>'+MONTHS[month-1]+' '+year+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectMonth('+month+')">back to all months</span> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">all years</span>'
         : 'Click a month to filter the dashboard to it · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>');
   document.getElementById('trend-leg').innerHTML=stackLegend();
+  syncSlider('yr', yrLo, yrHi);
   if(year===null){
     const parts=[];
     if(headline) parts.push(headline);
@@ -1234,25 +1321,42 @@ function drawTrend(){
   }
 }
 function drawTimeOfDay(){
-  const k=hourStacks(), labels=[], fatal=[], serious=[];
+  const k=hourStacks(), labels=[], fatal=[], serious=[], fadeIdx=new Set();
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
-    labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78});
-  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
+    labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : '');
+    if(hrNarrow() && (h<hrLo || h>hrHi)) fadeIdx.add(h); }
+  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx});
+  const span = yrNarrow() ? (yrLo+'–'+yrHi)
+             : year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
-  document.getElementById('tod-sub').textContent='By hour of day, '+span;
+  document.getElementById('tod-sub').innerHTML = hrNarrow()
+    ? ('Hours <b>'+hourLabel(hrLo)+'–'+hourLabel(hrHi)+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetHourRange()">reset</span>')
+    : ('By hour of day, '+span);
   document.getElementById('tod-leg').innerHTML=stackLegend();
+  syncSlider('hr', hrLo, hrHi);
 }
+const DOW_LAB=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 function drawDayOfWeek(){
-  const k=dayStacks(), labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], fatal=[], serious=[];
-  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); }
-  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78});
-  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
+  const k=dayStacks(), labels=DOW_LAB.slice(), fatal=[], serious=[], fadeIdx=new Set();
+  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0);
+    if(dowNarrow() && (d<dowLo || d>dowHi)) fadeIdx.add(d); }
+  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx});
+  const span = yrNarrow() ? (yrLo+'–'+yrHi)
+             : year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
-  document.getElementById('dow-sub').textContent='By day of week, '+span;
+  document.getElementById('dow-sub').innerHTML = dowNarrow()
+    ? ('Days <b>'+DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetDowRange()">reset</span>')
+    : ('By day of week, '+span);
   document.getElementById('dow-leg').innerHTML=stackLegend();
+  syncSlider('dow', dowLo, dowHi);
 }
-function selectYear(y){ year = (y===year) ? null : y; month=null; render(); }   // changing year clears month
+// clicking a year bar drills into that single year (range collapses to y..y);
+// clicking the same year again returns to the full span.
+function selectYear(y){
+  if(yrLo===y && yrHi===y){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }
+  else { yrLo=y; yrHi=y; }
+  month=null; deriveYear(); render();
+}
 function selectMonth(m){ month = (m===month) ? null : m; render(); }
 const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
@@ -1335,7 +1439,7 @@ function openInfoSeg(p){
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
     +(()=>{ const b=streetKsiRank(p.name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of Houston streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of '+b.label+' streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
       : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this block is in the panels below.</div>'
     +whole;
@@ -1372,7 +1476,7 @@ function openInfoStreet(name, props){
       +row('Sidewalks',sw)
       +row('Traffic volume',range('adt',' veh/day'))+'</div>'
     +(()=>{ const b=streetKsiRank(name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of Houston streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of '+b.label+' streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
       : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
   const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
@@ -1397,6 +1501,45 @@ document.getElementById('hin').onchange=e=>{
 };
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
+// --- dual-range sliders (year / hour / day-of-week) --------------------------
+const _rngLabel={
+  yr:(v)=>String(v),
+  hr:(v)=>hourLabel(v),
+  dow:(v)=>['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][v]
+};
+// reflect lo/hi onto a slider's thumbs, fill bar, and text label (no event fired)
+function syncSlider(id, lo, hi){
+  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
+  if(!mn||!mx) return;
+  const a=+mn.min, b=+mn.max; if(b<=a) return;
+  mn.value=lo; mx.value=hi;
+  const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
+  if(fill){ fill.style.left=((lo-a)/(b-a)*100)+'%'; fill.style.right=(100-(hi-a)/(b-a)*100)+'%'; }
+  if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); }
+}
+// wire one slider: on input, write [lo,hi] back to the two globals via setFn, then render
+function wireSlider(id, setFn){
+  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
+  if(!mn||!mx) return;
+  const upd=()=>{ let a=+mn.value, b=+mx.value; if(a>b){ [a,b]=[b,a]; } setFn(a,b); render(); };
+  mn.oninput=upd; mx.oninput=upd;
+}
+// the year slider's bounds depend on the loaded data, so set them once here
+function setupYearSlider(){
+  const mn=document.getElementById('yr-min'), mx=document.getElementById('yr-max');
+  if(!mn||!mx||!vz) return;
+  const lo=vz.years[0], hi=vz.years[vz.years.length-1];
+  mn.min=lo; mn.max=hi; mx.min=lo; mx.max=hi;
+  document.getElementById('yr-rng').style.display='';
+  syncSlider('yr', yrLo, yrHi);
+}
+wireSlider('yr', (a,b)=>{ yrLo=a; yrHi=b; month=null; deriveYear(); });
+wireSlider('hr', (a,b)=>{ hrLo=a; hrHi=b; });
+wireSlider('dow',(a,b)=>{ dowLo=a; dowHi=b; });
+// range-reset links (used by the chart sub text)
+function resetYearRange(){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; month=null; deriveYear(); render(); }
+function resetHourRange(){ hrLo=0; hrHi=23; render(); }
+function resetDowRange(){ dowLo=0; dowHi=6; render(); }
 // share: copy the current URL (syncURL keeps it in step with the active filters/selection)
 let _shareTimer=null;
 document.getElementById('share').onclick=async()=>{
@@ -1430,6 +1573,63 @@ document.getElementById('worst-list').addEventListener('keydown',e=>{
   document.getElementById('modal-x').onclick=close;
   m.addEventListener('click',e=>{ if(e.target===m) close(); });   // click backdrop to dismiss
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
+// Drag-to-reorder for the data-view cards in .below (handle-only drag, order persisted)
+(()=>{
+  const below=document.querySelector('.below');
+  if(!below) return;
+  const KEY='vz-card-order';
+  const draggables=()=>Array.from(below.querySelectorAll('.card[data-card]'));
+  let dragCard=null;
+  const clearCues=()=>below.querySelectorAll('.card').forEach(c=>c.classList.remove('drop-before','drop-after'));
+  const restore=()=>{
+    let order;
+    try{ order=JSON.parse(localStorage.getItem(KEY)); }catch(e){ return; }
+    if(!Array.isArray(order)||!order.length) return;
+    order.forEach(id=>{
+      const card=below.querySelector('.card[data-card="'+id+'"]');
+      const hin=document.getElementById('hin-card');
+      if(card) below.insertBefore(card, hin || null);
+    });
+  };
+  const save=()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(draggables().map(c=>c.getAttribute('data-card')))); }catch(e){}
+  };
+  below.addEventListener('dragstart',e=>{
+    const grip=e.target.closest('.grip'); if(!grip){ e.preventDefault(); return; }
+    dragCard=grip.closest('.card[data-card]'); if(!dragCard){ e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed='move';
+    try{ e.dataTransfer.setData('text/plain', dragCard.getAttribute('data-card')); }catch(_){}
+    requestAnimationFrame(()=>dragCard&&dragCard.classList.add('dragging'));
+  });
+  below.addEventListener('dragover',e=>{
+    if(!dragCard) return;
+    const over=e.target.closest('.card[data-card]');
+    if(!over||over===dragCard){ return; }
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    const r=over.getBoundingClientRect();
+    const after=(e.clientX - r.left) > r.width/2;
+    clearCues();
+    over.classList.add(after?'drop-after':'drop-before');
+  });
+  below.addEventListener('drop',e=>{
+    if(!dragCard) return;
+    const over=e.target.closest('.card[data-card]');
+    if(!over||over===dragCard){ clearCues(); return; }
+    e.preventDefault();
+    const r=over.getBoundingClientRect();
+    const after=(e.clientX - r.left) > r.width/2;
+    below.insertBefore(dragCard, after ? over.nextSibling : over);
+    clearCues();
+    save();
+  });
+  below.addEventListener('dragend',()=>{
+    if(dragCard) dragCard.classList.remove('dragging');
+    clearCues();
+    dragCard=null;
+  });
+  restore();
 })();
 </script>
 </body>
