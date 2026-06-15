@@ -95,6 +95,12 @@
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
   #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
     justify-content:center;color:var(--muted);z-index:700}
+  /* pulsing locators shown when the filtered view has only a few crashes, so they're easy to spot */
+  .pulse{width:9px;height:9px;border-radius:50%}
+  .pulse.sev{background:#c0151a;animation:pulseSev 1.5s ease-out infinite}
+  .pulse.oth{background:#f0884c;animation:pulseOth 1.5s ease-out infinite}
+  @keyframes pulseSev{0%{box-shadow:0 0 0 0 rgba(192,21,26,.6)}70%{box-shadow:0 0 0 15px rgba(192,21,26,0)}100%{box-shadow:0 0 0 0 rgba(192,21,26,0)}}
+  @keyframes pulseOth{0%{box-shadow:0 0 0 0 rgba(240,136,76,.6)}70%{box-shadow:0 0 0 13px rgba(240,136,76,0)}100%{box-shadow:0 0 0 0 rgba(240,136,76,0)}}
   /* Data & methods modal */
   #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
@@ -276,7 +282,8 @@ const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, selStreet=null, selSeg=null, selIds=new Set();
+const PULSE_MAX=50;   // when the filtered view has <= this many crashes, flash each so it's easy to find
 let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
@@ -526,6 +533,28 @@ function buildPoints(){
   }
   ptLayer=g.addTo(map);
 }
+// When the active filters leave only a handful of crashes, they're tiny and easy
+// to miss on the citywide map. Drop a pulsing locator on each so they pop. Shown
+// in every display mode; non-interactive so clicks pass through to the streets.
+function buildPulse(){
+  if(pulseLayer){ map.removeLayer(pulseLayer); pulseLayer=null; }
+  const hits=[];
+  for(const p of pts){
+    if(year!==null && p[6]!==year) continue;
+    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+    if(sev==='ksi' && p[2]!==1) continue;
+    hits.push(p);
+    if(hits.length > PULSE_MAX) return;   // too many to flash; the normal view reads fine
+  }
+  if(!hits.length) return;
+  const g=L.layerGroup();
+  for(const p of hits){
+    const icon=L.divIcon({className:'', iconSize:[9,9], iconAnchor:[4,4],
+      html:'<div class="pulse '+(p[2]===1?'sev':'oth')+'"></div>'});
+    L.marker([p[0],p[1]], {icon, interactive:false, keyboard:false}).addTo(g);
+  }
+  pulseLayer=g.addTo(map);
+}
 function render(){
   computeCounts();
   if(view==='corridor') computeCorridorCounts();
@@ -543,6 +572,7 @@ function render(){
   restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
+  buildPulse();
   drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawViewing();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);

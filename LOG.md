@@ -16,6 +16,10 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: pulsing locators when the filtered view is sparse
+
+Per Vincent: when you filter down hard (e.g. District C, April 2020 → a death and a few injuries), the few crashes are tiny and faint on the citywide map and hard to find. Added a pulsing locator on each crash when the filtered set is small (`PULSE_MAX=50`). `buildPulse()` collects the crashes matching all active filters (year/month/mode/sev/district/owner/selection), and if there are 1–50 it drops an animated DOM marker (`L.divIcon`, CSS box-shadow pulse) on each; >50 shows nothing (the normal view reads fine). Severe crashes pulse red, others orange. Markers are non-interactive so clicks pass through to the streets, and they show in every display mode (the canvas renderer can't animate, so DOM markers sit on top). Verified: citywide 0 pulses; District C Sep 2019 shows 9 clearly visible pulses; clearing returns to 0. No console errors.
+
 ## 2026-06-14 — VZ dashboard: clearer chart hover (small-N hiding reverted)
 
 - **Hover.** The year/month bar hover was barely visible (8% red wash). Strengthened it: 16% fill plus a red 1.5px outline + rounded corners on the hovered column, so it reads clearly.
