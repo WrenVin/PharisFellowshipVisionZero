@@ -339,10 +339,23 @@
         <h3>Definitions</h3>
         <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
         <p><span class="lbl">Years of life lost</span> = years before age 75 summed over those killed (CDC YPLL convention). The public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the total an estimate.</p>
+        <p><span class="lbl">Neighborhood income</span> = the median household income of the Census block group around each crash (an area characteristic, not the individual's).</p>
       </section>
       <section>
-        <h3>Overlays &amp; sources</h3>
-        <p>The <span class="lbl">High Injury Network</span> overlay is the City of Houston's official Vision Zero HIN (2022). Street design and traffic volume: City of Houston / HCAD. Full methods are in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
+        <h3>Counts, not rates</h3>
+        <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured, not a rate per traffic volume. This is the Vision Zero convention (and how the City's own High Injury Network is built): the goal is zero deaths, so attention goes where the most harm actually occurs. Counts are <span class="lbl">not</span> normalized for exposure (vehicle miles traveled or foot traffic), which we lack for most local streets.</p>
+      </section>
+      <section>
+        <h3>Data sources</h3>
+        <p>Every dataset here is public. Each link goes to the official source.</p>
+        <p><span class="lbl">Crashes</span> &middot; TxDOT Crash Records Information System (CRIS), public extracts, 2016&ndash;2025 plus partial 2026. <a href="https://www.txdot.gov/data-maps/crash-reports-records.html" target="_blank" rel="noopener">txdot.gov</a> &middot; <a href="https://cris.txdot.gov/" target="_blank" rel="noopener">cris.txdot.gov</a></p>
+        <p><span class="lbl">Street network &amp; sidewalks</span> &middot; OpenStreetMap. <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">openstreetmap.org</a></p>
+        <p><span class="lbl">Road ownership (city vs TxDOT)</span> &middot; TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
+        <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
+        <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
+        <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
   </div>

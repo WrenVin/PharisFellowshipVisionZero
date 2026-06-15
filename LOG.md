@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: rewrote Data & methods with linked sources
+
+Vincent wanted the Data & methods modal fully current and with links to every official data source so a user can see exactly where the data comes from.
+- Added a **Data sources** section listing every dataset used with a clickable link to its official home: crashes (TxDOT CRIS / txdot.gov), street network + sidewalks (OpenStreetMap), road ownership (TxDOT Roadway Inventory / TxDOT Open Data Portal), street design + traffic volume (City of Houston Public Works / COH GIS Open Data), the HIN overlay (City of Houston Vision Zero), neighborhood income (U.S. Census ACS 2023 5-yr), and city boundary / council districts / super neighborhoods (COH GIS). All open in a new tab; the CODEBOOK link points to the specific layers/methods. Verified each public URL resolves (cris.txdot.gov 403s to curl behind its bot-filter but loads in a browser; linked txdot.gov alongside it).
+- Fixed a stale line that mis-attributed street design/traffic volume to "City of Houston / HCAD" (HCAD is land use, which is deferred and not used by the dashboard).
+- Added a **Neighborhood income** definition and a **"Counts, not rates"** section explaining that the dashboard ranks by burden (KSI counts), matching Vision Zero / the HIN, and is not exposure-normalized (and why) — documenting the limitation Vincent flagged rather than shipping a misleading normalization toggle.
+Verified in-browser: modal opens with 7 sections and 9 source links, no console errors, no em dashes.
+
+---
+
 ## 2026-06-15 — VZ dashboard: filter by Super Neighborhood
 
 Vincent asked to add a Super Neighborhood filter (and noted SN + district can't both be active at once, since the two geographies overlap).
