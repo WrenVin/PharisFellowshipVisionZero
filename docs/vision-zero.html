@@ -15,10 +15,11 @@
   .barhit{fill:transparent;transition:fill .1s}
   .barhit:hover{fill:rgba(122,20,25,.16);stroke:var(--accent);stroke-width:1.5;rx:2}
   *{box-sizing:border-box}
-  html,body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff}
+  html,body{margin:0;height:100%;font-family:var(--sans);color:var(--ink);background:#fff}
+  body{overflow:hidden}   /* desktop: single-screen app shell, no page scroll (mobile re-enables below) */
   a{color:#1d4ed8}
-  .wrap{max-width:1360px;margin:0 auto;padding:18px 18px 60px}
-  .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+  .wrap{max-width:1360px;margin:0 auto;padding:10px 16px;height:100vh;display:flex;flex-direction:column;gap:8px}
+  .top{flex:none;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
   h1{font-size:21px;margin:0;font-weight:700}
   .tag{font-size:13px;color:var(--muted);margin-top:3px}
   .lens{display:flex;gap:6px;flex-wrap:wrap}
@@ -36,22 +37,22 @@
   .tip.show{display:block}
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
     box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0 8px}
-  .kpi{background:var(--panel);border-radius:10px;padding:14px 16px;position:relative}
-  .kpi .ic{position:absolute;top:13px;right:13px}
-  .kpi .ic svg{width:22px;height:22px;display:block}
-  .kpi .l{font-size:13px;color:var(--muted);padding-right:26px}
-  .kpi .v{font-size:30px;font-weight:700;color:#7a1419;line-height:1.15;margin-top:2px}
+  .kpis{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0}
+  .kpi{background:var(--panel);border-radius:10px;padding:9px 14px;position:relative}
+  .kpi .ic{position:absolute;top:10px;right:12px}
+  .kpi .ic svg{width:20px;height:20px;display:block}
+  .kpi .l{font-size:12.5px;color:var(--muted);padding-right:24px}
+  .kpi .v{font-size:25px;font-weight:700;color:#7a1419;line-height:1.1;margin-top:1px}
   .kpi.neutral .v{color:var(--ink)}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
   .card h3 .ic{display:inline-flex;vertical-align:-2px;margin-right:6px}
   .card h3 .ic svg{width:15px;height:15px;display:block}
   .bleg{display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
   .bleg span{display:flex;align-items:center;gap:5px}
-  .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
-  .ctrl{flex:0 0 212px;border:1px solid var(--line);border-radius:12px;padding:14px}
-  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:700}
-  .ctrl .grp{margin-bottom:16px}
+  .main{flex:1 1 auto;min-height:0;display:flex;gap:12px;align-items:stretch;flex-wrap:nowrap}
+  .ctrl{flex:0 0 200px;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .ctrl h3{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 7px;font-weight:700}
+  .ctrl .grp{margin-bottom:12px}
   .ctrl select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;
     font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
   .ctrl select option{background:#fff;color:var(--ink)}
@@ -61,8 +62,8 @@
   .ctrl .note{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
-  #mapwrap{flex:1 1 420px;min-width:300px;min-height:540px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  #map{height:100%}
+  #mapwrap{flex:1 1 auto;min-width:280px;min-height:0;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  #map{height:100%;min-height:100%}
   #viewing{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;
     padding:5px 13px;font-size:12px;box-shadow:0 1px 4px rgba(16,24,40,.12)}
@@ -83,21 +84,22 @@
   #info .kv .k{color:var(--muted)}
   #info .kv .v{font-weight:600;text-align:right}
   #info .kv .v.bad{color:#7a1419}
-  .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
-  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .card h3{font-size:14px;margin:0 0 1px;font-weight:700}
-  .card .sub{font-size:12px;color:var(--muted);margin-bottom:12px;min-height:15px}
-  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer}
+  /* right-hand panel column: 2-wide grid that fills the row height, scrolls internally only if the window is short */
+  .below{flex:0 0 540px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;align-items:start;min-height:0;overflow-y:auto}
+  .card{border:1px solid var(--line);border-radius:12px;padding:8px 11px}
+  .card h3{font-size:13px;margin:0 0 1px;font-weight:700}
+  .card .sub{font-size:11.5px;color:var(--muted);margin-bottom:7px;min-height:14px}
+  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 6px;border-radius:6px;cursor:pointer}
   .worst-row:hover{background:#f3f4f6}
   .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
   .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
-  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack{display:flex;height:26px;border-radius:7px;overflow:hidden;font-size:11.5px}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
-  .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legrow{display:flex;gap:12px;margin-top:6px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
   .legrow span{display:flex;align-items:center;gap:5px}
   .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
-  .foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;
+  .foot{flex:none;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
   #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
@@ -132,7 +134,16 @@
   .sheet section p:last-child{margin-bottom:0}
   .sheet section .lbl{font-weight:600}
   .sheet a{color:#1d4ed8}
-  @media(max-width:680px){.ctrl{flex-basis:100%}}
+  /* narrow screens: drop the single-screen shell, return to a normal scrolling page */
+  @media(max-width:900px){
+    body{overflow:auto}
+    .wrap{height:auto;display:block;padding:14px 14px 50px}
+    .main{flex-wrap:wrap}
+    .ctrl{flex-basis:100%;overflow:visible}
+    #mapwrap{min-height:520px}
+    .below{flex-basis:100%;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));overflow:visible;margin-top:14px}
+    .foot{margin-top:14px}
+  }
 </style>
 </head>
 <body>
@@ -206,9 +217,8 @@
       <div id="info"></div>
       <div id="loading">Loading…</div>
     </div>
-  </div>
 
-  <div class="below">
+    <div class="below">
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
@@ -228,14 +238,14 @@
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="modedeaths"></div>
     </div>
     <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
       <div class="sub" id="eq-sub">Killed or seriously injured</div>
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="eqnote"></div>
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
     </div>
     <div class="card">
@@ -255,8 +265,9 @@
       <div class="sub" id="hin-sub">Killed or seriously injured</div>
       <div class="stack" id="hinbar"></div>
       <div class="legrow" id="hinleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="hinnote"></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:7px" id="hinnote"></div>
       <div class="tip">The City's official 2022 High Injury Network: the streets it flagged from past severe crashes. "On the HIN" = a crash on one of those streets. The gap is the harm the official, crash-based map doesn't yet cover.</div>
+    </div>
     </div>
   </div>
 
@@ -857,11 +868,11 @@ let seg2name=null;
 function drawWorstStreets(){
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties;
     if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
-  document.getElementById('worst-sub').textContent='Top 10 by '+(sev==='all'?'crashes':'KSI')+', in this view · click to select';
+  document.getElementById('worst-sub').textContent='Top 5 by '+(sev==='all'?'crashes':'KSI')+', in this view · click to select';
   const totals={};
   for(const sid in activeCounts){ const nm=seg2name[sid]; if(!nm) continue;
     totals[nm]=(totals[nm]||0)+activeCounts[sid]; }
-  const rows=Object.keys(totals).map(nm=>[nm,totals[nm]]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const rows=Object.keys(totals).map(nm=>[nm,totals[nm]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const el=document.getElementById('worst-list');
   if(!rows.length){ el.innerHTML='<div style="font-size:12.5px;color:var(--muted)">No streets in this view.</div>'; return; }
   el.innerHTML=rows.map((r,i)=>
@@ -971,7 +982,7 @@ function drawTrend(){
       }
     }
   }
-  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line});
+  document.getElementById('trend').innerHTML=barChartSVG(labels,fatal,serious,{clickKeys,fadeIdx,line,h:118});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = year===null
@@ -983,9 +994,8 @@ function drawTrend(){
   if(year===null){
     const parts=[];
     if(headline) parts.push(headline);
-    if(vz.years.includes(2026)) parts.push('2026 is a partial year, excluded from the trend');
-    parts.push('<span style="color:var(--muted)">Houston\'s goal: zero traffic deaths by 2030.</span>');
-    document.getElementById('trend-note').innerHTML = parts.join('<br>');
+    parts.push('<span style="color:var(--muted)">goal: zero deaths by 2030'+(vz.years.includes(2026)?' · 2026 partial':'')+'</span>');
+    document.getElementById('trend-note').innerHTML = parts.join(' · ');
   } else {
     document.getElementById('trend-note').innerHTML = '';
   }
@@ -994,7 +1004,7 @@ function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
-  document.getElementById('tod').innerHTML=barChartSVG(labels,fatal,serious,{h:150});
+  document.getElementById("tod").innerHTML=barChartSVG(labels,fatal,serious,{h:118});
   const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
              : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
   document.getElementById('tod-sub').textContent='By hour of day, '+span;

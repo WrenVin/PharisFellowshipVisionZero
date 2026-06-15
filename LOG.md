@@ -16,6 +16,12 @@ Four review fixes (each its own commit):
 
 ---
 
+## 2026-06-14 — VZ dashboard: single-screen desktop layout (no page scroll)
+
+Per Vincent: the dashboard had grown to require scrolling. Restructured into a fixed-viewport app shell: `.wrap` is a 100vh flex column (title + KPIs across the top, footer at the bottom), and the middle row fills the rest with controls (left, ~200px) | map (center, flexible, fills full height) | breakdown panels (right, ~540px, 2-wide grid). The map is now much larger. Moved `.below` inside `.main` as the right column.
+
+Fitting six chart panels in a side column without scroll took compaction: widened the panel column so legends/notes stop wrapping into many lines (a wider column is actually *shorter*), trimmed the worst-streets list to top 5, shortened the by-year/time-of-day charts (h~118), one-lined the trend note, and tightened card padding / stack height / legend spacing. Result: fully fits with zero scroll at 1440x900 (and larger); at 1280x800 the page stays fixed and only the panel column scrolls ~29px; below 900px wide it reverts to the normal stacked scrolling page (mobile unaffected). `body{overflow:hidden}` on desktop, re-enabled in the <=900px media query. Verified at 1440x900, 1280x800, and 375px; no console errors.
+
 ## 2026-06-14 — VZ dashboard: four additions (progress, worst-streets, share URLs, a11y/mobile)
 
 Drafted via 3 parallel subagents (one per feature), integrated and verified one at a time; the accessibility/mobile pass done last on the integrated file.
