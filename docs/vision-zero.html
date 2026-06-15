@@ -789,7 +789,7 @@ function drawViewing(){
                 : selSeg!==null ? (selSeg.name||'this block') : null;
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
-  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b>'); }
+  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
   if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
@@ -832,9 +832,10 @@ function setupSN(sns){
   snFeats = sns.features;
   const sel=document.getElementById('snsel');
   const opts=['<option value="">All neighborhoods</option>'];
-  snFeats.map(f=>[f.properties.POLYID, titleCase(f.properties.SNBNAME)])
-    .sort((a,b)=>a[1].localeCompare(b[1]))
-    .forEach(([id,nm])=>opts.push('<option value="'+id+'">'+nm+'</option>'));
+  // sorted by SN number so a specific one (e.g. SN52) is easy to find; label carries the number
+  snFeats.map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
+    .sort((a,b)=>a[0]-b[0])
+    .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
   sel.innerHTML=opts.join('');
   sel.onchange=()=>selectSN(sel.value);
   document.getElementById('sn-grp').style.display='';
