@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-14 — VZ dashboard: loading spinner, load-failure handling, mobile share, Reset
+
+Four small robustness/UX touches:
+- **Loading spinner.** The map overlay now shows a spinning ring + "Loading citywide crash data…" instead of a bare "Loading…" over a blank page.
+- **Load-failure handling.** The `Promise.all` data fetch has a `.catch` that swaps the spinner for "Could not load the dashboard data. Check your connection and try again." with a Reload link, instead of hanging on the spinner forever if a file 404s.
+- **Native share on mobile.** The Share button uses `navigator.share` (the OS share sheet) on touch devices (`pointer:coarse`), falling back to the existing clipboard-copy + "Link copied" confirmation on desktop (and if the sheet errors). A cancelled sheet does nothing.
+- **One-tap Reset.** A "Reset" button (top-right, left of Share) returns every filter and selection to the default citywide view (mode/sev/view/owner/district/year/month/selection + HIN overlay) and syncs all the controls. It only appears when something is off-default (`updateResetBtn()` from `render()` and the HIN toggle), so it stays out of the way otherwise.
+
+Verified in-browser: spinner animates (`spin .8s`); Reset hidden at default, appears on filter, and fully resets state + URL on click; no console errors.
+
+---
+
 ## 2026-06-14 — VZ dashboard: dedicated Share button
 
 The shareable-URL state was already being written on every render (`syncURL`), but there was no obvious way to grab the link. Added a **"Share view"** button top-right in the header. On click it re-syncs the URL and copies it to the clipboard (`navigator.clipboard.writeText`, with a hidden-textarea + `execCommand('copy')` fallback for old/non-secure contexts), then flashes a green "Link copied" confirmation for 2s (or "Press Ctrl+C to copy" if both copy paths fail). The copied link reopens the exact filters/selection. Verified in-browser: with mode=Walking + year=2020 the link is `?mode=ped&year=2020`, the button confirms and resets, sits top-right at desktop width, no console errors.

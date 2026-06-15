@@ -106,8 +106,13 @@
   .foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-  #loading{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;
-    justify-content:center;color:var(--muted);z-index:700}
+  #loading{position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:12px;color:var(--muted);font-size:13px;z-index:700;text-align:center;padding:0 16px}
+  #loading.err{color:var(--ink)}
+  #loading.err a{color:#1d4ed8}
+  .spinner{width:34px;height:34px;border:3px solid #e3e7ec;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  #loading.err .spinner{display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
   /* pulsing locators shown when the filtered view has only a few crashes, so they're easy to spot */
   .pulse{width:9px;height:9px;border-radius:50%}
   .pulse.sev{background:#c0151a;animation:pulseSev 1.5s ease-out infinite}
@@ -129,6 +134,10 @@
   .sharebtn svg{width:15px;height:15px}
   .sharebtn:hover{border-color:var(--accent);color:#7a1419}
   .sharebtn.ok{background:#e7f4ec;border-color:#3a9e78;color:#2e7d52}
+  .topbtns{display:flex;gap:8px;align-items:center}
+  .topbtn{padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);
+    font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
+  .topbtn:hover{border-color:var(--accent);color:#7a1419}
   /* Data & methods modal */
   #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
@@ -166,10 +175,13 @@
       <h1>Vision Zero · Houston</h1>
       <div class="tag">Traffic deaths and serious injuries on city streets in the City of Houston.</div>
     </div>
-    <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
-      <span class="lbl">Share view</span>
-    </button>
+    <div class="topbtns">
+      <button id="reset" class="topbtn" style="display:none" aria-label="Reset all filters to the default view">Reset</button>
+      <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+        <span class="lbl">Share view</span>
+      </button>
+    </div>
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -234,7 +246,7 @@
       <div id="viewing"></div>
       <div id="legend"></div>
       <div id="info"></div>
-      <div id="loading">Loading…</div>
+      <div id="loading"><div class="spinner"></div><div>Loading citywide crash data…</div></div>
     </div>
   </div>
 
@@ -533,6 +545,12 @@ Promise.all([
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
   render();
   if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
+}).catch(err=>{   // a data file failed to load: show a message instead of hanging on the spinner forever
+  console.error('Dashboard data failed to load', err);
+  const l=document.getElementById('loading');
+  if(l){ l.classList.add('err');
+    l.innerHTML='<div style="max-width:250px"><b>Could not load the dashboard data.</b><br>Check your connection and try again.<br><a href="#" id="reload-link">Reload</a></div>';
+    const rl=document.getElementById('reload-link'); if(rl) rl.onclick=e=>{ e.preventDefault(); location.reload(); }; }
 });
 
 // --- find a street ------------------------------------------------------------
@@ -738,6 +756,7 @@ function render(){
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
   else document.getElementById('info').style.display='none';
+  updateResetBtn();
   syncURL();
 }
 function drawViewing(){
@@ -783,6 +802,26 @@ function clearView(){
   year=null; month=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
+}
+// reset EVERY filter/selection back to the default citywide view in one click
+function resetAll(){
+  mode='all'; sev='ksi'; view='streets'; owner='all'; year=null; month=null;
+  selStreet=null; selSeg=null; selIds=new Set();
+  document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
+  const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
+  setR('sev','ksi'); setR('view','streets'); setR('owner','all');
+  const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
+  const ds=document.getElementById('district'); if(ds) ds.value='';
+  document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
+  selectDistrict(null);   // sets district=null, removes its outline, refits the map, and renders (which hides Reset again)
+}
+// the global Reset button only appears when something is off its default
+function updateResetBtn(){
+  const rb=document.getElementById('reset'); if(!rb) return;
+  const hinOn=!!(document.getElementById('hin')||{}).checked;
+  const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
+    && year===null && month===null && district===null && selIds.size===0 && !hinOn;
+  rb.style.display = def ? 'none' : '';
 }
 
 function drawKPIs(){
@@ -1225,14 +1264,20 @@ document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=do
 document.querySelectorAll('input[name=owner]').forEach(r=>r.onchange=()=>{owner=document.querySelector('input[name=owner]:checked').value; render();});
 document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
-  drawLegend();
+  drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
+document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
 // share: copy the current URL (syncURL keeps it in step with the active filters/selection)
 let _shareTimer=null;
 document.getElementById('share').onclick=async()=>{
   syncURL();
   const url=location.href, btn=document.getElementById('share'), lbl=btn.querySelector('.lbl');
+  // on touch devices, offer the native share sheet; fall through to copy if it's dismissed-with-error or absent
+  if(navigator.share && window.matchMedia && window.matchMedia('(pointer:coarse)').matches){
+    try{ await navigator.share({title:document.title, url}); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }   // user cancelled the sheet: do nothing
+  }
   let ok=true;
   try{ await navigator.clipboard.writeText(url); }
   catch(e){   // older browsers / non-secure context: fall back to a hidden textarea
