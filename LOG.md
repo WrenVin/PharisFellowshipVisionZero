@@ -16,13 +16,10 @@ Four review fixes (each its own commit):
 
 ---
 
-## 2026-06-14 — VZ dashboard: clearer chart hover + hide noisy panels at small N
+## 2026-06-14 — VZ dashboard: clearer chart hover (small-N hiding reverted)
 
-Two polish items from Vincent:
 - **Hover.** The year/month bar hover was barely visible (8% red wash). Strengthened it: 16% fill plus a red 1.5px outline + rounded corners on the hovered column, so it reads clearly.
-- **Hide what's not useful at small scale.** Added a `SMALL_N=25` threshold on the active view's (mode-aware) KSI. Below it (`_viewSmall`), the **time-of-day** and **neighborhood-income** cards hide (24- and 4-bin breakdowns are just noise for a handful of crashes), and the concentration KPI swaps to **"All crashes in this view"** (concentration of a tiny set is degenerate). This triggers for a single block, a small street, or a street+month combo; a citywide month (~80 KSI) still shows everything. By-year (navigation), travel mode, and road owner stay visible. Also dropped the stale "(all years)" note on the concentration sub.
-
-Verified: city shows all; single block hides time-of-day + income and shows "All crashes"; Westheimer (266 KSI) shows all; citywide July 2022 (83 KSI) shows all. No console errors.
+- **Reverted the small-N panel hiding.** An earlier pass hid the time-of-day / neighborhood-income cards and swapped the concentration KPI when a view dropped below 25 KSI. Vincent found the disappearing panels confusing, so removed it entirely (`SMALL_N`/`_viewSmall` gone). All panels now always render regardless of how small the filtered set is. The only remaining swap is concentration → "All crashes" when a specific street/segment is selected (concentration of one street is degenerate), which was accepted earlier. Also kept the dropped stale "(all years)" note on the concentration sub.
 
 ---
 

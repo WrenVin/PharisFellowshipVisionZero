@@ -290,9 +290,6 @@ const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
 // month filter (1-12) within the selected year; p[7] is the date string "YYYY-MM-DD"
 const monthOk=p=> month===null || (p[7] && (+p[7].slice(5,7))===month);
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-// below this many KSI in the active view, fine-grained breakdowns (time of day,
-// neighborhood income) and the concentration stat are noise, so we hide/replace them
-const SMALL_N=25; let _viewSmall=false;
 const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
@@ -543,9 +540,6 @@ function render(){
     if(inDist(selSeg.district) && ownerOk(selSeg.on_txdot)) selIds=new Set([selSeg.seg_id]);
     else { selSeg=null; selIds=new Set(); }
   } else selIds=new Set();
-  // is the active view too sparse for fine-grained breakdowns? (mode-aware KSI)
-  { const t=tally(year); const k = mode==='all'?t.ksi : mode==='ped'?t.ped_ksi : mode==='bike'?t.bike_ksi : t.ksi-t.ped_ksi-t.bike_ksi;
-    _viewSmall = k < SMALL_N; }
   restyle();
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
@@ -613,12 +607,11 @@ function drawKPIs(){
              : (month!==null ? MONTHS[month-1].slice(0,3)+' '+year : String(year));
   const yll=Math.round(yllTotal()), serious=ksi-killed;
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
-  // 4th KPI: concentration citywide, OR all-crashes when a street/segment is
-  // selected or the view is too sparse for concentration to mean anything.
+  // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
+  // (concentration of a single street is meaningless).
   let kpi4;
-  if(selIds.size>0 || _viewSmall){
-    const whereCr = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : 'in this view';
-    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), whereCr+(year===null?'':' · '+span), true);
+  if(selIds.size>0){
+    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+span), true);
   } else {
     const con=concentration();
     const conSub='of streets → of '+(sev==='all'?'crashes':'KSI');
@@ -684,8 +677,6 @@ function drawMode(){
 const INC_COL=['#7a1419','#d7301f','#fc8d59','#fdd49e'];   // darker = lower income (bears more)
 const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
-  const card=document.getElementById('eqbar').closest('.card');
-  if(_viewSmall){ card.style.display='none'; return; } card.style.display='';
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
     if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI
@@ -806,8 +797,6 @@ function drawTrend(){
     (year===null && vz.years.includes(2026)) ? '2026 is a partial year' : '';
 }
 function drawTimeOfDay(){
-  const card=document.getElementById('tod').closest('.card');
-  if(_viewSmall){ card.style.display='none'; return; } card.style.display='';
   const k=hourStacks(), labels=[], fatal=[], serious=[];
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : ''); }
