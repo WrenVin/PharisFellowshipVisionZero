@@ -80,7 +80,7 @@ COLS = {
 # the full property set is ~52 MB at city scale (vs ~6 MB of geometry) and was
 # crashing low-memory tabs. The richer per-segment data lives in the CSV/GPKG.
 WEB_KEEP = [
-    "seg_id", "name", "road_class", "district", "on_txdot", "on_hin",
+    "seg_id", "name", "road_class", "district", "sn", "on_txdot", "on_hin",
     "n_crash", "n_severe", "n_fatal", "n_ped", "n_ped_severe",
     "n_bike", "n_bike_severe", "length_ft",
     "lanes_final", "roadway_width_ft", "posted_speed_mph",
@@ -124,6 +124,22 @@ if _dpath.exists():
     sj = sj[~sj.index.duplicated()]
     seg["district"] = sj["DISTRICT"].values
     print(f"Tagged segments by district: {seg['district'].notna().sum():,}/{len(seg):,}")
+
+# Super Neighborhood per segment (City planning geography; 88 named areas like
+# Downtown / Montrose / Second Ward), for the dashboard's per-SN filter. We use
+# point-in-polygon on the segment's representative point (NOT nearest): unlike
+# council districts, Super Neighborhoods don't tile the whole city, so a segment
+# in no SN is left unlabeled (sn = NA) rather than snapped to a far one.
+sn_4326 = None
+_snpath = cfg.raw("superneighborhoods.geojson")
+if _snpath.exists():
+    sn_4326 = gpd.read_file(_snpath)
+    sn_ft = sn_4326.to_crs(seg.crs)[["POLYID", "geometry"]]
+    smids = gpd.GeoDataFrame(geometry=seg.geometry.representative_point(), crs=seg.crs)
+    ssj = gpd.sjoin(smids, sn_ft, how="left", predicate="within")
+    ssj = ssj[~ssj.index.duplicated()]
+    seg["sn"] = pd.array(pd.to_numeric(ssj["POLYID"].values, errors="coerce"), dtype="Int64")
+    print(f"Tagged segments by Super Neighborhood: {seg['sn'].notna().sum():,}/{len(seg):,}")
 
 # on-HIN flag: a segment counts as "on the City's official High Injury Network"
 # if at least half its length runs within 50 ft of an HIN line (so a cross-street
@@ -254,6 +270,10 @@ out = DOCS / "segments.geojson"
 if out.exists():
     out.unlink()
 keep.to_file(out, driver="GeoJSON", COORDINATE_PRECISION=5)
+# Super Neighborhood id is added to the SLIM file only (the dashboard filters by
+# it); the full Street Explorer file above doesn't use it, so we skip it there.
+if sn_4326 is not None and "sn" in seg.columns:
+    keep["sn"] = seg["sn"].values
 # Slim copy -> segments_vz.geojson for the Vision Zero dashboard, which only reads
 # WEB_KEEP. Dropping the ~17 unused fields ~halves the payload (52 MB of props
 # becomes ~18 MB) and keeps low-memory tabs from crashing.
@@ -281,7 +301,7 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, years-of-life-lost, and by-neighborhood-income panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id]
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn]
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
 # nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
 # whether its road is TxDOT-owned (state), and the segment id itself (so the
@@ -303,10 +323,18 @@ if districts_4326 is not None:  # council district per crash, for the per-distri
     cr["district"] = cj["DISTRICT"].values
 else:
     cr["district"] = None
+if sn_4326 is not None:  # Super Neighborhood per crash (point-in-polygon; NA if in none)
+    sj2 = gpd.sjoin(cr[["geometry"]], sn_4326[["POLYID", "geometry"]],
+                    how="left", predicate="within")
+    sj2 = sj2[~sj2.index.duplicated()]
+    cr["sn"] = pd.to_numeric(sj2["POLYID"].values, errors="coerce")
+    print(f"Crash points tagged with a Super Neighborhood: {cr['sn'].notna().sum():,}/{len(cr):,}")
+else:
+    cr["sn"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -318,7 +346,8 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid in zip(
                 int(it) if pd.notna(it) else None,
                 1 if oh else 0,
                 1 if otx else 0,
-                sid if isinstance(sid, str) else None])
+                sid if isinstance(sid, str) else None,
+                int(snv) if pd.notna(snv) else None])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
@@ -334,3 +363,14 @@ if districts_4326 is not None:
         dpath.unlink()
     dd[keep_cols].to_file(dpath, driver="GeoJSON", COORDINATE_PRECISION=5)
     print(f"Wrote {len(dd)} districts -> {dpath} ({dpath.stat().st_size/1e3:.0f} KB)")
+
+# Super Neighborhood polygons for the dashboard dropdown + outline + zoom
+if sn_4326 is not None:
+    ss = sn_4326.to_crs(2278)
+    ss["geometry"] = ss.geometry.simplify(150, preserve_topology=True)
+    ss = ss.to_crs(4326)
+    spath = DOCS / "superneighborhoods.geojson"
+    if spath.exists():
+        spath.unlink()
+    ss[["POLYID", "SNBNAME", "geometry"]].to_file(spath, driver="GeoJSON", COORDINATE_PRECISION=5)
+    print(f"Wrote {len(ss)} Super Neighborhoods -> {spath} ({spath.stat().st_size/1e3:.0f} KB)")

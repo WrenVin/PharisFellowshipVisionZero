@@ -3,7 +3,7 @@
 A traffic-safety analysis and dashboard for the **City of Houston**, built in partnership with the office of Council Member Joseph Panzarella (District C). This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026). The pipeline is area-agnostic (see *Retargeting* below) — it began on District C and now covers the whole city.
 
 **Two public dashboards (one GitHub Pages site, shared data):**
-- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed, **years of life lost**, seriously injured) and a concentration stat (about 6% of streets carry ~69% of the KSI; 92% of streets have zero). Left-sidebar filters: find a street (search), council district (All / A–K, zooms and recomputes everything), travel mode (everyone / driving / walking / biking), road owner (all / city-owned / TxDOT-owned), Show (people killed or injured vs all crashes), Display as (three map levels: shaded whole streets, shaded street segments per block [the default], or crash-location points), and an overlay of the City's official High Injury Network (2022) for comparison. Breakdowns respond to the active filters: **by year (click a year to drill into its 12 months), with a trend line and progress vs the zero-by-2030 goal**, by time of day, by travel mode, by neighborhood income (the equity angle), by road owner (city vs TxDOT), and a clickable "most dangerous streets" top-5 list. **Clicking any street or segment cross-filters the whole dashboard** (every KPI and panel recomputes for that selection); the popup shows the road's physical makeup and a "view this whole street" link widens a block to its corridor. Also: pulsing locators (and a manual "Blink crash locations" button) when a filtered view is sparse, a shareable URL that encodes the current filters/selection, and a "Data & methods" modal. Single-screen desktop layout, keyboard-accessible, mobile-responsive.
+- **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed, **years of life lost**, seriously injured) and a concentration stat (about 6% of streets carry ~69% of the KSI; 92% of streets have zero). Left-sidebar filters: find a street (search), council district (All / A–K, zooms and recomputes everything), super neighborhood (Houston's 88 named planning areas like Montrose or Second Ward; mutually exclusive with district, since the two geographies overlap), travel mode (everyone / driving / walking / biking), road owner (all / city-owned / TxDOT-owned), Show (people killed or injured vs all crashes), Display as (three map levels: shaded whole streets, shaded street segments per block [the default], or crash-location points), and an overlay of the City's official High Injury Network (2022) for comparison. Breakdowns respond to the active filters: **by year (click a year to drill into its 12 months), with a trend line and progress vs the zero-by-2030 goal**, by time of day, by travel mode, by neighborhood income (the equity angle), by road owner (city vs TxDOT), and a clickable "most dangerous streets" top-5 list. **Clicking any street or segment cross-filters the whole dashboard** (every KPI and panel recomputes for that selection); the popup shows the road's physical makeup and a "view this whole street" link widens a block to its corridor. Also: pulsing locators (and a manual "Blink crash locations" button) when a filtered view is sparse, a shareable URL that encodes the current filters/selection, and a "Data & methods" modal. Single-screen desktop layout, keyboard-accessible, mobile-responsive.
 - **🗺️ Street Explorer** (data-first): https://wrenvin.github.io/PharisFellowshipVisionZero/ — every street, **color by any attribute** (design, traffic, demographics, crashes), **stacking filters**, search, click-to-pin info. Mobile-friendly; sources + vintages disclosed in-app. A **shareable URL** encodes the current color/filters/selection so a copied link reopens the same view (Share button, with a native share sheet on mobile); plus a loading spinner and a clear message if the large street file fails to load.
 
 ## Research question
@@ -41,13 +41,15 @@ src/
   export_webmap_data.py        # export GeoJSON for the web apps (docs/)
   export_vz_summary.py         # export headline Vision Zero stats (docs/vz_summary.json)
   export_hin.py                # export the City's official HIN, clipped to the area (docs/hin.geojson)
+  fetch_superneighborhoods.py  # pull Houston's 88 Super Neighborhood boundaries (data/raw/)
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # Street Explorer (data-first: color/filter/search)
   segments.geojson             # full per-street data (Street Explorer)
-  segments_vz.geojson          # slim per-street data (VZ dashboard; only the 19 fields it uses)
+  segments_vz.geojson          # slim per-street data (VZ dashboard; only the 20 fields it uses, incl. sn)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)
+  superneighborhoods.geojson   # the 88 Super Neighborhood outlines (SN filter + zoom)
   vz_summary.json              # citywide toll / trend / concentration / equity numbers
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   crash_year.json              # per-segment, per-year crash counts for the year drill-down
@@ -87,7 +89,8 @@ python3 -m venv .venv
 .venv/bin/python src/build_crashes.py            # clean CRIS crashes (severity + mode), city streets only
 .venv/bin/python src/assign_crashes.py           # assign crashes to segments -> per-segment counts
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
-.venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points
+.venv/bin/python src/fetch_superneighborhoods.py # pull Super Neighborhood boundaries (once; feeds the export below)
+.venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points (tags segments/crashes by district + SN)
 .venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (toll/trend/HIN)
 .venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
 ```

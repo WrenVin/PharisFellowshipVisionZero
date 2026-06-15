@@ -198,6 +198,11 @@
         <h3>District</h3>
         <select id="district" aria-label="Filter by council district"></select>
       </div>
+      <div class="grp" id="sn-grp" style="display:none">
+        <h3>Super neighborhood <button class="info" onclick="toggleTip(this)" aria-label="About super neighborhoods">i</button></h3>
+        <select id="snsel" aria-label="Filter by super neighborhood"></select>
+        <div class="tip">Houston's 88 official Super Neighborhoods (a City planning geography of named areas like Montrose or Second Ward). Pick one to focus the whole dashboard on it. Choosing a Super Neighborhood clears the district filter, and vice versa: you can filter by one or the other, not both.</div>
+      </div>
       <div class="grp">
         <h3 id="mode-h">Travel mode</h3>
         <div class="lens" role="group" aria-labelledby="mode-h">
@@ -348,11 +353,11 @@ const REDS=['#ffe2ba','#fdbb84','#fc8d59','#ef6548','#d7301f','#a50f15'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, pulseLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
 const PULSE_MAX=50;     // <= this many crashes: auto-flash each so it's easy to find
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
-let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, distLayer=null, distFeats=[];
+let segYear={}, pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[];
 let seg2corr={}, corrTotal={}, _cbreaks=[];   // corridor view: seg -> (name+owner) key, key -> total count
 let _segCap=2, _segMax=0, _corrCap=2, _corrMax=0;   // color-ramp cap (p97) + true max, for the legend
 const fmt=n=>Number(n).toLocaleString();
@@ -380,8 +385,18 @@ function animateKPIs(){
   });
 }
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
+// Super Neighborhood filter (mutually exclusive with district; only one is ever
+// non-null). s is a Super Neighborhood POLYID; segments/crashes in no SN are excluded
+// when an SN is active.
+const snOk=s=>sn===null || s===sn;
+// combined "area" tests (district AND super-neighborhood), by data shape:
+const inArea=p=>inDist(p[10]) && snOk(p[CSN]);             // crash array
+const inAreaProp=p=>inDist(p.district) && snOk(p.sn);      // segment feature.properties (or selSeg)
+const inAreaSeg=seg=>inDist(seg2dist[seg]) && snOk(seg2sn[seg]);  // by seg_id
+const titleCase=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
 const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
+const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
 const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
@@ -424,13 +439,13 @@ function computeCounts(){
   activeCounts={};
   if(month!==null){   // per-segment counts for a specific month, straight from crash points (have seg_id + date)
     for(const p of pts){ if(p[6]!==year || !monthOk(p)) continue;
-      const seg=p[SEG]; if(seg==null || !inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
+      const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
       if(sev==='ksi' && p[2]!==1) continue; if(!modeMatch(p[4],p[5])) continue;
       activeCounts[seg]=(activeCounts[seg]||0)+1; }
-  } else if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inDist(p.district) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
+  } else if(year===null){ geo.eachLayer(l=>{const p=l.feature.properties; if(inAreaProp(p) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);}); }
   else { const yr=String(year);
     for(const seg in segYear){ const a=segYear[seg][yr]; if(!a) continue;
-      if(!inDist(seg2dist[seg]) || !ownerOk(seg2tx[seg])) continue;
+      if(!inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
       const c=segCountYear(a); if(c>0) activeCounts[seg]=c; } }
   const r=buildRamp(activeCounts); _breaks=r.breaks; _segCap=r.cap; _segMax=r.max;
   _shownCount=0; for(const k in activeCounts) _shownCount+=activeCounts[k];   // ~crashes shown, for the Blink button
@@ -456,7 +471,7 @@ function computeCorridorCounts(){
 }
 function styleFor(f){
   const p=f.properties;
-  if(!inDist(p.district) || !ownerOk(p.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
+  if(!inAreaProp(p) || !ownerOk(p.on_txdot)) return {opacity:0, weight:0};  // hide other districts / owners
   if(selIds.has(p.seg_id)) return {color:'#1d4ed8', weight:5.5, opacity:.95};  // selected street/segment
   const corr = view==='corridor';
   const v = corr ? (corrTotal[seg2corr[p.seg_id]]||0) : (activeCounts[p.seg_id]||0);
@@ -471,7 +486,7 @@ function styleFor(f){
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
   let crashes=0;
-  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+  for(const p of pts){ if(y!==null && p[6]!==y) continue; if(!inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,crashes};
@@ -479,7 +494,7 @@ function tally(y){
 // HIN-style concentration within the active district: top 6% of street-miles by KSI -> % of KSI
 function concentration(){
   const rows=[];
-  geo.eachLayer(l=>{const p=l.feature.properties; if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;
+  geo.eachLayer(l=>{const p=l.feature.properties; if(!inAreaProp(p) || !ownerOk(p.on_txdot)) return;
     rows.push([activeCounts[p.seg_id]||0, (p.length_ft||0)/5280]);});
   rows.sort((a,b)=>b[0]-a[0]);
   let totSev=0, totMi=0; for(const r of rows){totSev+=r[0]; totMi+=r[1];}
@@ -504,14 +519,16 @@ Promise.all([
   fetch('hin.geojson').then(r=>r.json()),
   fetch('crash_year.json').then(r=>r.json()),
   fetch('crash_points.json').then(r=>r.json()),
-  fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
-]).then(([summary,bnd,seg,hin,cyear,points,dists])=>{
+  fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
+  fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
+]).then(([summary,bnd,seg,hin,cyear,points,dists,sns])=>{
   vz=summary; segYear=cyear; pts=points;
-  for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot;
+  for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
     // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
     // unnamed segments are their own corridor (no name to group on).
     seg2corr[p.seg_id]=(p.name && p.name.trim()) ? p.name+'|'+(p.on_txdot?1:0) : ' '+p.seg_id; }
   if(dists && dists.features && dists.features.length) setupDistricts(dists);
+  if(sns && sns.features && sns.features.length) setupSN(sns);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
   // white casing under a crisp purple core so the HIN reads clearly over the shaded streets
   hinLayer=L.layerGroup([
@@ -521,7 +538,7 @@ Promise.all([
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
       const p=f.properties;
-      if(!inDist(p.district) || !ownerOk(p.on_txdot)) return;   // ignore filtered-out segments
+      if(!inAreaProp(p) || !ownerOk(p.on_txdot)) return;   // ignore filtered-out segments
       selectSeg(p);   // a click selects ONE segment; "view whole street" is in its popup
       L.DomEvent.stop(e); });
   }}).addTo(map);
@@ -530,7 +547,7 @@ Promise.all([
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
       if(year!==null && p[6]!==year) continue;
-      if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+      if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -602,17 +619,17 @@ function collectStreetProps(){
   if(selStreet.startsWith('__seg__')){
     const id=selStreet.slice(7);
     geo.eachLayer(l=>{ const p=l.feature.properties;
-      if(String(p.seg_id)===id && inDist(p.district) && ownerOk(p.on_txdot)) out.push(p); });
+      if(String(p.seg_id)===id && inAreaProp(p) && ownerOk(p.on_txdot)) out.push(p); });
   } else {
     const layers=streetIndex[selStreet.toLowerCase()]||[];
     for(const l of layers){ const p=l.feature.properties;
-      if(inDist(p.district) && ownerOk(p.on_txdot)) out.push(p); }
+      if(inAreaProp(p) && ownerOk(p.on_txdot)) out.push(p); }
   }
   return out;
 }
 function clearSel(){ selStreet=null; selSeg=null; selIds=new Set(); render(); }
 
-function faintStyle(f){ if(!inDist(f.properties.district) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
+function faintStyle(f){ if(!inAreaProp(f.properties) || !ownerOk(f.properties.on_txdot)) return {opacity:0, weight:0};
   if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5, opacity:.9};
   return {color:ZERO, weight:1, opacity:.35}; }
 function restyle(){ geo.setStyle(view==='points' ? faintStyle : styleFor); }
@@ -626,7 +643,7 @@ function buildPoints(){
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id]
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -653,7 +670,7 @@ function filteredCrashes(cap){
   const hits=[];
   for(const p of pts){
     if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4], p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
+    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue;
     if(sev==='ksi' && p[2]!==1) continue;
     hits.push(p); if(hits.length>cap) return null;
   }
@@ -692,6 +709,7 @@ function syncURL(){
   if(year!=null) q.push('year='+year);
   if(month!=null) q.push('month='+month);
   if(district!=null) q.push('district='+encodeURIComponent(district));
+  if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(owner!=='all') q.push('owner='+owner);
   if(view!=='streets') q.push('view='+view);
   if(selSeg!=null && selSeg.seg_id!=null) q.push('seg='+encodeURIComponent(selSeg.seg_id));
@@ -724,6 +742,11 @@ function applyURL(){
     const sel=document.getElementById('district'); if(sel) sel.value=d;
     selectDistrict(d);
   }
+  const snp=p.get('sn');   // only if no district (mutually exclusive)
+  if(district===null && snp!=null && snp!=='' && !isNaN(+snp) && snFeats.length && snFeats.some(f=>+f.properties.POLYID===+snp)){
+    const sel=document.getElementById('snsel'); if(sel) sel.value=snp;
+    selectSN(+snp);
+  }
   const seg=p.get('seg'), street=p.get('street');
   if(seg!=null){
     return ()=>{ let props=null;
@@ -744,7 +767,7 @@ function render(){
     if(selProps.length){ selIds=new Set(selProps.map(p=>p.seg_id)); }
     else { selStreet=null; selProps=null; selIds=new Set(); }
   } else if(selSeg!==null){
-    if(inDist(selSeg.district) && ownerOk(selSeg.on_txdot)) selIds=new Set([selSeg.seg_id]);
+    if(inAreaProp(selSeg) && ownerOk(selSeg.on_txdot)) selIds=new Set([selSeg.seg_id]);
     else { selSeg=null; selIds=new Set(); }
   } else selIds=new Set();
   restyle();
@@ -766,6 +789,7 @@ function drawViewing(){
                 : selSeg!==null ? (selSeg.name||'this block') : null;
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
+  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b>'); }
   if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
@@ -787,6 +811,7 @@ function setupDistricts(dists){
 }
 function selectDistrict(d){
   district = d || null;
+  if(district!==null) _clearSN();   // district and super neighborhood are mutually exclusive
   // keep any selected street; render() re-derives it within the new district
   // (narrowing to the in-district part, or clearing if none remains).
   if(distLayer){ map.removeLayer(distLayer); distLayer=null; }
@@ -798,8 +823,37 @@ function selectDistrict(d){
   } else { try{ map.fitBounds(geo.getBounds()); }catch(e){} }
   render();
 }
+// --- per-super-neighborhood filter (mutually exclusive with district) ---------
+function _clearSN(){ sn=null; const ss=document.getElementById('snsel'); if(ss) ss.value='';
+  if(snLayer){ map.removeLayer(snLayer); snLayer=null; } }
+function _clearDist(){ district=null; const ds=document.getElementById('district'); if(ds) ds.value='';
+  if(distLayer){ map.removeLayer(distLayer); distLayer=null; } }
+function setupSN(sns){
+  snFeats = sns.features;
+  const sel=document.getElementById('snsel');
+  const opts=['<option value="">All neighborhoods</option>'];
+  snFeats.map(f=>[f.properties.POLYID, titleCase(f.properties.SNBNAME)])
+    .sort((a,b)=>a[1].localeCompare(b[1]))
+    .forEach(([id,nm])=>opts.push('<option value="'+id+'">'+nm+'</option>'));
+  sel.innerHTML=opts.join('');
+  sel.onchange=()=>selectSN(sel.value);
+  document.getElementById('sn-grp').style.display='';
+}
+function selectSN(v){
+  sn = (v===''||v==null) ? null : +v;
+  if(sn!==null) _clearDist();   // choosing a super neighborhood clears the district filter
+  if(snLayer){ map.removeLayer(snLayer); snLayer=null; }
+  if(sn!==null){
+    const f=snFeats.find(x=>+x.properties.POLYID===sn);
+    if(f){ snLayer=L.geoJSON(f,{interactive:false,style:{color:'#111',weight:2.5,
+      fill:false,opacity:.75,dashArray:'5 3'}}).addTo(map);
+      try{ map.fitBounds(snLayer.getBounds().pad(0.05)); }catch(e){} }
+  } else { try{ map.fitBounds(geo.getBounds()); }catch(e){} }
+  render();
+}
 function clearView(){
   year=null; month=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
+  _clearSN();   // clear any super-neighborhood filter too
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
 }
@@ -812,6 +866,7 @@ function resetAll(){
   setR('sev','ksi'); setR('view','streets'); setR('owner','all');
   const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
   const ds=document.getElementById('district'); if(ds) ds.value='';
+  _clearSN();   // also clear any super-neighborhood filter
   document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
   selectDistrict(null);   // sets district=null, removes its outline, refits the map, and renders (which hides Reset again)
 }
@@ -820,7 +875,7 @@ function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
-    && year===null && month===null && district===null && selIds.size===0 && !hinOn;
+    && year===null && month===null && district===null && sn===null && selIds.size===0 && !hinOn;
   rb.style.display = def ? 'none' : '';
 }
 
@@ -861,7 +916,7 @@ function kpi(ic,l,v,s,neutral,tip,key,num){
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
-function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inDist(p[10])&&ownerOk(p[13])&&selOk(p)&&monthOk(p)) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(year!==null&&p[6]!==year) continue; if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&monthOk(p)) s+=p[9]||0; } return s; }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -926,7 +981,7 @@ const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
   document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year===null?'':' · '+year);
@@ -946,7 +1001,7 @@ const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
   let cityN=0, txN=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10]) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !monthOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
   document.getElementById('own-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
@@ -981,11 +1036,11 @@ function drawWorstStreets(){
 function drawHIN(){
   let on=0, off=0;
   for(const p of pts){ if(year!==null && p[6]!==year) continue;
-    if(!modeMatch(p[4],p[5]) || !inDist(p[10])) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inArea(p)) continue; if(p[2]!==1) continue;  // KSI
     if(p[12]===1) on++; else off++; }
   const tot=on+off;
   let hinMi=0, allMi=0;   // street-mile share on the HIN (district-aware)
-  geo.eachLayer(l=>{const pr=l.feature.properties; if(!inDist(pr.district)) return;
+  geo.eachLayer(l=>{const pr=l.feature.properties; if(!inDist(pr.district) || !snOk(pr.sn)) return;
     const mi=(pr.length_ft||0)/5280; allMi+=mi; if(pr.on_hin) hinMi+=mi;});
   const milePct = allMi>0 ? Math.round(100*hinMi/allMi) : 0;
   document.getElementById('hin-sub').textContent='Killed or seriously injured'+(year===null?'':' · '+year);
@@ -1003,7 +1058,7 @@ function drawHIN(){
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inDist(p[10]) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
+function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inArea(p) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
 function yearStacks(){ const f={},s={}; for(const p of pts){ if(!modeKSI(p))continue;
   const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
 function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!modeKSI(p))continue;

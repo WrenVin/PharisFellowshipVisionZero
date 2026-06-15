@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: filter by Super Neighborhood
+
+Vincent asked to add a Super Neighborhood filter (and noted SN + district can't both be active at once, since the two geographies overlap).
+
+- **Data.** New `src/fetch_superneighborhoods.py` pulls Houston's 88 official Super Neighborhoods (POLYID + SNBNAME) from the City GIS (Administrative_Boundary MapServer layer 3, same service as the council districts) to `data/raw/houston_superneighborhoods.geojson`. `export_webmap_data.py` now tags each segment (`sn`, point-in-polygon on its representative point) and each crash (`sn`) with its Super Neighborhood POLYID, adds `sn` to the slim `segments_vz.geojson` (`WEB_KEEP`) and as the 16th field of `crash_points.json`, and writes `docs/superneighborhoods.geojson` (POLYID + SNBNAME, simplified). Unlike districts, SNs don't tile the city, so I used point-in-polygon (not nearest): 66,715/75,260 segments and 416,580/421,699 crashes fall in an SN; the rest are left unlabeled. The POLYID (a small int) is stored per crash rather than the name string, to keep `crash_points.json` lean. `sn` is added to the slim file only, so the 68 MB full `segments.geojson` did not churn.
+- **Dashboard.** New "Super neighborhood" dropdown (88 areas, title-cased + alphabetized) below District. Selecting one filters every KPI, panel, map shading and crash point to that SN, draws its dashed outline, and zooms to it. Implemented by folding SN into the area predicates: kept `inDist`, added `snOk`, and replaced the call sites with combined helpers `inArea(p)` / `inAreaProp(p)` / `inAreaSeg(seg)` (district AND SN). **District and SN are mutually exclusive**: choosing one clears the other (dropdown, outline, and state). SN is wired into the "Viewing…" banner, the shareable URL (`?sn=<POLYID>`, applied only when no district is set), Reset, and clear-view.
+- Verified in-browser: 88 SNs load; Kashmere Gardens filters to 12 killed / 69 KSI with only its ~433 segments shown inside the outline; Downtown to 305 KSI; selecting a district clears the SN and vice versa; `?sn=61` restores; no console errors.
+
+---
+
 ## 2026-06-15 — Street Explorer (index.html): brought over the VZ dashboard upgrades
 
 The Street Explorer had drifted behind the Vision Zero dashboard. Ported the relevant improvements (the morph/count-up animations don't apply: no charts/KPIs here):
