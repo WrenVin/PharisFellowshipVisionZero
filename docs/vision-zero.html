@@ -4,6 +4,20 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Vision Zero · Houston · Traffic Safety</title>
+<meta name="description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
+<link rel="canonical" href="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Houston Vision Zero" />
+<meta property="og:title" content="Vision Zero · Houston" />
+<meta property="og:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
+<meta property="og:url" content="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
+<!-- og:image: add a 1200x630 PNG at docs/og-vision-zero.png, then uncomment the next line and switch twitter:card to summary_large_image -->
+<!-- <meta property="og:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-vision-zero.png" /> -->
+<!-- Twitter -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Vision Zero · Houston" />
+<meta name="twitter:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -273,6 +287,13 @@
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows when in the day severe crashes cluster.</div>
     </div>
     <div class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
+      <div class="sub" id="dow-sub"></div>
+      <div id="dow"></div>
+      <div class="bleg" id="dow-leg"></div>
+      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows which days severe crashes cluster on.</div>
+    </div>
+    <div class="card">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
@@ -312,6 +333,7 @@
   <div class="foot">
     <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
     <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
+    <span id="data-asof" style="flex-basis:100%;font-size:11px;opacity:.85"></span>
   </div>
 </div>
 
@@ -538,6 +560,9 @@ Promise.all([
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,cyear,points,dists,sns])=>{
   vz=summary; segYear=cyear; pts=points;
+  { const y=vz.years, lo=y[0], hi=y[y.length-2], last=y[y.length-1];  // "as of" line (set once)
+    const span=lo+'–'+hi+(last>hi?' plus partial '+last:'');
+    const el=document.getElementById('data-asof'); if(el) el.textContent='Data: TxDOT CRIS crashes, '+span+'. Compiled June 2026.'; }
   for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
     // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
     // unnamed segments are their own corridor (no name to group on).
@@ -789,7 +814,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   buildPulse();
-  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
+  drawKPIs(); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1032,6 +1057,22 @@ function drawOwnership(){
    +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>';
 }
 // --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
+// citywide all-time KSI ranking by street, built once and cached (filter-independent, uses n_severe)
+let streetKsiRanking=null;
+function streetKsiRank(name){
+  if(!name || !name.trim() || name.startsWith('__seg__')) return null;
+  if(streetKsiRanking===null){
+    const tot={}; geo.eachLayer(l=>{ const p=l.feature.properties;
+      if(!p.name || !p.name.trim()) return; tot[p.name]=(tot[p.name]||0)+(p.n_severe||0); });
+    const list=Object.keys(tot).map(nm=>[nm,tot[nm]]).sort((a,b)=>b[1]-a[1]);
+    const rankOf={}; list.forEach((r,i)=>{ rankOf[r[0]]=i+1; });
+    streetKsiRanking={total:list.length, rankOf, ksiOf:tot};
+  }
+  const r=streetKsiRanking; const ksi=r.ksiOf[name]||0; if(ksi<=0) return null;
+  const rank=r.rankOf[name], total=r.total;
+  const pct=Math.max(1, Math.round(100*rank/total));   // top <1% reads as top 1%
+  return {pct, rank, total, ksi};
+}
 let seg2name=null;
 function drawWorstStreets(){
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties;
@@ -1081,6 +1122,8 @@ function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!m
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
 function hourStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!monthOk(p)||!modeKSI(p))continue;
   const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
+function dayStacks(){ const f={},s={}; for(const p of pts){ if((year!==null&&p[6]!==year)||!monthOk(p)||!modeKSI(p))continue;
+  if(!p[7])continue; const d=(new Date(p[7]+'T00:00:00').getDay()+6)%7; if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
 function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
@@ -1200,6 +1243,15 @@ function drawTimeOfDay(){
   document.getElementById('tod-sub').textContent='By hour of day, '+span;
   document.getElementById('tod-leg').innerHTML=stackLegend();
 }
+function drawDayOfWeek(){
+  const k=dayStacks(), labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], fatal=[], serious=[];
+  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); }
+  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78});
+  const span = year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
+             : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
+  document.getElementById('dow-sub').textContent='By day of week, '+span;
+  document.getElementById('dow-leg').innerHTML=stackLegend();
+}
 function selectYear(y){ year = (y===year) ? null : y; month=null; render(); }   // changing year clears month
 function selectMonth(m){ month = (m===month) ? null : m; render(); }
 const INC_LABELS=['Under $50k','$50–100k','$100–150k','$150k+'];
@@ -1282,6 +1334,9 @@ function openInfoSeg(p){
       +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'n/a'))
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'
+    +(()=>{ const b=streetKsiRank(p.name); return b
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of Houston streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this block is in the panels below.</div>'
     +whole;
   if(hasName){ const vw=document.getElementById('view-whole-street');
@@ -1316,6 +1371,9 @@ function openInfoStreet(name, props){
       +row('Posted speed',range('posted_speed_mph',' mph'))
       +row('Sidewalks',sw)
       +row('Traffic volume',range('adt',' veh/day'))+'</div>'
+    +(()=>{ const b=streetKsiRank(name); return b
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>Top '+b.pct+'%</b> of Houston streets by KSI (#'+fmt(b.rank)+' of '+fmt(b.total)+')</div>'
+      : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
   const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
 }

@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-15 — VZ dashboard: four high-value additions (day of week, freshness, OG tags, street benchmark)
+
+Four small features Vincent picked from a "what are we missing" review. Drafted by 4 parallel read-only subagents (one per feature; disjoint regions of the single file), integrated sequentially.
+- **By day of week panel.** New card next to "By time of day": stacked killed+serious KSI by weekday (Mon→Sun so weekends sit together), fully filter-aware. New `dayStacks()` (weekday via `new Date(date+'T00:00:00').getDay()`, remapped Mon-first) + `drawDayOfWeek()`, registered in `render()`. The panels grid is now 7 cards (3 rows).
+- **Data freshness line.** A subtle footer line, built once from `vz.years`: "Data: TxDOT CRIS crashes, 2016–2025 plus partial 2026. Compiled June 2026." (partial-year suffix is derived, so it self-updates).
+- **Social/SEO meta tags.** Open Graph + Twitter Card + meta description + canonical in `<head>`, so shared links render a proper preview card. `twitter:card=summary` for now; left a commented `og:image` pointer (add a 1200x630 PNG at `docs/og-vision-zero.png` to upgrade to a large-image card).
+- **Street KSI benchmark in the info panel.** Selecting a street/block now shows "Top X% of Houston streets by KSI (#N of 14,582)". A lazily-built, filter-independent citywide ranking by all-time `n_severe` grouped by street name (`streetKsiRank()`); denominator is all named streets, so any street with KSI lands in the low single-digit percent. Verified: Westheimer #1, Bissonnet #2, Richmond #3, all "Top 1%".
+Verified in-browser: day-of-week 14 bars + correct sub, freshness line populated, OG tags present, benchmark renders for whole-street and single-block selections, no console errors, no em dashes.
+
+---
+
 ## 2026-06-15 — VZ dashboard: rewrote Data & methods with linked sources
 
 Vincent wanted the Data & methods modal fully current and with links to every official data source so a user can see exactly where the data comes from.
