@@ -594,7 +594,7 @@ const REDS=['#fdae61','#f98e52','#f16d43','#e0451f','#c0151a','#8a0b12'];
 const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, hinCasing=null, hinCore=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
@@ -639,6 +639,44 @@ const inAreaSeg=seg=>inDist(seg2dist[seg]) && snOk(seg2sn[seg]);  // by seg_id
 const titleCase=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
 const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
+
+// ---- HIN overlay clipping ---------------------------------------------------
+// The HIN geojson carries no district/SN tags, so each segment is tagged with the
+// area its midpoint falls in (point-in-polygon, the same rule the pipeline uses for
+// super neighborhoods). That lets the overlay be trimmed to the selected area, in
+// both the live map and the printable report (which captures the live map canvas).
+function _ringHas(x,y,r){ let inside=false;   // ray casting; r = [[lng,lat],...]
+  for(let i=0,j=r.length-1;i<r.length;j=i++){ const xi=r[i][0],yi=r[i][1],xj=r[j][0],yj=r[j][1];
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside; }
+  return inside; }
+function _polyHas(x,y,rings){ if(!_ringHas(x,y,rings[0])) return false;   // inside outer ring...
+  for(let k=1;k<rings.length;k++){ if(_ringHas(x,y,rings[k])) return false; } return true; }  // ...and not in a hole
+function _geomHas(x,y,g){ if(!g) return false;
+  if(g.type==='Polygon') return _polyHas(x,y,g.coordinates);
+  if(g.type==='MultiPolygon'){ for(const poly of g.coordinates){ if(_polyHas(x,y,poly)) return true; } return false; }
+  return false; }
+function _bboxOf(g){ let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;   // [minLng,minLat,maxLng,maxLat]
+  (function walk(co){ if(typeof co[0]==='number'){ if(co[0]<a)a=co[0]; if(co[1]<b)b=co[1]; if(co[0]>c)c=co[0]; if(co[1]>d)d=co[1]; } else co.forEach(walk); })(g.coordinates);
+  return [a,b,c,d]; }
+function _areaOf(x,y){   // {dist, snid} the point falls in (bbox pre-filter, then PIP); nulls if none
+  let dist=null, snid=null;
+  for(const f of distFeats){ const bb=f._bb||(f._bb=_bboxOf(f.geometry)); if(x>=bb[0]&&x<=bb[2]&&y>=bb[1]&&y<=bb[3] && _geomHas(x,y,f.geometry)){ dist=f.properties.DISTRICT; break; } }
+  for(const f of snFeats){ const bb=f._bb||(f._bb=_bboxOf(f.geometry)); if(x>=bb[0]&&x<=bb[2]&&y>=bb[1]&&y<=bb[3] && _geomHas(x,y,f.geometry)){ snid=+f.properties.POLYID; break; } }
+  return {dist, snid}; }
+function _lineMid(g){   // representative interior point [lng,lat] of the longest part of a (Multi)LineString
+  const parts = g.type==='MultiLineString' ? g.coordinates : [g.coordinates];
+  let best=parts[0], bestLen=-1;
+  for(const part of parts){ let L=0; for(let i=1;i<part.length;i++) L+=Math.hypot(part[i][0]-part[i-1][0], part[i][1]-part[i-1][1]); if(L>bestLen){ bestLen=L; best=part; } }
+  let half=bestLen/2, acc=0;
+  for(let i=1;i<best.length;i++){ const seg=Math.hypot(best[i][0]-best[i-1][0], best[i][1]-best[i-1][1]);
+    if(acc+seg>=half){ const t=seg===0?0:(half-acc)/seg; return [best[i-1][0]+(best[i][0]-best[i-1][0])*t, best[i-1][1]+(best[i][1]-best[i-1][1])*t]; } acc+=seg; }
+  return best[Math.floor(best.length/2)] || best[0]; }
+function tagHIN(feats){ feats.forEach(f=>{ const m=_lineMid(f.geometry); const a=_areaOf(m[0],m[1]);
+  f.properties=f.properties||{}; f.properties._dist=a.dist; f.properties._sn=a.snid; }); }
+function _hinShow(f){ const p=f.properties||{}; return inDist(p._dist) && snOk(p._sn); }   // visible only inside the active area
+const _hinCasingStyle=f=> _hinShow(f) ? {color:'#ffffff',weight:6,opacity:.7,lineCap:'round'} : {opacity:0,weight:0};
+const _hinCoreStyle  =f=> _hinShow(f) ? {color:HINCOLOR,weight:2.6,opacity:.95,lineCap:'round'} : {opacity:0,weight:0};
+function refreshHinClip(){ if(hinCasing) hinCasing.setStyle(_hinCasingStyle); if(hinCore) hinCore.setStyle(_hinCoreStyle); }
 const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
@@ -784,11 +822,14 @@ Promise.all([
   if(dists && dists.features && dists.features.length) setupDistricts(dists);
   if(sns && sns.features && sns.features.length) setupSN(sns);
   L.geoJSON(bnd,{interactive:false,style:{color:'#111',weight:2,fill:false,opacity:.6}}).addTo(map);
-  // white casing under a crisp purple core so the HIN reads clearly over the shaded streets
-  hinLayer=L.layerGroup([
-    L.geoJSON(hin,{interactive:false,style:{color:'#ffffff',weight:6,opacity:.7,lineCap:'round'}}),
-    L.geoJSON(hin,{interactive:false,style:{color:HINCOLOR,weight:2.6,opacity:.95,lineCap:'round'}})
-  ]);
+  // tag each HIN segment with the area its midpoint falls in, so the overlay can be
+  // clipped to the selected district / super neighborhood (the geojson carries no tags)
+  tagHIN(hin.features);
+  // white casing under a crisp purple core so the HIN reads clearly over the shaded streets;
+  // per-feature styles hide segments outside the active area (clipped via refreshHinClip)
+  hinCasing=L.geoJSON(hin,{interactive:false,style:_hinCasingStyle});
+  hinCore  =L.geoJSON(hin,{interactive:false,style:_hinCoreStyle});
+  hinLayer=L.layerGroup([hinCasing, hinCore]);
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
       const p=f.properties;
@@ -1016,6 +1057,7 @@ function render(){
     else { selSeg=null; selIds=new Set(); }
   } else selIds=new Set();
   restyle();
+  if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // keep the HIN overlay trimmed to the active area
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawViewing(); updateBlinkBtn();
@@ -1614,7 +1656,7 @@ document.querySelectorAll('input[name=sev]').forEach(r=>r.onchange=()=>{sev=docu
 document.querySelectorAll('input[name=view]').forEach(r=>r.onchange=()=>{view=document.querySelector('input[name=view]:checked').value; render();});
 document.querySelectorAll('input[name=owner]').forEach(r=>r.onchange=()=>{owner=document.querySelector('input[name=owner]:checked').value; render();});
 document.getElementById('hin').onchange=e=>{
-  if(e.target.checked){ hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
+  if(e.target.checked){ refreshHinClip(); hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
 document.getElementById('reset').onclick=resetAll;
@@ -1708,6 +1750,7 @@ document.getElementById('share').onclick=async()=>{
 // canvas onto one canvas. crossOrigin tiles keep it untainted; if a basemap blocks
 // CORS we fall back to the overlay alone (shape without the basemap).
 function captureMap(){
+  if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // ensure the HIN is trimmed to the active area before capture
   if(renderer && renderer._redraw) renderer._redraw();   // flush any pending (rAF-deferred) restyle so the canvas pixels are current
   const size=map.getSize(), mc=map.getContainer(), mr=mc.getBoundingClientRect(), oc=renderer._container;
   const draw=withTiles=>{ const c=document.createElement('canvas'); c.width=size.x; c.height=size.y;

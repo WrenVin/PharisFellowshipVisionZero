@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-18 — Clip the HIN overlay to the selected area
+
+Vincent flagged (from a SN61 report) that the High Injury Network overlay kept drawing across the whole city even when an area was selected, both in the dashboard and the printable report. The overlay now trims to the active district / super neighborhood.
+- **Problem:** `hin.geojson` is 1,261 bare LineStrings with NO properties, so there were no district/SN tags to filter on. The overlay was two whole-geojson layers with one static style.
+- **Fix:** at load, tag each HIN segment with the area its midpoint falls in (`tagHIN`), using a small point-in-polygon helper (ray casting, MultiPolygon + holes, bbox pre-filter) against the loaded district (`DISTRICT`) and super-neighborhood (`POLYID`) polygons. This is the same midpoint-in-polygon rule the pipeline uses for SNs; HIN segments are short (median ~0.8 km, capped ~0.9 km) so the midpoint is representative. Stored as `_dist` / `_sn` on each feature.
+- The two HIN sublayers (`hinCasing` white, `hinCore` purple) now use **per-feature** style functions that return `{opacity:0,weight:0}` when the segment is outside the active area (`_hinShow` = `inDist(_dist) && snOk(_sn)`). `refreshHinClip()` re-applies them; it is called from `render()` (when the overlay is visible), when the overlay is toggled on, and at the top of `captureMap()` so the report PNG is trimmed too.
+- **Why the report just works:** the map passes `renderer` as its default, so the HIN shares the one canvas `captureMap()` composites; hiding out-of-area segments shows up in the capture after the forced `renderer._redraw()`.
+- Verified in-browser: citywide shows all 1,261; SN61 shows exactly 47 (= segments tagged to SN61); District C shows exactly 86 (= tagged to C); clearing returns to 1,261. The live map and the captured report image both show the purple lines contained within the dashed boundary. No console errors.
+
+---
+
 ## 2026-06-18 — Neutralize the dashboard's voice (no first-person creator "we")
 
 Vincent asked that the public dashboard copy read in neutral institutional third person, with no first-person creator voice ("we", "I", "us", "our"). Audited both public pages exhaustively (whole-word pronoun grep + a 2-agent adversarial completeness scan that read every displayed string, including the JS-built report/tooltip/KPI text, not just static HTML).
