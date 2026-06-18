@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-18 — Neutralize the dashboard's voice (no first-person creator "we")
+
+Vincent asked that the public dashboard copy read in neutral institutional third person, with no first-person creator voice ("we", "I", "us", "our"). Audited both public pages exhaustively (whole-word pronoun grep + a 2-agent adversarial completeness scan that read every displayed string, including the JS-built report/tooltip/KPI text, not just static HTML).
+- Found exactly two displayed instances, both in the Vision Zero "Data & methods" modal: "We exclude … but keep …" and "exposure … which we lack for most local streets." Rewrote to "This dashboard excludes … but keeps …" and "… which is unavailable for most local streets" (kept the `.lbl` emphasis spans verbatim; no em dashes).
+- Everything else was already neutral/passive. `index.html` had zero first-person. Left untouched on purpose: second-person "you/your" copy that addresses the dashboard user (e.g. "filters are pre-filled from your current view") and two non-rendered code comments, since neither is creator voice in displayed text.
+
+---
+
 ## 2026-06-15 — Final polish pass: dead-code purge, perf, consistency fixes
 
 A whole-repo cleanup: remove anything old/broken/unused, fix inconsistencies, and speed up the dashboard without changing behavior. Scoped with a 6-agent read-only audit (every finding independently re-verified; zero false positives) and one verifier-caught error before it shipped. All edits verified in-browser (byte-identical chart/KPI numbers where output should be unchanged).
