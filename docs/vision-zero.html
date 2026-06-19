@@ -167,9 +167,10 @@
     font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
   .topbtn:hover{border-color:var(--accent);color:#7a1419}
   /* Data & methods modal */
-  #modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
+  #modal,#fbmodal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
-  #modal.show{display:flex}
+  #modal.show,#fbmodal.show{display:flex}
+  #fbmodal .fbframe{width:100%;height:600px;max-height:68vh;border:0;border-radius:8px;background:var(--panel)}
   .sheet{background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(16,24,40,.3)}
   .sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
   .sheet .shd h2{font-size:18px;margin:0;font-weight:700}
@@ -265,7 +266,7 @@
   @media print{
     @page{size:letter;margin:0.5in}
     html,body{background:#fff !important}
-    .wrap,#modal,#rcfg{display:none !important}
+    .wrap,#modal,#fbmodal,#rcfg{display:none !important}
     #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
     a{color:var(--ink);text-decoration:none}
   }
@@ -436,6 +437,7 @@
   <div class="foot">
     <span><a href="index.html">← Street Explorer</a> · explore every street and feature</span>
     <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
+    <span><a href="#" id="feedback-link">Send feedback</a> · report a problem or suggest an improvement</span>
     <span id="data-asof" style="flex-basis:100%;font-size:11px;opacity:.85"></span>
   </div>
 </div>
@@ -482,6 +484,18 @@
         <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
+    </div>
+  </div>
+</div>
+
+<!-- feedback overlay (embeds a Google Form; no backend needed on GitHub Pages) -->
+<div id="fbmodal" role="dialog" aria-modal="true" aria-label="Share feedback">
+  <div class="sheet">
+    <div class="shd"><h2>Share feedback</h2><button class="x" id="fb-x" aria-label="Close">×</button></div>
+    <div class="sbody">
+      <p style="font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px">Spotted something off, or have an idea to make this dashboard more useful? Use the form below.<span id="fb-newtab-wrap"> <a href="#" id="fb-newtab" target="_blank" rel="noopener">Open in a new tab</a>.</span></p>
+      <iframe id="fbframe" class="fbframe" title="Feedback form" loading="lazy">Loading the feedback form&hellip;</iframe>
+      <p id="fb-note" style="display:none;font-size:13px;line-height:1.55;color:var(--muted)">The feedback form is being set up and will be available shortly. In the meantime, please check back soon.</p>
     </div>
   </div>
 </div>
@@ -1997,6 +2011,25 @@ document.getElementById('worst-list').addEventListener('keydown',e=>{
   document.getElementById('about').onclick=open;
   document.getElementById('modal-x').onclick=close;
   m.addEventListener('click',e=>{ if(e.target===m) close(); });   // click backdrop to dismiss
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
+// "Send feedback" modal: embeds a Google Form, so no backend is needed on GitHub Pages.
+// TO ACTIVATE: paste your Google Form link into FEEDBACK_FORM_URL below (either the
+// "Send > link" URL or the .../viewform address). Until it is set, the modal shows a
+// short "being set up" note instead of a broken frame.
+(()=>{ const FEEDBACK_FORM_URL='https://docs.google.com/forms/d/e/1FAIpQLSdBqbVZcpztHUjgpce20UpXMnXKJa7llHd4eNIWJE_XlxWVVQ/viewform';   // Google Form (short link: https://forms.gle/nd39e4SMiTNk1Yyo6)
+  const m=document.getElementById('fbmodal'); if(!m) return;
+  const frame=document.getElementById('fbframe'), note=document.getElementById('fb-note'), nt=document.getElementById('fb-newtab'), ntw=document.getElementById('fb-newtab-wrap');
+  const embed=u=>{ const base=(u||'').split('#')[0].split('?')[0]; return base + (base.includes('/viewform')?'?embedded=true':''); };
+  const open=e=>{ if(e) e.preventDefault();
+    if(FEEDBACK_FORM_URL){ if(frame.dataset.loaded!=='1'){ frame.src=embed(FEEDBACK_FORM_URL); frame.dataset.loaded='1'; }
+      frame.style.display=''; if(note) note.style.display='none'; if(nt) nt.href=FEEDBACK_FORM_URL; if(ntw) ntw.style.display=''; }
+    else { frame.style.display='none'; if(note) note.style.display=''; if(ntw) ntw.style.display='none'; }
+    m.classList.add('show'); };
+  const close=()=>m.classList.remove('show');
+  document.getElementById('feedback-link').onclick=open;
+  document.getElementById('fb-x').onclick=close;
+  m.addEventListener('click',e=>{ if(e.target===m) close(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
 })();
 // Drag-to-reorder for the data-view cards in .below (handle-only drag, order persisted)

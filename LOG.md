@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-18 — Feedback feature (embedded Google Form)
+
+Added a way for users to send feedback. GitHub Pages is static (no backend to receive a POST), so the options were a third-party form service, a mailto link, or an embedded form. Vincent chose Google Forms.
+- **Entry point:** a "Send feedback" link in the footer (next to "Data & methods").
+- **Modal:** a new `#fbmodal` overlay reusing the existing `.sheet` modal styling (so it matches "Data & methods" / "Build your report"), with an embedded Google Form iframe, an "Open in a new tab" fallback link, close on ✕ / backdrop / Escape, and excluded from the print stylesheet.
+- **URL handling:** the form URL lives in one `FEEDBACK_FORM_URL` constant. A short `embed()` helper normalizes a `.../viewform` link to `?embedded=true` for the iframe; the new-tab link uses the raw URL. The iframe is lazy-loaded on first open. If the constant is ever blank, the modal shows a "being set up" note instead of a broken frame.
+- **Form:** Vincent's Google Form (short link forms.gle/nd39e4SMiTNk1Yyo6 -> docs.google.com/forms/d/e/1FAIpQLSdBqbVZcpztHUjgpce20UpXMnXKJa7llHd4eNIWJE_XlxWVVQ/viewform). Resolved the forms.gle short link to its full /viewform address first, since short links do not embed reliably (X-Frame-Options on the redirect).
+- Verified in-browser: the link opens the modal, the live Google Form renders inside the iframe (title + "What is this about?" options), the new-tab link points to the full URL, close paths work, no console errors, no em dashes. Did not submit a test response (would pollute the response sheet).
+- Note: the form's own intro copy ("We welcome your input...") lives in Google Forms, outside the dashboard HTML, so it is not covered by the neutral-voice pass; Vincent can adjust it there if desired.
+
+---
+
 ## 2026-06-18 — Clip the HIN overlay to the selected area
 
 Vincent flagged (from a SN61 report) that the High Injury Network overlay kept drawing across the whole city even when an area was selected, both in the dashboard and the printable report. The overlay now trims to the active district / super neighborhood.
