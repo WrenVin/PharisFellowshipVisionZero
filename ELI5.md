@@ -36,8 +36,8 @@ with that district's council office.
 > whole process worked for District C, expanding was mostly a matter of swapping
 > in the city's outline and re-running everything. The story below was written as
 > we built District C step by step (so it still says "District C" in places), but
-> the **current maps and numbers now cover all ~75,260 city street segments**, not
-> just the one district. The citywide toll is at the end.
+> the **current maps and numbers now cover all ~66,917 city street segments** across
+> the full-service City of Houston, not just the one district. The citywide toll is at the end.
 
 ---
 

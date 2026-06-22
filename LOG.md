@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — City boundary: full-purpose (full-service) only
+
+Bryan/Vincent noticed the CRIS crashes filled only Houston's full-service area while the map outline included the limited-purpose annexations (thin "tentacles" that held basically no crashes). Diagnosis: the crash extent is set by the CRIS download (City = Houston, `City_ID = 208`, which is full-purpose), but the boundary was the **11 council districts dissolved** (COH GIS layer 2), which reach into limited-purpose areas. Fixed by switching the boundary to full-purpose only.
+
+- **New boundary source.** COH GIS "Houston City Limit" (Administrative_Boundary **layer 0**) tags every polygon `SERVICE_TY` in {FULL, LIMITED}: **2 FULL** (the full-service city, incl. detached full-purpose areas like Kingwood) vs **749 LIMITED** slivers. Kept only `SERVICE_TY='FULL'`, dissolved → **598.5 sq mi** (was 671.8 full+limited). New `src/fetch_boundary.py` pulls it reproducibly; saved to `data/raw/houston_boundary.geojson` (the single source of truth the whole pipeline clips to).
+- **Re-clipped the served data** to the new boundary (surgical, at the feature level so the git diff is just removed features): `docs/segments.geojson` + `segments_vz.geojson` **75,260 → 66,917** (8,343 limited-purpose segments dropped; ~6,407 mi); `docs/crash_points.json` **421,699 → 421,570** (only 129 tentacle crashes — confirming they held no harm); district + super-neighborhood display polygons clipped so their outlines don't show tentacles. Regenerated `docs/boundary.geojson` (the map outline).
+- **Pipeline stays reproducible.** `export_webmap_data.py` now clips both the segment network and the crashes to the boundary on export (the enriched gpkg keeps the comprehensive ~75k network; the dashboard serves the full-purpose subset). pull_osm / build_crashes already clip to `cfg.boundary`, so a full rebuild now produces full-purpose everything.
+- **Impact on headline numbers: negligible.** People killed 1,687 (unchanged), KSI 9,928 → 9,923, economic cost ~$15.3B / comprehensive ~$64.8B (unchanged at this rounding). The live concentration metric shifted 6%→69% to **6%→65%** (fewer zero-crash streets in the denominator). Verified in-browser: outline is full-service only (no tentacles), segments fill it, no streets drawn outside, no console errors, no em dashes.
+- Docs updated (README boundary + road-network stats + sources table, CODEBOOK scope, ELI5 segment count, methods modal). The enriched/crash analysis gpkgs still hold the comprehensive build and re-clip on the next full pipeline run.
+
+---
+
 ## 2026-06-22 — Crash cost: switch to FHWA per-person basis (reconciled with Bryan)
 
 Bryan Dotson (District Adjacent) shared his own FHWA crash-cost spreadsheet to cross-check the new metric. The reconciliation:

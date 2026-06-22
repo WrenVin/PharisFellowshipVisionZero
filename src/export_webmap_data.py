@@ -106,6 +106,14 @@ def inc_tier(v):
 
 seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 
+# clip the served network to the study-area boundary (full-purpose City of Houston; see
+# src/fetch_boundary.py). The enriched gpkg keeps the comprehensive network, but the
+# dashboard shows only full-service streets — drops the limited-purpose annexation slivers.
+_bnd = cfg.boundary_geom(seg.crs)
+_n0 = len(seg)
+seg = seg[seg.intersects(_bnd)].copy()
+print(f"Segments within full-purpose boundary: {len(seg):,} of {_n0:,}")
+
 # friendly road class (collapse *_link to Minor)
 base = seg["highway"].str.replace("_link", "", regex=False)
 seg["road_class"] = base.map(FRIENDLY_CLASS).fillna("Minor street")
@@ -306,6 +314,7 @@ print(f"Wrote boundary -> {bpath}")
 # fields 16-20 are the per-crash person counts by KABCO injury severity (killed K, serious A,
 # minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
+cr = cr[cr.within(_bnd)].copy()   # clip crashes to the full-purpose boundary (drops limited-purpose slivers)
 # Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
 # gpkg drops them); pull them and match by Crash_ID. CRIS person DETAIL is suppressed on some
 # crashes, but these crash-level COUNT fields are complete. Needs the raw CRIS extracts present.
