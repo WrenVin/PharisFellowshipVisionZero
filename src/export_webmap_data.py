@@ -300,8 +300,10 @@ print(f"Wrote {len(keep):,} segments -> {out} ({out.stat().st_size/1e6:.1f} MB)"
 print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
-# by-time-of-day, years-of-life-lost, and by-neighborhood-income panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn]
+# by-time-of-day, years-of-life-lost, by-neighborhood-income, and crash-cost panels:
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, kabco]
+# kabco (K/A/B/C/O/UNK) is the per-crash severity letter, so the dashboard can apply
+# the FHWA per-crash-unit cost table across all severities (sev/fatal alone collapse B/C/O).
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
 # nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
 # whether its road is TxDOT-owned (state), and the segment id itself (so the
@@ -332,9 +334,9 @@ if sn_4326 is not None:  # Super Neighborhood per crash (point-in-polygon; NA if
 else:
     cr["sn"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, kb in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn, cr.kabco):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -347,7 +349,8 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv in zip(
                 1 if oh else 0,
                 1 if otx else 0,
                 sid if isinstance(sid, str) else None,
-                int(snv) if pd.notna(snv) else None])
+                int(snv) if pd.notna(snv) else None,
+                kb if isinstance(kb, str) else "UNK"])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")

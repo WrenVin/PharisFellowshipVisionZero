@@ -235,7 +235,7 @@
   #report .r-hd{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:14px;
     display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
   #report .r-date{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
-  #report .r-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
+  #report .r-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
   #report .r-stat{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
   #report .r-statv{font-size:23px;font-weight:700;color:#7a1419;line-height:1.1}
   #report .r-statl{font-size:11px;color:var(--muted);margin-top:2px}
@@ -473,6 +473,12 @@
         <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured, not a rate per traffic volume. This is the Vision Zero convention (and how the City's own High Injury Network is built): the goal is zero deaths, so attention goes where the most harm actually occurs. Counts are <span class="lbl">not</span> normalized for exposure (vehicle miles traveled or foot traffic), which is unavailable for most local streets.</p>
       </section>
       <section>
+        <h3>Crash costs</h3>
+        <p>Each crash is assigned the <span class="lbl">FHWA per-crash unit cost</span> for its severity on the KABCO scale (FHWA-SA-25-021, 2024 dollars) and summed across the crashes in view. <span class="lbl">Economic cost</span> is the societal economic loss: medical care, lost productivity, property damage, and emergency, legal, and insurance services. It is a loss spread across victims, insurers, employers, and government, not a single public budget line.</p>
+        <p>The <span class="lbl">comprehensive</span> figure adds the monetized value of lost quality and length of life. Its fatal portion values the same deaths the years-of-life-lost figure already counts (in years rather than dollars), so the two are different lenses on one loss and should not be added together.</p>
+        <p>Costs are summed per crash, so a crash that harms several people is counted once. Crashes with an unrecorded severity are excluded, and reported crashes undercount the true toll, so every figure shown is a <span class="lbl">conservative floor</span>. Costs are national figures; no state adjustment is applied.</p>
+      </section>
+      <section>
         <h3>Data sources</h3>
         <p>Every dataset here is public. Each link goes to the official source.</p>
         <p><span class="lbl">Crashes</span> &middot; TxDOT Crash Records Information System (CRIS), public extracts, 2016&ndash;2025 plus partial 2026. <a href="https://www.txdot.gov/data-maps/crash-reports-records.html" target="_blank" rel="noopener">txdot.gov</a> &middot; <a href="https://cris.txdot.gov/" target="_blank" rel="noopener">cris.txdot.gov</a></p>
@@ -481,6 +487,7 @@
         <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
+        <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-crash unit costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
         <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
@@ -628,15 +635,16 @@ function animateKPIs(){
   const gen=++_kpiGen;
   document.querySelectorAll('#kpis .kpi .v[data-num]').forEach(el=>{
     const key=el.getAttribute('data-key'), to=+el.getAttribute('data-num');
+    const F = el.hasAttribute('data-money') ? fmtMoney : fmt;   // money KPIs render as $ (e.g. $18.4B)
     const prev=_kpiPrev[key]; _kpiPrev[key]=to;
-    if(_reduceMotion || prev==null || prev===to){ el.textContent=fmt(to); return; }   // first time / no change: just set
+    if(_reduceMotion || prev==null || prev===to){ el.textContent=F(to); return; }   // first time / no change: just set
     const from=prev, dur=520, t0=performance.now();
-    el.textContent=fmt(Math.round(from));
+    el.textContent=F(Math.round(from));
     (function step(now){
       if(gen!==_kpiGen) return;                 // a newer render superseded this tween
       let k=(now-t0)/dur; if(k>1)k=1;
       const e=1-Math.pow(1-k,3);                // easeOutCubic
-      el.textContent=fmt(Math.round(from+(to-from)*e));
+      el.textContent=F(Math.round(from+(to-from)*e));
       if(k<1) requestAnimationFrame(step);
     })(t0);
   });
@@ -720,7 +728,8 @@ const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
   yll:'<svg viewBox="0 0 24 24" fill="none" stroke="#2f7fb0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3v3.5L12 12 7 17.5V21M17 3v3.5L12 12l5 5.5V21"/></svg>',
   ksi:'<svg viewBox="0 0 24 24" fill="none" stroke="#e0982a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M12 11v5M9.5 13.5h5"/></svg>',
-  conc:'<svg viewBox="0 0 24 24" fill="none" stroke="#3a9e78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="21" x2="5" y2="13"/><line x1="12" y1="21" x2="12" y2="4"/><line x1="19" y1="21" x2="19" y2="9"/></svg>'};
+  conc:'<svg viewBox="0 0 24 24" fill="none" stroke="#3a9e78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="21" x2="5" y2="13"/><line x1="12" y1="21" x2="12" y2="4"/><line x1="19" y1="21" x2="19" y2="9"/></svg>',
+  cost:'<svg viewBox="0 0 24 24" fill="none" stroke="#2e7d4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>'};
 
 // shared mode test: ped/bike flags -> does this crash belong to the active lens?
 function modeMatch(ped, bike){
@@ -783,7 +792,7 @@ function styleFor(f){
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
-// p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district]
+// p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,kabco]
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
   let crashes=0;
@@ -950,7 +959,7 @@ function buildPoints(){
   const z=map.getZoom();
   const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
   const rSev=base, rOth=Math.max(1, base*0.6);
-  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id]
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,kabco]
     if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
@@ -1208,21 +1217,32 @@ function drawKPIs(t){
     const conSub='of streets → of '+(sev==='all'?'crashes':'KSI');
     kpi4=kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
   }
+  const cost=costTotal();
+  const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), using FHWA per-crash-unit costs by KABCO severity (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity crashes are excluded and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
+  const costCard=kpi(KICON.cost,'Economic cost · '+span, fmtMoney(cost.econ), 'comprehensive '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false, null, 'killed', killed)
    +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip, 'yll', yll)
    +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false, null, 'serious', serious)
-   +kpi4;
+   +kpi4
+   +costCard;
   animateKPIs();
 }
-function kpi(ic,l,v,s,neutral,tip,key,num){
+function kpi(ic,l,v,s,neutral,tip,key,num,money){
   const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
   const tipDiv = tip ? '<div class="tip ktip">'+tip+'</div>' : '';
-  const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"' : '';   // numeric KPIs count up on filter change
+  const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"'+(money?' data-money="1"':'') : '';   // numeric KPIs count up on filter change (money ones format as $)
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
 function yllTotal(){ let s=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)) s+=p[9]||0; } return s; }
+// FHWA-SA-25-021 (Oct 2025) per-crash-unit costs, 2024 dollars, keyed by KABCO severity (pts[16]): [economic, comprehensive].
+// Economic = the societal economic loss (medical, lost productivity, property damage, emergency/legal services).
+// Comprehensive adds the monetized value of lost quality + length of life (its fatal share overlaps Years of life lost).
+// Unknown-severity crashes (UNK) carry no FHWA cost and are excluded, making the total a conservative floor.
+const CRASH_COST={ K:[2238500,15988000], A:[272700,1705100], B:[80800,384000], C:[53000,204600], O:[18100,18100] };
+function costTotal(){ let e=0,c=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)){ const u=CRASH_COST[p[16]]; if(u){ e+=u[0]; c+=u[1]; } } } return {econ:e, comp:c}; }
+function fmtMoney(v){ if(v>=1e9) return '$'+(v/1e9).toFixed(1)+'B'; if(v>=1e6) return '$'+(v/1e6).toFixed(1)+'M'; if(v>=1e3) return '$'+Math.round(v/1e3)+'k'; return '$'+Math.round(v); }
 
 function drawLegend(){
   const el=document.getElementById('legend');
@@ -1816,7 +1836,7 @@ async function generateReport(cfg){
   cfg=cfg||{}; const S=Object.assign({},RSECT_DEFAULT,cfg.sections||{});
   const R=document.getElementById('report'); if(!R) return;
   const d=viewDesc();
-  const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed);
+  const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed), cost=costTotal();
   const con = selIds.size>0 ? null : concentration();
   const metric = sev==='all' ? 'crashes' : 'people killed or seriously injured';
   const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
@@ -1838,6 +1858,7 @@ async function generateReport(cfg){
   // stats (ALWAYS)
   const stat=(v,l)=>'<div class="r-stat"><div class="r-statv">'+v+'</div><div class="r-statl">'+l+'</div></div>';
   const statsHTML = stat(fmt(t.killed),'People killed')+stat(fmt(serious),'Seriously injured')+stat(fmt(yll),'Years of life lost')
+    +stat(fmtMoney(cost.econ),'Economic cost')
     +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(con.pct_streets+'% → '+con.pct_ksi+'%','Streets → share of harm'));
   // map (gated)
   let mapHTML='';
@@ -1887,7 +1908,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-crash-unit costs by KABCO severity (FHWA-SA-25-021, 2024 dollars); the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }

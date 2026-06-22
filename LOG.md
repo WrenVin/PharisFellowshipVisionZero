@@ -4,6 +4,22 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Crash-cost metric (FHWA per-crash-unit costs)
+
+Vincent shared the FHWA fact sheet *Updated Crash Costs for Highway Safety Analysis* (FHWA-SA-25-021, Oct 2025) and asked whether a fiscal-cost metric fits. Before building, ran a whole-repo review (a 5-agent workflow: parallel readers over the dashboard, pipeline, and docs, then two adversarial validators) to confirm the method. Findings drove the design:
+- **Per-crash-unit, not per-person.** Every `crash_points.json` row is one crash (421,699 rows); `sev`/`fatal` are per-crash flags and the pipeline keeps no usable person count. So FHWA's per-crash-unit table is both correct and the only feasible basis.
+- **"Economic," not "fiscal."** The economic column is total *societal* economic loss (medical, lost productivity, property, services), not a public-budget figure. Labeled accordingly.
+- **Comprehensive overlaps YLL.** The comprehensive column monetizes the same deaths YLL already counts (in years), so it is shown as a secondary figure with a tooltip stating the two are not additive.
+- **All-severity needed an export change.** The exported points carried only `sev`/`fatal`, collapsing B/C/O/UNK into one bucket, so a client-side all-crash total was impossible. Property-only crashes alone are ~$4.7B, so this was analytically significant, not cosmetic.
+
+**Pipeline.** Added the per-crash `kabco` letter (already in `houston_crashes.gpkg`) to the `crash_points.json` export in `export_webmap_data.py` (now field [16]). Regenerated the file surgically: reused the committed 16-field rows verbatim and appended `kabco` from the gpkg in row order, **proving alignment** by checking every row's existing `sev`/`fatal` against the appended letter (0 mismatches across all 421,699 rows). No other data file was touched. Distribution: K 1,687 / A 8,241 / B 34,474 / C 91,119 / O 261,203 / UNK 24,975. File 30 -> 32 MB.
+
+**Dashboard.** New `CRASH_COST` KABCO->dollar table, a `costTotal()` helper mirroring `yllTotal()` (same filter predicate, mode-aware), and `fmtMoney()` ($18.4B / $272.7M / $540k). A 5th KPI card "Economic cost" (economic headline + comprehensive sub-line + a tooltip explaining economic vs comprehensive, the YLL overlap, and the floor caveat); the count-up animation is now money-aware via a `data-money` flag. Added the economic cost as a 5th report stat (grid widened to 5 cols) with the comprehensive figure + FHWA citation in the report footer, and a "Crash costs" section + FHWA source entry in the Data & methods modal. UNK excluded throughout (no FHWA cost).
+
+Verified in-browser: citywide ~$18.4B economic / ~$77.6B comprehensive (matches an independent recompute), updates correctly for district / super-neighborhood / travel-mode / year-range filters (e.g. District C $1.5B; District C walking $133M), money formatting + count-up work, report shows 5 stats + the footer note, modal section + source render, no console errors, no em dashes.
+
+---
+
 ## 2026-06-18 — Feedback feature (embedded Google Form)
 
 Added a way for users to send feedback. GitHub Pages is static (no backend to receive a POST), so the options were a third-party form service, a mailto link, or an embedded form. Vincent chose Google Forms.
