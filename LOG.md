@@ -4,6 +4,22 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Crash cost: switch to FHWA per-person basis (reconciled with Bryan)
+
+Bryan Dotson (District Adjacent) shared his own FHWA crash-cost spreadsheet to cross-check the new metric. The reconciliation:
+- **Unit costs match exactly.** His 2024 FHWA values divide out to the same table the dashboard used ($2,238,500/K econ, etc.), confirming the dollar inputs.
+- **He works per person, not per crash.** His counts (345 K, 1,591 A, 7,995 B, 23,329 C, ~159k no-injury for 2024 all-Houston) come from the CRIS crash-level injury-count fields (`Death_Cnt`, `Sus_Serious_Injry_Cnt`, `Nonincap_Injry_Cnt`, `Poss_Injry_Cnt`, `Non_Injry_Cnt`). Summing those raw fields for 2024 reproduced his counts to within a rounding error (346/1,589/8,031/23,372/159k), identifying his source.
+- **Methodology note:** his sheet multiplies the FHWA **per-crash-unit** table by **person** counts, which mixes the two FHWA tables (the per-crash-unit cost already bundles ~1.09 deaths/fatal crash). FHWA publishes a separate **per-person** table (fatality = $1,606,644, not $2,238,500) meant for person counts. Flagged to Bryan.
+
+**Decision (Vincent):** make the dashboard **person-based** using FHWA's **per-person** table — person-based like the office, methodologically clean.
+
+- **Data:** replaced the `kabco` letter in `crash_points.json` with five per-crash **person counts** by injury severity (`n_k, n_a, n_b, n_c, n_noinj`, fields 16–20), pulled from the raw CRIS crash-level count fields and matched by `Crash_ID`. Regenerated surgically and proved alignment: the gpkg's `kabco` in row order still matched the previous `crash_points[16]` exactly (0 mismatches), and the new `n_k>0` agreed with the existing `fatal` flag on 100.000% of all 421,699 rows. Updated `export_webmap_data.py` (reads the raw CRIS counts, joins by `Crash_ID`) so a full pipeline run reproduces it.
+- **Dashboard:** swapped `CRASH_COST` (per-crash-unit) for `PERSON_COST` (per-person table) and rewrote `costTotal()` to sum each crash's person counts x the per-person costs. Updated the KPI tooltip, the Data & methods "Crash costs" section + source line, and the report footer to per-person wording. Also fixed the KPI sub-line text to "comprehensive cost: $X" (was "comprehensive $X").
+- **Result:** citywide economic **~$15.3B** / comprehensive **~$64.8B** (surface streets, all years), down from the crash-based ~$18.4B/$77.6B because per-person costs are lower than per-crash-unit. Person totals (surface, all years): 1,780 K / 9,596 A / 46,851 B / 140,894 C / 799,522 no-injury. Verified in-browser (independent recompute matches; District C $1.2B, District C walking $92.8M, 2024 surface $1.5B), no console errors, no em dashes.
+- Note: the dashboard is surface-streets-only and (by default) a 10-year cumulative, so it will read lower than Bryan's single-year, all-Houston figures even on the same basis.
+
+---
+
 ## 2026-06-22 — Crash-cost metric (FHWA per-crash-unit costs)
 
 Vincent shared the FHWA fact sheet *Updated Crash Costs for Highway Safety Analysis* (FHWA-SA-25-021, Oct 2025) and asked whether a fiscal-cost metric fits. Before building, ran a whole-repo review (a 5-agent workflow: parallel readers over the dashboard, pipeline, and docs, then two adversarial validators) to confirm the method. Findings drove the design:

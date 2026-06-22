@@ -224,21 +224,23 @@ These are not columns in the processed `.gpkg`; they are computed at export time
 
 - `docs/segments.geojson` — full per-segment property set (Street Explorer / `index.html`).
 - `docs/segments_vz.geojson` — slim copy for the Vision Zero dashboard (`vision-zero.html`), only the 20 fields in `WEB_KEEP`: `seg_id`, `name`, `road_class`, `district`, `sn`, `on_txdot`, `on_hin`, `n_crash`, `n_severe`, `n_fatal`, `n_ped`, `n_ped_severe`, `n_bike`, `n_bike_severe`, `length_ft`, `lanes_final`, `roadway_width_ft`, `posted_speed_mph`, `sidewalk_presence`, `adt`.
-- `docs/crash_points.json` — one array per crash, 17 fields in order: `[lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, kabco]`. `kabco` (K/A/B/C/O/UNK) is the per-crash severity letter; `sev`/`fatal` are kept for back-compat (`sev`=K or A, `fatal`=K) but `kabco` is what the dashboard's crash-cost metric keys on.
+- `docs/crash_points.json` — one array per crash, 21 fields in order: `[lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj]`. Fields 16–20 are the **per-crash person counts by KABCO injury severity** (`n_k` killed, `n_a` serious, `n_b` minor, `n_c` possible, `n_noinj` no-injury), pulled from the raw CRIS crash-level injury-count fields (`Death_Cnt`, `Sus_Serious_Injry_Cnt`, `Nonincap_Injry_Cnt`, `Poss_Injry_Cnt`, `Non_Injry_Cnt`) and matched by `Crash_ID`. `sev`/`fatal` are still the crash-level flags (`sev`=K or A, `fatal`=K). (The processed gpkg also carries a `kabco` letter, but the web export uses person counts, not `kabco`.)
 
 ### Crash costs (dashboard metric)
 
-The Vision Zero dashboard shows an **economic** and **comprehensive** dollar cost of the crashes in view, computed live as `sum over crashes of (FHWA per-crash unit cost for that crash's kabco level)`. Costs are **per crash unit** (matching the dashboard's crash-based counts, not per person) from **FHWA, *Updated Crash Costs for Highway Safety Analysis* (FHWA-SA-25-021, Oct 2025), 2024 dollars**:
+The Vision Zero dashboard shows an **economic** and **comprehensive** dollar cost of the crashes in view, computed live as `sum over people hurt of (FHWA per-person cost for that person's injury severity)`. Costs are **per person** (each victim counted at their KABCO injury level) from **FHWA, *Updated Crash Costs for Highway Safety Analysis* (FHWA-SA-25-021, Oct 2025), 2024 dollars** — the per-person table:
 
-| KABCO | Economic | Comprehensive |
+| KABCO injury | Economic | Comprehensive |
 |---|---|---|
-| K (fatal) | $2,238,500 | $15,988,000 |
-| A (serious) | $272,700 | $1,705,100 |
-| B (minor) | $80,800 | $384,000 |
-| C (possible) | $53,000 | $204,600 |
-| O (property only) | $18,100 | $18,100 |
+| K (killed) | $1,606,644 | $11,258,495 |
+| A (serious) | $172,179 | $1,089,524 |
+| B (minor) | $44,490 | $224,597 |
+| C (possible) | $25,933 | $111,281 |
+| O (no injury) | $6,269 | $10,196 |
 
-`UNK`-severity crashes carry no FHWA cost and are excluded. **Economic** = societal economic loss (medical, lost productivity, property, services); **comprehensive** adds the monetized value of lost quality/length of life, so its fatal portion overlaps the years-of-life-lost metric (different units, not additive). National figures, no state adjustment. Citywide all-severity (2016–2025 + partial 2026): **~$18.4B economic / ~$77.6B comprehensive**. A conservative floor (CRIS undercount, ~10% ungeocoded crashes excluded, surface streets only, UNK excluded).
+Unknown-severity injuries carry no FHWA cost and are not counted. **Economic** = societal economic loss (medical, lost productivity, property, services); **comprehensive** adds the monetized value of lost quality/length of life, so its fatal portion overlaps the years-of-life-lost metric (different units, not additive). National figures, no state adjustment. Citywide all-severity, all years (2016–2025 + partial 2026): **~$15.3B economic / ~$64.8B comprehensive** (surface streets only). A conservative floor (CRIS undercount, ~10% ungeocoded crashes excluded, surface streets only, unknown-severity injuries excluded).
+
+> **Per-person vs per-crash basis:** FHWA publishes both a per-crash-unit table (e.g. fatal crash = $2,238,500 economic, which bundles the average ~1.09 deaths + other injuries per fatal crash) and this per-person table (e.g. fatality = $1,606,644). The dashboard uses the **per-person** table on CRIS person counts to match how transportation cost analyses (and District Adjacent's own work) report the toll. This counts every victim of a multi-victim crash, unlike the dashboard's crash-based `killed`/KSI KPI counts.
 - `district` (segment + crash) is the council-district letter; `sn` is the **Super Neighborhood POLYID** (1–88, or NA where the segment/crash falls in no Super Neighborhood — they don't tile the whole city). Both are export-time spatial joins from the City GIS Administrative_Boundary service (district by nearest, SN by point-in-polygon). `docs/superneighborhoods.geojson` carries each `POLYID` + `SNBNAME` for the dashboard's SN dropdown and outline; the dashboard treats district and SN as mutually exclusive filters.
 - The dashboard's year/month/hour/day shading and charts all filter `crash_points.json` directly by the per-crash `date`/`year`/`hour` fields, so no pre-aggregated per-year file is needed. (An earlier `crash_year.json` served that role and has been removed.)
 

@@ -5,6 +5,7 @@ in the browser. We keep the files lean: simplify geometry, round coordinates,
 round attribute values, and carry only display/filter-relevant columns.
 """
 
+import glob
 import json
 import math
 from pathlib import Path
@@ -301,10 +302,27 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, years-of-life-lost, by-neighborhood-income, and crash-cost panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, kabco]
-# kabco (K/A/B/C/O/UNK) is the per-crash severity letter, so the dashboard can apply
-# the FHWA per-crash-unit cost table across all severities (sev/fatal alone collapse B/C/O).
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj]
+# fields 16-20 are the per-crash person counts by KABCO injury severity (killed K, serious A,
+# minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
+# Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
+# gpkg drops them); pull them and match by Crash_ID. CRIS person DETAIL is suppressed on some
+# crashes, but these crash-level COUNT fields are complete. Needs the raw CRIS extracts present.
+_ccols = ["Crash_ID", "Death_Cnt", "Sus_Serious_Injry_Cnt", "Nonincap_Injry_Cnt", "Poss_Injry_Cnt", "Non_Injry_Cnt"]
+_cfiles = glob.glob(str(cfg.CRIS / "Houston_Crash_*" / "*crash_*.csv"))
+if _cfiles:
+    _raw = pd.concat([pd.read_csv(f, usecols=lambda c: c in _ccols, low_memory=False) for f in _cfiles],
+                     ignore_index=True).drop_duplicates("Crash_ID").set_index("Crash_ID")
+    for _c in _ccols[1:]:
+        _raw[_c] = pd.to_numeric(_raw[_c], errors="coerce").fillna(0).astype(int)
+    for _dst, _src in [("n_k", "Death_Cnt"), ("n_a", "Sus_Serious_Injry_Cnt"), ("n_b", "Nonincap_Injry_Cnt"),
+                       ("n_c", "Poss_Injry_Cnt"), ("n_noinj", "Non_Injry_Cnt")]:
+        cr[_dst] = cr["Crash_ID"].map(_raw[_src]).fillna(0).astype(int)
+else:
+    print("WARNING: no raw CRIS crash files found; crash-cost person counts will be 0")
+    for _dst in ("n_k", "n_a", "n_b", "n_c", "n_noinj"):
+        cr[_dst] = 0
 # nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
 # whether its road is TxDOT-owned (state), and the segment id itself (so the
 # dashboard can cross-filter every panel to a clicked street/segment). on_txdot
@@ -334,9 +352,10 @@ if sn_4326 is not None:  # Super Neighborhood per crash (point-in-polygon; NA if
 else:
     cr["sn"] = None
 pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, kb in zip(
+for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn in zip(
         cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn, cr.kabco):
+        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn,
+        cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj):
     if g is None or g.is_empty:
         continue
     pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -350,7 +369,7 @@ for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, kb in zip(
                 1 if otx else 0,
                 sid if isinstance(sid, str) else None,
                 int(snv) if pd.notna(snv) else None,
-                kb if isinstance(kb, str) else "UNK"])
+                int(nk), int(na), int(nb), int(nc), int(nn)])
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")

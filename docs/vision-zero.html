@@ -474,9 +474,9 @@
       </section>
       <section>
         <h3>Crash costs</h3>
-        <p>Each crash is assigned the <span class="lbl">FHWA per-crash unit cost</span> for its severity on the KABCO scale (FHWA-SA-25-021, 2024 dollars) and summed across the crashes in view. <span class="lbl">Economic cost</span> is the societal economic loss: medical care, lost productivity, property damage, and emergency, legal, and insurance services. It is a loss spread across victims, insurers, employers, and government, not a single public budget line.</p>
+        <p>Each person hurt in a crash is assigned the <span class="lbl">FHWA per-person cost</span> for their injury severity on the KABCO scale (FHWA-SA-25-021, 2024 dollars), summed across everyone in the crashes in view. <span class="lbl">Economic cost</span> is the societal economic loss: medical care, lost productivity, property damage, and emergency, legal, and insurance services. It is a loss spread across victims, insurers, employers, and government, not a single public budget line.</p>
         <p>The <span class="lbl">comprehensive</span> figure adds the monetized value of lost quality and length of life. Its fatal portion values the same deaths the years-of-life-lost figure already counts (in years rather than dollars), so the two are different lenses on one loss and should not be added together.</p>
-        <p>Costs are summed per crash, so a crash that harms several people is counted once. Crashes with an unrecorded severity are excluded, and reported crashes undercount the true toll, so every figure shown is a <span class="lbl">conservative floor</span>. Costs are national figures; no state adjustment is applied.</p>
+        <p>Costs are summed per person, so a crash that kills or injures several people counts each of them. Injuries with an unrecorded severity carry no cost, and reported crashes undercount the true toll, so every figure shown is a <span class="lbl">conservative floor</span>. Costs are national figures; no state adjustment is applied.</p>
       </section>
       <section>
         <h3>Data sources</h3>
@@ -487,7 +487,7 @@
         <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
-        <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-crash unit costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
+        <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
         <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
@@ -792,7 +792,8 @@ function styleFor(f){
 }
 
 // the toll, computed from crash points so it filters by year AND district uniformly.
-// p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,kabco]
+// p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,n_k,n_a,n_b,n_c,n_noinj]
+// fields 16-20 are per-crash person counts by injury severity (killed K, serious A, minor B, possible C, no-injury) for the cost metric
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
   let crashes=0;
@@ -959,7 +960,7 @@ function buildPoints(){
   const z=map.getZoom();
   const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
   const rSev=base, rOth=Math.max(1, base*0.6);
-  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,kabco]
+  for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,n_k,n_a,n_b,n_c,n_noinj]
     if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
@@ -1218,8 +1219,8 @@ function drawKPIs(t){
     kpi4=kpi(KICON.conc,'A few streets carry most harm', con.pct_streets+'% → '+con.pct_ksi+'%', conSub, true);
   }
   const cost=costTotal();
-  const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), using FHWA per-crash-unit costs by KABCO severity (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity crashes are excluded and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
-  const costCard=kpi(KICON.cost,'Economic cost · '+span, fmtMoney(cost.econ), 'comprehensive '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
+  const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), from FHWA per-person costs by injury severity (KABCO) applied to the people hurt in each crash (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity injuries carry no cost and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
+  const costCard=kpi(KICON.cost,'Economic cost · '+span, fmtMoney(cost.econ), 'comprehensive cost: '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false, null, 'killed', killed)
    +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip, 'yll', yll)
@@ -1236,12 +1237,17 @@ function kpi(ic,l,v,s,neutral,tip,key,num,money){
 }
 function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
 function yllTotal(){ let s=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)) s+=p[9]||0; } return s; }
-// FHWA-SA-25-021 (Oct 2025) per-crash-unit costs, 2024 dollars, keyed by KABCO severity (pts[16]): [economic, comprehensive].
-// Economic = the societal economic loss (medical, lost productivity, property damage, emergency/legal services).
+// FHWA-SA-25-021 (Oct 2025) per-PERSON KABCO costs, 2024 dollars: [economic, comprehensive].
+// Applied to each crash's person counts pts[16..20] = [killed K, serious A, minor B, possible C, no-injury].
+// Economic = societal economic loss (medical, lost productivity, property damage, emergency/legal services).
 // Comprehensive adds the monetized value of lost quality + length of life (its fatal share overlaps Years of life lost).
-// Unknown-severity crashes (UNK) carry no FHWA cost and are excluded, making the total a conservative floor.
-const CRASH_COST={ K:[2238500,15988000], A:[272700,1705100], B:[80800,384000], C:[53000,204600], O:[18100,18100] };
-function costTotal(){ let e=0,c=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)){ const u=CRASH_COST[p[16]]; if(u){ e+=u[0]; c+=u[1]; } } } return {econ:e, comp:c}; }
+// Unknown-severity persons carry no FHWA cost and are not counted, making the total a conservative floor.
+const PERSON_COST={ K:[1606644,11258495], A:[172179,1089524], B:[44490,224597], C:[25933,111281], O:[6269,10196] };
+function costTotal(){ let e=0,c=0; const K=PERSON_COST.K,A=PERSON_COST.A,B=PERSON_COST.B,C=PERSON_COST.C,O=PERSON_COST.O;
+  for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOk(p[13])&&selOk(p)&&timeOk(p)){
+    e += p[16]*K[0] + p[17]*A[0] + p[18]*B[0] + p[19]*C[0] + p[20]*O[0];
+    c += p[16]*K[1] + p[17]*A[1] + p[18]*B[1] + p[19]*C[1] + p[20]*O[1]; } }
+  return {econ:e, comp:c}; }
 function fmtMoney(v){ if(v>=1e9) return '$'+(v/1e9).toFixed(1)+'B'; if(v>=1e6) return '$'+(v/1e6).toFixed(1)+'M'; if(v>=1e3) return '$'+Math.round(v/1e3)+'k'; return '$'+Math.round(v); }
 
 function drawLegend(){
@@ -1908,7 +1914,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-crash-unit costs by KABCO severity (FHWA-SA-25-021, 2024 dollars); the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }
