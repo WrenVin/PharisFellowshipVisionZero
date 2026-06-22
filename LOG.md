@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Default map zoom one level tighter
+
+The citywide view opened too zoomed-out (the city looked small). Added a `fitCity()` helper used by the three citywide fits (initial load + district/SN reset) that fits the network then sets one zoom level tighter (`getBoundsZoom(b)+1`), centered on the city. It calls `map.invalidateSize()` first so it uses the map's true container size — without that, the initial load-time call measured a stale (smaller) size and the +1 just cancelled out (netted zoom 10 instead of 11). Verified: default load is now zoom 11 (was 10), city fills the map, no console errors.
+
+---
+
 ## 2026-06-22 — City boundary: full-purpose (full-service) only
 
 Bryan/Vincent noticed the CRIS crashes filled only Houston's full-service area while the map outline included the limited-purpose annexations (thin "tentacles" that held basically no crashes). Diagnosis: the crash extent is set by the CRIS download (City = Houston, `City_ID = 208`, which is full-purpose), but the boundary was the **11 council districts dissolved** (COH GIS layer 2), which reach into limited-purpose areas. Fixed by switching the boundary to full-purpose only.

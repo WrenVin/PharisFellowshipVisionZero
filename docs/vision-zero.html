@@ -818,6 +818,8 @@ function concentration(){
 const renderer=L.canvas({tolerance:8});
 const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
 L.control.zoom({position:'bottomright'}).addTo(map);
+// citywide framing: fit the whole network, then zoom one level tighter so the city fills the map
+function fitCity(){ try{ map.invalidateSize(false); const b=geo.getBounds(); map.setView(b.getCenter(), map.getBoundsZoom(b)+1, {animate:false}); }catch(e){} }
 const bases={Light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20,crossOrigin:true}),
   Satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19,crossOrigin:true})};
 bases.Light.addTo(map);
@@ -873,7 +875,7 @@ Promise.all([
     if(best && bd<=8) showCrash(best);
   });
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
-  try{map.fitBounds(geo.getBounds());}catch(e){}
+  try{fitCity();}catch(e){}
   buildStreetIndex();
   setupYearSlider();
   document.getElementById('loading').style.display='none';
@@ -1131,7 +1133,7 @@ function selectDistrict(d){
     if(f){ distLayer=L.geoJSON(f,{interactive:false,style:{color:'#111',weight:2.5,
       fill:false,opacity:.75,dashArray:'5 3'}}).addTo(map);
       try{ map.fitBounds(distLayer.getBounds().pad(0.04)); }catch(e){} }
-  } else { try{ map.fitBounds(geo.getBounds()); }catch(e){} }
+  } else { try{ fitCity(); }catch(e){} }
   render();
 }
 // --- per-super-neighborhood filter (mutually exclusive with district) ---------
@@ -1160,7 +1162,7 @@ function selectSN(v){
     if(f){ snLayer=L.geoJSON(f,{interactive:false,style:{color:'#111',weight:2.5,
       fill:false,opacity:.75,dashArray:'5 3'}}).addTo(map);
       try{ map.fitBounds(snLayer.getBounds().pad(0.05)); }catch(e){} }
-  } else { try{ map.fitBounds(geo.getBounds()); }catch(e){} }
+  } else { try{ fitCity(); }catch(e){} }
   render();
 }
 function clearView(){
