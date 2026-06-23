@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Concentration vs. exposure note; name the Lorenz curve; voice pass
+
+Follow-ups to the concentration metric.
+- **Counts vs. VMT analysis.** Vincent's professor asked whether the high concentration is just exposure (most street-miles are quiet residential). Tested it: `src/analyze_concentration.py` measures the Gini of KSI across street-miles vs. across VMT (ADT x length) on the 17,517 segments with traffic counts (76% of all KSI). Result: traffic itself is only mildly concentrated (Gini 0.37) but KSI stays highly concentrated even after dividing by VMT (0.822, vs 0.829 by miles), and the busiest 50% of VMT carries only 34% of KSI. So the concentration is a road-design signal, not an exposure artifact; a naive per-VMT rate is also unstable (top "rate" segments are 0.06-mi streets with ADT ~200 and one crash). Written up in `reports/concentration_exposure_note.md` for the modeling phase (exposure belongs there as a control, not as the ranking). Added the exposure caveat to the concentration panel tooltip and the "Counts, not rates" methods section.
+- **Named the graph.** The concentration panel header now reads "Where the harm is concentrated · Lorenz curve", and the tooltip explains it is a Lorenz/concentration curve (the income-inequality kind).
+- **Voice pass.** Vincent flagged conversational phrasing ("does not hinge on an arbitrary cutoff like the top 6%"). Combed the whole dashboard (a read-only agent scan plus a marker sweep) and neutralized the conversational/editorializing bits: the concentration KPI tooltip, the panel tooltip, the by-time-of-day / by-day-of-week tips ("...cluster" -> "...most frequent"), the feedback prompt ("Spotted something off..." -> "To report a problem or suggest an improvement..."), the map hint ("Tip: click..." -> "Click..."), and the report synthesis ("In short, most of the harm falls..." -> "The harm is concentrated on a small share of streets..."). The rest of the dashboard prose was already neutral. No em dashes, no console errors.
+
+---
+
 ## 2026-06-22 — Concentration: Gini + Lorenz curve (drop the arbitrary 6%); $ icon
 
 Vincent's professor flagged that "6% of streets carry ~69% of KSI" is one cherry-picked point on a curve: the number swings with the cutoff (5/6/10%), the unit (segments vs street-miles), and the ranking (count vs density). Replaced the single-threshold stat with a description of the whole distribution.

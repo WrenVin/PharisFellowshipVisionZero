@@ -390,7 +390,7 @@
           <input type="range" id="hr-max" min="0" max="23" value="23" aria-label="Latest hour"></div>
       </div>
       <div class="bleg" id="tod-leg"></div>
-      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows when in the day severe crashes cluster.</div>
+      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows the hours of day when severe crashes are most frequent.</div>
     </div>
     <div class="card" data-card="dow">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
@@ -403,7 +403,7 @@
           <input type="range" id="dow-max" min="0" max="6" value="6" aria-label="Last day"></div>
       </div>
       <div class="bleg" id="dow-leg"></div>
-      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows which days severe crashes cluster on.</div>
+      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows the days of week when severe crashes are most frequent.</div>
     </div>
     <div class="card" data-card="mode">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
@@ -433,10 +433,10 @@
       <div id="worst-list"></div>
     </div>
     <div class="card" data-card="conc">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">&middot; Lorenz curve</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
       <div class="sub" id="conc-sub"></div>
       <div id="conc"></div>
-      <div class="tip">Streets are ranked from most to least dangerous, left to right; the curve shows what cumulative share of the harm (up the side) sits on what cumulative share of street-miles (across the bottom). The dashed line is what a perfectly even spread would look like. The <b>Gini coefficient</b> (0 = even, 1 = all harm on one street) summarizes the entire curve in a single number, so it does not depend on an arbitrary cutoff. The purple <b>6%</b> marker is the size of the City's High Injury Network, shown for comparison.</div>
+      <div class="tip">This is a <b>Lorenz curve</b> (a concentration curve, also used to measure income inequality). Streets are ranked from most to least dangerous, left to right; the curve shows what cumulative share of the harm (vertical) sits on what cumulative share of street-miles (horizontal). The dashed line marks a perfectly even spread. The <b>Gini coefficient</b> (0 = even, 1 = all harm on one street) summarizes the full curve in a single value, independent of any cutoff. The purple <b>6%</b> marker is the size of the City's High Injury Network, shown for comparison. The metric counts where harm occurs, not crashes per mile driven, so part of the concentration reflects that traffic is also concentrated. On the streets with traffic counts, the harm remains about as concentrated after adjusting for vehicle-miles traveled, which indicates specific dangerous roads rather than traffic volume alone.</div>
     </div>
   </div>
 
@@ -476,7 +476,7 @@
       </section>
       <section>
         <h3>Counts, not rates</h3>
-        <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured, not a rate per traffic volume. This is the Vision Zero convention (and how the City's own High Injury Network is built): the goal is zero deaths, so attention goes where the most harm actually occurs. Counts are <span class="lbl">not</span> normalized for exposure (vehicle miles traveled or foot traffic), which is unavailable for most local streets.</p>
+        <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured, not a rate per traffic volume. This is the Vision Zero convention (and how the City's own High Injury Network is built): the goal is zero deaths, so attention goes where the most harm actually occurs. Counts are <span class="lbl">not</span> normalized for exposure (vehicle miles traveled or foot traffic), which is unavailable for most local streets. A crash rate is also unstable on quiet streets, where a single crash produces a large per-mile-driven rate. On the busier streets where traffic counts exist, the harm remains about as concentrated after dividing by vehicle-miles traveled, which indicates specific dangerous roads rather than heavy traffic alone; separating road-design risk from exposure is a task for the systemic risk model (in development).</p>
       </section>
       <section>
         <h3>Crash costs</h3>
@@ -506,7 +506,7 @@
   <div class="sheet">
     <div class="shd"><h2>Share feedback</h2><button class="x" id="fb-x" aria-label="Close">×</button></div>
     <div class="sbody">
-      <p style="font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px">Spotted something off, or have an idea to make this dashboard more useful? Use the form below.<span id="fb-newtab-wrap"> <a href="#" id="fb-newtab" target="_blank" rel="noopener">Open in a new tab</a>.</span></p>
+      <p style="font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px">To report a problem or suggest an improvement, use the form below.<span id="fb-newtab-wrap"> <a href="#" id="fb-newtab" target="_blank" rel="noopener">Open in a new tab</a>.</span></p>
       <iframe id="fbframe" class="fbframe" title="Feedback form" loading="lazy">Loading the feedback form&hellip;</iframe>
       <p id="fb-note" style="display:none;font-size:13px;line-height:1.55;color:var(--muted)">The feedback form is being set up and will be available shortly. In the meantime, please check back soon.</p>
     </div>
@@ -1156,7 +1156,7 @@ function drawViewing(){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
     v.querySelector('span').onclick=clearView;
   } else {
-    v.innerHTML='<span style="color:var(--muted)">Tip: click a street or crash dot for details</span>';
+    v.innerHTML='<span style="color:var(--muted)">Click a street or crash dot for details</span>';
   }
 }
 // --- per-district filter ------------------------------------------------------
@@ -1269,7 +1269,7 @@ function drawKPIs(t){
     const half = con.pctForHalf!=null ? con.pctForHalf*100 : null;
     const halfStr = half!=null ? (half<10?half.toFixed(1):Math.round(half))+'%' : '–';
     const conSub = 'of streets carry half the '+metric+(con.gini!=null?' · Gini '+con.gini.toFixed(2):'');
-    const conTip = 'Traffic harm is extremely concentrated. The headline is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = perfectly even, 1 = all on one street) sums up the whole concentration curve in one number, so it does not hinge on an arbitrary cutoff like "the top 6%". For reference, at the 6% cut the City uses for its High Injury Network, '+Math.round(con.hinKsi*100)+'% of '+metric+' fall on those streets. See the concentration panel below.';
+    const conTip = 'The headline figure is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = spread evenly across streets, 1 = all on one street) summarizes the full concentration curve in a single value, independent of any cutoff. At the 6% threshold the City uses for its High Injury Network, '+Math.round(con.hinKsi*100)+'% of '+metric+' fall on those streets. See the concentration panel below.';
     kpi4=kpi(KICON.conc,'Harm is concentrated', halfStr, conSub, true, conTip);
   }
   const cost=costTotal();
@@ -1911,9 +1911,9 @@ async function generateReport(cfg){
       const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
       const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return null;
       const ch=(r-b)/b; return ch>0.05?'rising':ch<-0.05?'falling':'roughly flat'; })();
-    const conPhrase = (con && con.totK>0) ? ('most of the harm falls on a small share of streets'+(con.gini!=null?' (Gini '+con.gini.toFixed(2)+')':'')) : 'the harm is spread across this view';
+    const conPhrase = (con && con.totK>0) ? ('The harm is concentrated on a small share of streets'+(con.gini!=null?' (Gini '+con.gini.toFixed(2)+')':'')) : 'The harm is spread across this view';
     const trPhrase = trDir ? (', and the yearly trend is '+trDir+' against the 2016–2018 baseline') : '';
-    synthHTML='<p class="r-synth">In short, '+conPhrase+trPhrase+'.</p>';
+    synthHTML='<p class="r-synth">'+conPhrase+trPhrase+'.</p>';
   }
   // stats (ALWAYS)
   const stat=(v,l)=>'<div class="r-stat"><div class="r-statv">'+v+'</div><div class="r-statl">'+l+'</div></div>';
