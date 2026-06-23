@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Concentration: Gini + Lorenz curve (drop the arbitrary 6%); $ icon
+
+Vincent's professor flagged that "6% of streets carry ~69% of KSI" is one cherry-picked point on a curve: the number swings with the cutoff (5/6/10%), the unit (segments vs street-miles), and the ranking (count vs density). Replaced the single-threshold stat with a description of the whole distribution.
+- **`concentration()` rewritten** to rank street-miles by KSI density and return the full Lorenz/concentration curve, a threshold-free **Gini coefficient**, the **share of street-miles carrying half the KSI**, and the KSI share at the City's 6% HIN cut. Citywide: **Gini 0.937**, **half of KSI on 2.3% of street-miles**, **6% (HIN) -> 82%**. Verified the live values match an offline pandas computation exactly.
+- **KPI card** now leads with "**2.3%** of streets carry half the KSI · Gini 0.94" (was "6% -> 65%"), with a tooltip explaining the Gini and noting the 6% HIN reference. Recomputes per filter (District C: Gini 0.95, half on 2.1%).
+- **New "Where the harm is concentrated" panel** (draggable card) draws the concentration curve: cumulative share of harm vs cumulative share of street-miles, the equality diagonal, a light area fill, and the purple 6% HIN marker labeled "6% (HIN) -> 82%". The drag-reorder restore now appends any newly-added card at the end so saved orders don't misplace it.
+- **Report** updated to match: the concentration stat is now "2.3% of streets carry half the KSI" and the synthesis sentence carries the Gini.
+- **Small fix:** the Economic cost KPI icon is now a dollar sign (was a coins/cylinder stack).
+- Verified in-browser (KPI, panel curve, report, District C recompute), no console errors, no em dashes. Docs updated (README, ELI5).
+
+---
+
 ## 2026-06-22 — Default map zoom one level tighter
 
 The citywide view opened too zoomed-out (the city looked small). Added a `fitCity()` helper used by the three citywide fits (initial load + district/SN reset) that fits the network then sets one zoom level tighter (`getBoundsZoom(b)+1`), centered on the city. It calls `map.invalidateSize()` first so it uses the map's true container size — without that, the initial load-time call measured a stale (smaller) size and the +1 just cancelled out (netted zoom 10 instead of 11). Verified: default load is now zoom 11 (was 10), city fills the map, no console errors.

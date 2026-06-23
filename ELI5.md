@@ -296,8 +296,10 @@ A few things the dashboard makes plain:
 - **The toll is not going down.** Killed-or-seriously-injured are up about
   **19%** versus 2016–2018, while the City's official goal is **zero traffic
   deaths by 2030**. We're moving the wrong way.
-- **The harm is wildly concentrated.** About **6% of streets carry roughly 69%**
-  of the serious harm; most streets have had none. That's the whole reason a
+- **The harm is wildly concentrated.** **Half of all the serious harm is on about 2% of
+  the street-miles**; most streets have had none. (Instead of cherry-picking a "top X%"
+  cutoff, the dashboard shows the whole concentration curve and a single Gini score of ~0.94,
+  which is about as concentrated as a distribution can get.) That's the whole reason a
   "where crashes happened" map is so striking, and why a design-based approach
   could help.
 - **It falls unequally.** Neighborhoods with median income under $100k bear
