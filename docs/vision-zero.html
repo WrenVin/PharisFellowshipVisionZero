@@ -838,13 +838,13 @@ function drawConcentration(){
   if(!c.totK){ el.innerHTML=''; if(sub) sub.textContent='No '+metric+' in this view.'; return; }
   const half=c.pctForHalf!=null?c.pctForHalf*100:null, halfStr=half!=null?(half<10?half.toFixed(1):Math.round(half))+'%':'–';
   if(sub) sub.innerHTML='Half of all '+metric+' is on <b>'+halfStr+'</b> of street-miles &middot; Gini <b>'+(c.gini!=null?c.gini.toFixed(2):'–')+'</b>';
-  const W=336,H=200,padL=30,padR=10,padT=20,padB=34,pw=W-padL-padR,ph=H-padT-padB;
+  const W=336,H=156,padL=30,padR=10,padT=24,padB=28,pw=W-padL-padR,ph=H-padT-padB;
   const X=x=>(padL+x*pw), Y=y=>(padT+(1-y)*ph), x0=X(0),x1=X(1),y0=Y(0),y1=Y(1);
   let line=''; for(const p of c.curve) line+=(line?' L ':'M ')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);
   let areaP='M '+x0.toFixed(1)+' '+y0.toFixed(1); for(const p of c.curve) areaP+=' L '+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); areaP+=' L '+x1.toFixed(1)+' '+y0.toFixed(1)+' Z';
   const hx=X(0.06), hy=Y(c.hinKsi);
   const T=[0,0.5,1], lab=['0','50%','100%'];
-  let ax='<text x="2" y="13" font-size="9.5" fill="#5b6672">% of KSI</text>';   // y-axis title
+  let ax='<text x="2" y="11" font-size="9.5" fill="#5b6672">% of KSI</text>';   // y-axis title (above the plot)
   ax+='<line x1="'+x0+'" y1="'+y1+'" x2="'+x0+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // y-axis
   ax+='<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // x-axis
   T.forEach((t,i)=>{ const ty=Y(t), tx=X(t);
