@@ -4,9 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
-## 2026-06-22 — Report creator: filter by month
+## 2026-06-22 — Report creator: month-granularity date range
 
-The "Build your report" modal could filter by year range but not month. Added a **Month** selector (All months + January-December) next to the year fields. Because the temporal model ties a month to a single year (`deriveYear()` nulls `month` for a multi-year range), the field is enabled only when From year = To year and is disabled (reset to "All months") for a range; `_rcSyncMonth()` enforces this on open and on year change. `_rcGenerate()` applies the month after resolving the year range (`month = valid && yrLo===yrHi ? mo : null`). The rest of the report path already honored `month` (the `timeOk` filter and the `viewDesc` subtitle), so a single-year report now filters and labels correctly. Verified: a March 2024 report filters to 96 KSI (vs 1,028 for full-year 2024) and is titled "March 2024"; the field greys out for a year range. No console errors, no em dashes.
+The "Build your report" modal filtered by year range only. (A first pass added a single-month-within-one-year selector, but Vincent wanted a true range like "April 2023 to October 2025" with month + year on both ends, so this was reworked.) Replaced the year fields with **From month / From year** and **To month / To year**.
+
+- **Temporal model.** Added `ymLo`/`ymHi` globals (year-month keys = `year*12 + (month-1)`). When set, they are a month-granularity range that **overrides** the year/month filter in `timeOk`; when null, the existing year-range + single-month-drill model applies. The dashboard's own controls clear it: `deriveYear()` (called by the slider, `selectYear`, `resetYearRange`) sets `ymLo=ymHi=null`, and `selectMonth`/`clearView`/`resetAll` clear it explicitly. So moving the year slider or resetting drops back to year granularity.
+- **Labels.** Centralized the time-window string in `timeSpan()`/`timeSuffix()`/`totalsSpan()` helpers and pointed the KPI span, the mode/income/owner sub-lines, the time-of-day / day-of-week subs, the trend sub, the "Viewing" pill, and the report subtitle (`viewDesc`) at them, so every surface shows e.g. "April 2023–October 2025" (single month shows just "March 2024"). The by-year trend stays full-width (it uses `timeOk(p,'year')`, which skips the range) with the in-range years highlighted.
+- **Apply / URL.** `_rcGenerate()` reads the four selects, swaps if reversed, and treats a full January–December span as a plain year range (so a single full year still reads "2024" with a by-month trend) and anything finer as a month range. The range is encoded in the share URL as `ym=lo-hi` and restored after `deriveYear()`.
+- Verified in-browser: an April 2023–October 2025 report filters to **2,635 KSI** (matches an independent recompute), every label shows the range, the **Generate PDF** button builds it end-to-end, Jan–Dec collapses to a year, and the slider/reset clear the range. No console errors, no em dashes.
 
 ---
 

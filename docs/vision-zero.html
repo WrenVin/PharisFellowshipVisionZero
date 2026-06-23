@@ -568,30 +568,24 @@
             </select>
           </label>
           <label class="rc-field">
+            <span>From month</span>
+            <select id="rc-from-mo">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+          </label>
+          <label class="rc-field">
             <span>From year</span>
-            <select id="rc-yrlo"></select>
+            <select id="rc-from-yr"></select>
+          </label>
+          <label class="rc-field">
+            <span>To month</span>
+            <select id="rc-to-mo">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
           </label>
           <label class="rc-field">
             <span>To year</span>
-            <select id="rc-yrhi"></select>
-          </label>
-          <label class="rc-field">
-            <span>Month</span>
-            <select id="rc-month">
-              <option value="">All months</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
+            <select id="rc-to-yr"></select>
           </label>
           <label class="rc-field">
             <span>Display map as</span>
@@ -643,6 +637,7 @@ let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner=
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
+let ymLo=null, ymHi=null;   // optional month-granularity range (year*12 + (month-1)); when set it overrides the year/month filter (used by the report's month range)
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[], dowArr=null;
@@ -733,15 +728,29 @@ const monthOk=p=> month===null || (p[7] && (+p[7].slice(5,7))===month);
 const yrNarrow=()=> yrLo!==null && (yrLo!==vz.years[0] || yrHi!==vz.years[vz.years.length-1]);
 const hrNarrow=()=> hrLo>0 || hrHi<23;
 const dowNarrow=()=> dowLo>0 || dowHi<6;
+const mrActive=()=> ymLo!=null;   // a month-granularity range (start/end month+year) is active
+function ymStr(ym, short){ const y=Math.floor(ym/12), m=ym%12; return (short?MONTHS[m].slice(0,3):MONTHS[m])+' '+y; }
+// the active time window as a display string (month-range, single year+month, year range, or full span)
+function timeSpan(short){
+  if(mrActive()) return ymLo===ymHi ? ymStr(ymLo,short) : (ymStr(ymLo,short)+'–'+ymStr(ymHi,short));
+  if(year!==null) return month!==null ? ((short?MONTHS[month-1].slice(0,3):MONTHS[month-1])+' '+year) : String(year);
+  if(yrNarrow()) return yrLo+'–'+yrHi;
+  return vz.years[0]+'–'+vz.years[vz.years.length-2];
+}
+function timeSuffix(short){ if(mrActive()) return ' · '+timeSpan(short); if(year!==null) return ' · '+year; if(yrNarrow()) return ' · '+yrLo+'–'+yrHi; return ''; }
+function totalsSpan(){ const s=timeSpan(false); if(mrActive()) return 'totals over '+s; if(yrNarrow()) return s; if(year!==null) return 'totals in '+s; return 'totals over '+s; }
 // keep the legacy single-year drill model: a one-year range behaves like the old `year`;
 // a multi-year range means year=null (and month=null) so existing labels/KPIs still work.
-function deriveYear(){ if(yrLo===null) return; if(yrLo===yrHi){ year=yrLo; } else { year=null; month=null; } }
+function deriveYear(){ ymLo=ymHi=null; if(yrLo===null) return; if(yrLo===yrHi){ year=yrLo; } else { year=null; month=null; } }
 // Mon=0..Sun=6 weekday for a "YYYY-MM-DD" date string.
 const dowOf=ds=> (new Date(ds+'T00:00:00').getDay()+6)%7;
 // unified temporal predicate. skip ('year'|'hour'|'dow') excludes ONE dimension so a
 // chart can render its own full distribution while still filtered by the other two.
 function timeOk(p, skip){
-  if(skip!=='year'){ if(yrLo!==null && (p[6]<yrLo || p[6]>yrHi)) return false; if(!monthOk(p)) return false; }
+  if(skip!=='year'){
+    if(ymLo!=null){ const d=p[7]; if(!d) return false; const ym=p[6]*12+(+d.slice(5,7)-1); if(ym<ymLo || ym>ymHi) return false; }
+    else { if(yrLo!==null && (p[6]<yrLo || p[6]>yrHi)) return false; if(!monthOk(p)) return false; }
+  }
   if(skip!=='hour' && hrNarrow()){ if(p[8]==null || p[8]<hrLo || p[8]>hrHi) return false; }
   if(skip!=='dow' && dowNarrow()){ if(!p[7]) return false; const d=dowOf(p[7]); if(d<dowLo || d>dowHi) return false; }
   return true;
@@ -772,7 +781,7 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
-  const narrowed = yrNarrow() || month!==null || hrNarrow() || dowNarrow();
+  const narrowed = yrNarrow() || month!==null || mrActive() || hrNarrow() || dowNarrow();
   if(narrowed){
     for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
@@ -1077,7 +1086,8 @@ function syncURL(){
   const q=[];
   if(mode!=='all') q.push('mode='+mode);
   if(sev!=='ksi') q.push('sev='+sev);
-  if(yrNarrow()) q.push('yr='+yrLo+'-'+yrHi);   // narrowed year range (a single drilled year is yrLo==yrHi)
+  if(mrActive()) q.push('ym='+ymLo+'-'+ymHi);   // month-granularity range (year*12 + month-1)
+  else if(yrNarrow()) q.push('yr='+yrLo+'-'+yrHi);   // narrowed year range (a single drilled year is yrLo==yrHi)
   if(month!=null) q.push('month='+month);
   if(hrNarrow()) q.push('hr='+hrLo+'-'+hrHi);
   if(dowNarrow()) q.push('dow='+dowLo+'-'+dowHi);
@@ -1115,6 +1125,8 @@ function applyURL(){
   const dw=p.get('dow'); if(dw && /^\d-\d$/.test(dw)){ let [a,b]=dw.split('-').map(Number); if(a>b)[a,b]=[b,a]; dowLo=Math.max(0,a); dowHi=Math.min(6,b); }
   const mo=p.get('month'); if(mo!=null && mo!=='' && +mo>=1 && +mo<=12) month=+mo;
   deriveYear();   // resolve year/month from the range now that it's set
+  const ym=p.get('ym');   // month-granularity range overrides the year range (applied after deriveYear, which clears it)
+  if(ym && /^\d+-\d+$/.test(ym)){ let [a,b]=ym.split('-').map(Number); if(a>b)[a,b]=[b,a]; ymLo=a; ymHi=b; yrLo=Math.floor(a/12); yrHi=Math.floor(b/12); year=null; month=null; }
   const d=p.get('district');
   if(d && distFeats.length && distFeats.some(f=>f.properties.DISTRICT===d)){
     const sel=document.getElementById('district'); if(sel) sel.value=d;
@@ -1168,7 +1180,8 @@ function drawViewing(){
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
-  if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
+  if(mrActive()) parts.push('<b>'+timeSpan(false)+'</b>');
+  else if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
   else if(yrNarrow()) parts.push('<b>'+yrLo+'–'+yrHi+'</b>');   // multi-year range (single year handled above)
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
@@ -1232,7 +1245,7 @@ function selectSN(v){
   render();
 }
 function clearView(){
-  year=null; month=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
+  year=null; month=null; ymLo=ymHi=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
   yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1];   // return the year range to full
   _clearSN();   // clear any super-neighborhood filter too
   const sel=document.getElementById('district'); if(sel) sel.value='';
@@ -1240,7 +1253,7 @@ function clearView(){
 }
 // reset EVERY filter/selection back to the default citywide view in one click
 function resetAll(){
-  mode='all'; sev='ksi'; view='streets'; owner='all'; year=null; month=null;
+  mode='all'; sev='ksi'; view='streets'; owner='all'; year=null; month=null; ymLo=ymHi=null;
   yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; hrLo=0; hrHi=23; dowLo=0; dowHi=6;   // ranges back to full
   selStreet=null; selSeg=null; selIds=new Set();
   document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
@@ -1271,9 +1284,7 @@ function drawKPIs(t){
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
   const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : 'on city streets';
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
-  const span = yrNarrow() ? (yrLo+'–'+yrHi)
-             : year===null ? (vz.years[0]+'–'+vz.years[vz.years.length-2])
-             : (month!==null ? MONTHS[month-1].slice(0,3)+' '+year : String(year));
+  const span = timeSpan(true);
   const yll=Math.round(yllTotal()), serious=ksi-killed;
   const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
   // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
@@ -1363,7 +1374,7 @@ function setStack(id, segs){
 }
 function drawMode(t){
   if(!t) t=tally(year); const ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
-  document.getElementById('mode-sub').textContent='Killed or seriously injured'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
+  document.getElementById('mode-sub').textContent='Killed or seriously injured'+timeSuffix(true);
   if(t.ksi<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
     document.getElementById('modeleg').innerHTML='';
     document.getElementById('modedeaths').textContent='No one killed or seriously injured was recorded'+(year?' in '+year:'')+' for this view.'; return; }
@@ -1388,7 +1399,7 @@ function drawEquity(){
     if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
-  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
+  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+timeSuffix(true);
   if(tot<=0){ setStack('eqbar',[0,1,2,3].map(i=>({key:'t'+i,pct:0,color:INC_COL[i]}))); document.getElementById('eqleg').innerHTML='';
     document.getElementById('eqnote').textContent='No KSI with a known neighborhood income for this view.'; return; }
   const pct=x=>Math.round(100*x/tot);
@@ -1408,7 +1419,7 @@ function drawOwnership(){
     if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
-  document.getElementById('own-sub').textContent='Killed or seriously injured'+(year!==null?(' · '+year):(yrNarrow()?(' · '+yrLo+'–'+yrHi):''));
+  document.getElementById('own-sub').textContent='Killed or seriously injured'+timeSuffix(true);
   if(tot<=0){ setStack('ownbar',[{key:'city',pct:0,color:OWN_COL.city},{key:'txdot',pct:0,color:OWN_COL.txdot}]);
     document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No KSI for this view.</span>'; return; }
   const pct=x=>Math.round(100*x/tot);
@@ -1575,7 +1586,9 @@ function drawTrend(){
   drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78});
   document.getElementById('trend-title').textContent = year===null
     ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
-  document.getElementById('trend-sub').innerHTML = (year===null && yrNarrow())
+  document.getElementById('trend-sub').innerHTML = mrActive()
+    ? ('Range <b>'+timeSpan(false)+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all months</span>')
+    : (year===null && yrNarrow())
     ? ('Years <b>'+yrLo+'–'+yrHi+'</b> · drag the slider or click a year · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all years</span>')
     : year===null
     ? 'Click a year, or drag the slider, to filter the dashboard'
@@ -1599,9 +1612,7 @@ function drawTimeOfDay(){
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : '');
     if(hrNarrow() && (h<hrLo || h>hrHi)) fadeIdx.add(h); }
   drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx});
-  const span = yrNarrow() ? (yrLo+'–'+yrHi)
-             : year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
-             : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
+  const span = totalsSpan();
   document.getElementById('tod-sub').innerHTML = hrNarrow()
     ? ('Hours <b>'+hourLabel(hrLo)+'–'+hourLabel(hrHi)+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetHourRange()">reset</span>')
     : ('By hour of day, '+span);
@@ -1614,9 +1625,7 @@ function drawDayOfWeek(){
   for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0);
     if(dowNarrow() && (d<dowLo || d>dowHi)) fadeIdx.add(d); }
   drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx});
-  const span = yrNarrow() ? (yrLo+'–'+yrHi)
-             : year===null ? ('totals over '+vz.years[0]+'–'+vz.years[vz.years.length-2])
-             : (month!==null ? ('totals in '+MONTHS[month-1]+' '+year) : ('totals in '+year));
+  const span = totalsSpan();
   document.getElementById('dow-sub').innerHTML = dowNarrow()
     ? ('Days <b>'+DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetDowRange()">reset</span>')
     : ('By day of week, '+span);
@@ -1630,7 +1639,7 @@ function selectYear(y){
   else { yrLo=y; yrHi=y; }
   month=null; deriveYear(); render();
 }
-function selectMonth(m){ month = (m===month) ? null : m; render(); }
+function selectMonth(m){ ymLo=ymHi=null; month = (m===month) ? null : m; render(); }
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
 // nearest street segment to a crash, found geometrically at click time (crash
 // points carry no segment link, so this avoids bloating crash_points.json).
@@ -1897,8 +1906,7 @@ function viewDesc(){
   const region = district!==null ? 'District '+district
     : sn!==null ? (()=>{ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):'City of Houston'; })()
     : 'City of Houston';
-  const when = year!==null ? (month!==null? MONTHS[month-1]+' '+year : String(year))
-    : yrNarrow() ? (yrLo+'–'+yrHi) : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
+  const when = timeSpan(false);
   const modeTxt = mode==='ped'?'people walking' : mode==='bike'?'people biking' : mode==='veh'?'people in vehicles' : null;
   const sel = selStreet!==null ? (selStreet.startsWith('__seg__')?'a selected block':selStreet) : (selSeg!==null ? (selSeg.name||'a selected block') : null);
   const extras=[];
@@ -2016,7 +2024,7 @@ function _rcFillSelects(){
       .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
     ss.innerHTML=opts.join('');
   }
-  const lo=_rcEl('rc-yrlo'), hi=_rcEl('rc-yrhi');
+  const lo=_rcEl('rc-from-yr'), hi=_rcEl('rc-to-yr');
   if(lo && hi && vz && vz.years){
     const opts=vz.years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
     lo.innerHTML=opts; hi.innerHTML=opts;
@@ -2034,11 +2042,14 @@ function openReportModal(){
   _rcEl('rc-sev').value = sev;
   _rcEl('rc-view').value = view;
   if(vz && vz.years){
-    _rcEl('rc-yrlo').value = String(yrLo!==null ? yrLo : vz.years[0]);
-    _rcEl('rc-yrhi').value = String(yrHi!==null ? yrHi : vz.years[vz.years.length-1]);
+    // pre-fill the From/To month+year from the current view
+    let fy, fm, ty, tm;
+    if(mrActive()){ fy=Math.floor(ymLo/12); fm=(ymLo%12)+1; ty=Math.floor(ymHi/12); tm=(ymHi%12)+1; }
+    else { fy=yrLo!==null?yrLo:vz.years[0]; ty=yrHi!==null?yrHi:vz.years[vz.years.length-1];
+      if(year!==null && month!==null){ fm=month; tm=month; } else { fm=1; tm=12; } }
+    _rcEl('rc-from-yr').value=String(fy); _rcEl('rc-from-mo').value=String(fm);
+    _rcEl('rc-to-yr').value=String(ty); _rcEl('rc-to-mo').value=String(tm);
   }
-  _rcEl('rc-month').value = (month!==null ? String(month) : '');
-  _rcSyncMonth();   // a month only applies within a single year
   const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
   // sections: all checked by default each time the modal opens
   ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
@@ -2054,10 +2065,6 @@ function closeReportModal(){
 // district and super neighborhood are mutually exclusive: picking one clears the other in the modal
 _rcEl('rc-district').addEventListener('change',()=>{ if(_rcEl('rc-district').value) _rcEl('rc-sn').value=''; });
 _rcEl('rc-sn').addEventListener('change',()=>{ if(_rcEl('rc-sn').value) _rcEl('rc-district').value=''; });
-// a month only applies to a single year (a year range forces "all months"); enable/disable accordingly
-function _rcSyncMonth(){ const lo=_rcEl('rc-yrlo'), hi=_rcEl('rc-yrhi'), mo=_rcEl('rc-month'); if(!lo||!hi||!mo) return;
-  const single = lo.value===hi.value; mo.disabled=!single; if(!single) mo.value=''; }
-['rc-yrlo','rc-yrhi'].forEach(id=>{ const el=_rcEl(id); if(el) el.addEventListener('change', _rcSyncMonth); });
 // apply the chosen filters to the live dashboard, then build cfg and print
 async function _rcGenerate(){
   // mode: set the global + reflect the sidebar pills (no extra render; render() runs once at the end)
@@ -2072,11 +2079,16 @@ async function _rcGenerate(){
   const ow=_rcEl('rc-owner').value; if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
   const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
   // year range: set globals + sync the sidebar slider, resolve year/month
-  const a=+_rcEl('rc-yrlo').value, b=+_rcEl('rc-yrhi').value;
-  if(!isNaN(a) && !isNaN(b)){ yrLo=Math.min(a,b); yrHi=Math.max(a,b); month=null; deriveYear();
-    if(typeof syncSlider==='function') syncSlider('yr', yrLo, yrHi); }
-  // month: only valid within a single year (year===null for a range), else "all months"
-  const mo=+(_rcEl('rc-month').value||0); month = (mo>=1 && mo<=12 && yrLo===yrHi) ? mo : null;
+  // time window: From (month + year) to To (month + year), at month granularity
+  const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
+  if(!isNaN(fy) && !isNaN(ty)){
+    let lo=fy*12+(fm-1), hi=ty*12+(tm-1); if(lo>hi){ const t=lo; lo=hi; hi=t; }
+    yrLo=Math.floor(lo/12); yrHi=Math.floor(hi/12); month=null; year=null;
+    // a January–December span is just a year range; anything finer is a month range
+    if(lo===yrLo*12 && hi===yrHi*12+11){ ymLo=ymHi=null; deriveYear(); }
+    else { ymLo=lo; ymHi=hi; }
+    if(typeof syncSlider==='function') syncSlider('yr', yrLo, yrHi);
+  }
   // High Injury Network overlay: match the sidebar checkbox + layer
   const wantHin=_rcEl('rc-hin').checked, hinBox=_rcEl('hin');
   if(hinBox){ hinBox.checked=wantHin;
