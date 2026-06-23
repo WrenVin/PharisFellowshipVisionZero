@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-22 — Report creator: filter by month
+
+The "Build your report" modal could filter by year range but not month. Added a **Month** selector (All months + January-December) next to the year fields. Because the temporal model ties a month to a single year (`deriveYear()` nulls `month` for a multi-year range), the field is enabled only when From year = To year and is disabled (reset to "All months") for a range; `_rcSyncMonth()` enforces this on open and on year change. `_rcGenerate()` applies the month after resolving the year range (`month = valid && yrLo===yrHi ? mo : null`). The rest of the report path already honored `month` (the `timeOk` filter and the `viewDesc` subtitle), so a single-year report now filters and labels correctly. Verified: a March 2024 report filters to 96 KSI (vs 1,028 for full-year 2024) and is titled "March 2024"; the field greys out for a year range. No console errors, no em dashes.
+
+---
+
 ## 2026-06-22 — Concentration vs. exposure note; name the Lorenz curve; voice pass
 
 Follow-ups to the concentration metric.

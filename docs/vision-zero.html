@@ -576,6 +576,24 @@
             <select id="rc-yrhi"></select>
           </label>
           <label class="rc-field">
+            <span>Month</span>
+            <select id="rc-month">
+              <option value="">All months</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </label>
+          <label class="rc-field">
             <span>Display map as</span>
             <select id="rc-view">
               <option value="corridor">Streets</option>
@@ -2019,6 +2037,8 @@ function openReportModal(){
     _rcEl('rc-yrlo').value = String(yrLo!==null ? yrLo : vz.years[0]);
     _rcEl('rc-yrhi').value = String(yrHi!==null ? yrHi : vz.years[vz.years.length-1]);
   }
+  _rcEl('rc-month').value = (month!==null ? String(month) : '');
+  _rcSyncMonth();   // a month only applies within a single year
   const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
   // sections: all checked by default each time the modal opens
   ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
@@ -2034,6 +2054,10 @@ function closeReportModal(){
 // district and super neighborhood are mutually exclusive: picking one clears the other in the modal
 _rcEl('rc-district').addEventListener('change',()=>{ if(_rcEl('rc-district').value) _rcEl('rc-sn').value=''; });
 _rcEl('rc-sn').addEventListener('change',()=>{ if(_rcEl('rc-sn').value) _rcEl('rc-district').value=''; });
+// a month only applies to a single year (a year range forces "all months"); enable/disable accordingly
+function _rcSyncMonth(){ const lo=_rcEl('rc-yrlo'), hi=_rcEl('rc-yrhi'), mo=_rcEl('rc-month'); if(!lo||!hi||!mo) return;
+  const single = lo.value===hi.value; mo.disabled=!single; if(!single) mo.value=''; }
+['rc-yrlo','rc-yrhi'].forEach(id=>{ const el=_rcEl(id); if(el) el.addEventListener('change', _rcSyncMonth); });
 // apply the chosen filters to the live dashboard, then build cfg and print
 async function _rcGenerate(){
   // mode: set the global + reflect the sidebar pills (no extra render; render() runs once at the end)
@@ -2051,6 +2075,8 @@ async function _rcGenerate(){
   const a=+_rcEl('rc-yrlo').value, b=+_rcEl('rc-yrhi').value;
   if(!isNaN(a) && !isNaN(b)){ yrLo=Math.min(a,b); yrHi=Math.max(a,b); month=null; deriveYear();
     if(typeof syncSlider==='function') syncSlider('yr', yrLo, yrHi); }
+  // month: only valid within a single year (year===null for a range), else "all months"
+  const mo=+(_rcEl('rc-month').value||0); month = (mo>=1 && mo<=12 && yrLo===yrHi) ? mo : null;
   // High Injury Network overlay: match the sidebar checkbox + layer
   const wantHin=_rcEl('rc-hin').checked, hinBox=_rcEl('hin');
   if(hinBox){ hinBox.checked=wantHin;
