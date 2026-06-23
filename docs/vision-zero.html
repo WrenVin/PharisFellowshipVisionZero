@@ -838,19 +838,28 @@ function drawConcentration(){
   if(!c.totK){ el.innerHTML=''; if(sub) sub.textContent='No '+metric+' in this view.'; return; }
   const half=c.pctForHalf!=null?c.pctForHalf*100:null, halfStr=half!=null?(half<10?half.toFixed(1):Math.round(half))+'%':'–';
   if(sub) sub.innerHTML='Half of all '+metric+' is on <b>'+halfStr+'</b> of street-miles &middot; Gini <b>'+(c.gini!=null?c.gini.toFixed(2):'–')+'</b>';
-  const W=320,H=170,padL=6,padR=8,padT=10,padB=18,pw=W-padL-padR,ph=H-padT-padB;
-  const X=x=>(padL+x*pw), Y=y=>(padT+(1-y)*ph);
+  const W=336,H=200,padL=30,padR=10,padT=20,padB=34,pw=W-padL-padR,ph=H-padT-padB;
+  const X=x=>(padL+x*pw), Y=y=>(padT+(1-y)*ph), x0=X(0),x1=X(1),y0=Y(0),y1=Y(1);
   let line=''; for(const p of c.curve) line+=(line?' L ':'M ')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);
-  let areaP='M '+X(0).toFixed(1)+' '+Y(0).toFixed(1); for(const p of c.curve) areaP+=' L '+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); areaP+=' L '+X(1).toFixed(1)+' '+Y(0).toFixed(1)+' Z';
+  let areaP='M '+x0.toFixed(1)+' '+y0.toFixed(1); for(const p of c.curve) areaP+=' L '+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); areaP+=' L '+x1.toFixed(1)+' '+y0.toFixed(1)+' Z';
   const hx=X(0.06), hy=Y(c.hinKsi);
+  const T=[0,0.5,1], lab=['0','50%','100%'];
+  let ax='<text x="2" y="13" font-size="9.5" fill="#5b6672">% of KSI</text>';   // y-axis title
+  ax+='<line x1="'+x0+'" y1="'+y1+'" x2="'+x0+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // y-axis
+  ax+='<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // x-axis
+  T.forEach((t,i)=>{ const ty=Y(t), tx=X(t);
+    if(t>0&&t<1) ax+='<line x1="'+x0+'" y1="'+ty.toFixed(1)+'" x2="'+x1+'" y2="'+ty.toFixed(1)+'" stroke="#eef0f3" stroke-width="1"/>';   // y gridline
+    ax+='<text x="'+(x0-5)+'" y="'+(ty+3).toFixed(1)+'" font-size="9" fill="#8a939c" text-anchor="end">'+lab[i]+'</text>';                // y tick label
+    ax+='<text x="'+tx.toFixed(1)+'" y="'+(y0+12)+'" font-size="9" fill="#8a939c" text-anchor="middle">'+lab[i]+'</text>'; });             // x tick label
+  ax+='<text x="'+(x0+pw/2).toFixed(1)+'" y="'+(H-4)+'" font-size="9.5" fill="#5b6672" text-anchor="middle">% of street-miles (most dangerous first)</text>';
   el.innerHTML='<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'
-    +'<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(1)+'" y2="'+Y(1)+'" stroke="#cdd3da" stroke-width="1" stroke-dasharray="3 3"/>'
+    + ax
+    +'<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y1+'" stroke="#b9c0c8" stroke-width="1" stroke-dasharray="3 3"/>'   // equality line
     +'<path d="'+areaP+'" fill="#e23b3b" fill-opacity="0.10"/>'
     +'<path d="'+line+'" fill="none" stroke="#b3202a" stroke-width="2" stroke-linejoin="round"/>'
-    +'<line x1="'+hx.toFixed(1)+'" y1="'+Y(0)+'" x2="'+hx.toFixed(1)+'" y2="'+hy.toFixed(1)+'" stroke="#6a3d9a" stroke-width="1" stroke-dasharray="2 2"/>'
+    +'<line x1="'+hx.toFixed(1)+'" y1="'+y0+'" x2="'+hx.toFixed(1)+'" y2="'+hy.toFixed(1)+'" stroke="#6a3d9a" stroke-width="1" stroke-dasharray="2 2"/>'
     +'<circle cx="'+hx.toFixed(1)+'" cy="'+hy.toFixed(1)+'" r="3" fill="#6a3d9a"/>'
-    +'<text x="'+(hx+6).toFixed(1)+'" y="'+(hy+13).toFixed(1)+'" font-size="11" fill="#6a3d9a" font-weight="600">6% (HIN) &#8594; '+Math.round(c.hinKsi*100)+'%</text>'
-    +'<text x="'+X(0)+'" y="'+(H-4)+'" font-size="10" fill="#8a939c">streets, most dangerous first &#8594;</text>'
+    +'<text x="'+(hx+6).toFixed(1)+'" y="'+(hy+13).toFixed(1)+'" font-size="10.5" fill="#6a3d9a" font-weight="600">6% (HIN) &#8594; '+Math.round(c.hinKsi*100)+'%</text>'
     +'</svg>';
 }
 
@@ -1261,7 +1270,7 @@ function drawKPIs(t){
     const halfStr = half!=null ? (half<10?half.toFixed(1):Math.round(half))+'%' : '–';
     const conSub = 'of streets carry half the '+metric+(con.gini!=null?' · Gini '+con.gini.toFixed(2):'');
     const conTip = 'Traffic harm is extremely concentrated. The headline is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = perfectly even, 1 = all on one street) sums up the whole concentration curve in one number, so it does not hinge on an arbitrary cutoff like "the top 6%". For reference, at the 6% cut the City uses for its High Injury Network, '+Math.round(con.hinKsi*100)+'% of '+metric+' fall on those streets. See the concentration panel below.';
-    kpi4=kpi(KICON.conc,'A few streets carry most harm', halfStr, conSub, true, conTip);
+    kpi4=kpi(KICON.conc,'Harm is concentrated', halfStr, conSub, true, conTip);
   }
   const cost=costTotal();
   const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), from FHWA per-person costs by injury severity (KABCO) applied to the people hurt in each crash (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity injuries carry no cost and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
