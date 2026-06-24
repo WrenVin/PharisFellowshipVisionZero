@@ -829,11 +829,12 @@ function styleFor(f){
 // fields 16-20 are per-crash person counts by injury severity (killed K, serious A, minor B, possible C, no-injury) for the cost metric
 function tally(y){
   let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
-  let crashes=0;
+  let crashes=0,pa=0,ba=0;
   for(const p of pts){ if(!inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue;
     crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
+    if(pe)pa++; if(bi)ba++;                                // ped / bike crashes of any severity (all-crashes mode)
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
-  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,crashes};
+  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,ped_all:pa,bike_all:ba,crashes};
 }
 // HIN-style concentration within the active district: top 6% of street-miles by KSI -> % of KSI
 // Concentration of harm across street-miles, described by the WHOLE distribution
@@ -1373,12 +1374,15 @@ function setStack(id, segs){
   }
 }
 function drawMode(t){
-  if(!t) t=tally(year); const ped=t.ped_ksi, bike=t.bike_ksi, veh=t.ksi-ped-bike;
-  document.getElementById('mode-sub').textContent='Killed or seriously injured'+timeSuffix(true);
-  if(t.ksi<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
+  if(!t) t=tally(year);
+  const all = sev==='all';
+  const total = all ? t.crashes : t.ksi;
+  const ped = all ? t.ped_all : t.ped_ksi, bike = all ? t.bike_all : t.bike_ksi, veh = total-ped-bike;
+  document.getElementById('mode-sub').textContent=(all?'All crashes':'Killed or seriously injured')+timeSuffix(true);
+  if(total<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
     document.getElementById('modeleg').innerHTML='';
-    document.getElementById('modedeaths').textContent='No one killed or seriously injured was recorded'+(year?' in '+year:'')+' for this view.'; return; }
-  const pct=x=>Math.round(100*x/t.ksi);
+    document.getElementById('modedeaths').textContent=(all?'No crashes were recorded':'No one killed or seriously injured was recorded')+(year?' in '+year:'')+' for this view.'; return; }
+  const pct=x=>Math.round(100*x/total);
   setStack('modebar',[
     {key:'veh',pct:pct(veh),color:'#9aa3ad',label:pct(veh)+'%'},
     {key:'ped',pct:pct(ped),color:'#d7301f',label:pct(ped)+'%'},
@@ -1396,19 +1400,19 @@ const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
 function drawEquity(){
   const c=[0,0,0,0]; let unk=0;
   for(const p of pts){
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOk(p[13]) || !selOk(p) || !timeOk(p)) continue; if(sev==='ksi' && p[2]!==1) continue;  // KSI in ksi mode, all crashes in all-crashes mode
     const t=p[11]; if(t==null) unk++; else c[t]++; }
   const tot=c[0]+c[1]+c[2]+c[3];
-  document.getElementById('eq-sub').textContent='Killed or seriously injured by neighborhood income'+timeSuffix(true);
+  document.getElementById('eq-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+' by neighborhood income'+timeSuffix(true);
   if(tot<=0){ setStack('eqbar',[0,1,2,3].map(i=>({key:'t'+i,pct:0,color:INC_COL[i]}))); document.getElementById('eqleg').innerHTML='';
-    document.getElementById('eqnote').textContent='No KSI with a known neighborhood income for this view.'; return; }
+    document.getElementById('eqnote').textContent='No '+(sev==='all'?'crashes':'KSI')+' with a known neighborhood income for this view.'; return; }
   const pct=x=>Math.round(100*x/tot);
   setStack('eqbar', c.map((v,i)=>({key:'t'+i,pct:pct(v),color:INC_COL[i],label:pct(v)>=8?pct(v)+'%':''})));
   document.getElementById('eqleg').innerHTML=c.map((v,i)=>
     '<span><span class="dot" style="background:'+INC_COL[i]+'"></span>'+INC_LAB[i]+' ('+fmt(v)+')</span>').join('');
   const low=pct(c[0]+c[1]);
   document.getElementById('eqnote').innerHTML='Neighborhoods under $100k median income account for <b>'+low
-    +'%</b> of KSI here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
+    +'%</b> of '+(sev==='all'?'crashes':'KSI')+' here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
 }
 
 // --- by road owner: KSI on city-owned vs TxDOT-owned roads (mode/year/district aware) ---
@@ -1416,12 +1420,12 @@ const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a'};
 function drawOwnership(){
   let cityN=0, txN=0;
   for(const p of pts){
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(p[2]!==1) continue;  // KSI (ignores the owner filter; this card IS the split)
+    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(sev==='ksi' && p[2]!==1) continue;  // KSI in ksi mode, all crashes in all-crashes mode (ignores the owner filter; this card IS the split)
     if(p[13]===1) txN++; else cityN++; }
   const tot=cityN+txN;
-  document.getElementById('own-sub').textContent='Killed or seriously injured'+timeSuffix(true);
+  document.getElementById('own-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
   if(tot<=0){ setStack('ownbar',[{key:'city',pct:0,color:OWN_COL.city},{key:'txdot',pct:0,color:OWN_COL.txdot}]);
-    document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No KSI for this view.</span>'; return; }
+    document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No '+(sev==='all'?'crashes':'KSI')+' for this view.</span>'; return; }
   const pct=x=>Math.round(100*x/tot);
   setStack('ownbar',[
     {key:'city',pct:pct(cityN),color:OWN_COL.city,label:pct(cityN)>=8?pct(cityN)+'%':''},
