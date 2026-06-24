@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-23 — Breakdown charts follow the Show (KSI vs all crashes) toggle
+
+The **by-year**, **by-time-of-day**, and **by-day-of-week** charts always counted KSI only, ignoring the **Show** toggle. So selecting **All crashes** updated the map, KPIs, worst-streets list, and report, but those three time charts stayed KSI-only. On a street with crashes but no KSI (e.g. East 11th Street), they rendered empty even in all-crashes mode, which is what Vincent flagged.
+
+- **Mode-aware series.** The four data builders (`yearStacks`/`monthStacks`/`hourStacks`/`dayStacks`) dropped the hard `p[2]===1` KSI filter (it was bundled into `modeKSI`, now split into `inLens` = lens + district + owner + selection, no severity). Two helpers drive the split: `chartInc(p)` (is it counted at all — every crash in all-mode, KSI-only in ksi-mode) and `chartTop(p)` (does it go in the dark/top series — killed in ksi-mode, KSI in all-mode). So in **all-crashes** mode the stack is dark = killed or seriously injured, light = other crashes, total = all crashes; **KSI** mode is byte-for-byte unchanged (dark = killed, light = seriously injured).
+- **Labels.** `stackLegend()`, the trend title (`drawTrend` → "All crashes, by year"), the trend headline noun ("Crashes are up/down X% vs ..."), the click-bar tooltip unit ("N crashes"), and the report's by-year chart title all switch on `sev`. The time-of-day / day-of-week titles are mode-neutral; their legends switch via `stackLegend()`.
+- Verified in-browser: citywide KSI-by-year total **9,923** (unchanged) vs all-crashes **421,570** (= every crash point); **East 11th Street** (0 KSI, 37 crashes) now shows 37 across all three charts in all-crashes mode and 0 in KSI mode; the KSI-mode default look and headline ("KSI are up 19% vs 2016 to 2018") are preserved. No console errors, no em dashes. (No data-field change, so CODEBOOK is untouched.)
+
 ## 2026-06-22 — Report creator: month-granularity date range
 
 The "Build your report" modal filtered by year range only. (A first pass added a single-month-within-one-year selector, but Vincent wanted a true range like "April 2023 to October 2025" with month + year on both ends, so this was reworked.) Replaced the year fields with **From month / From year** and **To month / To year**.

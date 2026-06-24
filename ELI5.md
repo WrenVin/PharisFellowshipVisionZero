@@ -282,7 +282,10 @@ actually sees and can do:
   trend line and a plain-English note on whether things are improving (they
   aren't, as it turns out); plus breakdowns **by time of day**, **by travel mode**, **by
   neighborhood income**, **by road owner**, and a **"most dangerous streets"
-  top-5 list** you can click to filter to.
+  top-5 list** you can click to filter to. When you switch the toggle to **all
+  crashes**, the year / time-of-day / day-of-week charts switch with it and count
+  every crash, so a street that has crashes but nobody killed or seriously hurt
+  still shows a pattern instead of empty bars.
 - **Easy to use:** when you filter down to just a few crashes it **flashes them**
   so they're easy to find on the map, and you can **share a link** that reopens
   the exact view you're looking at.

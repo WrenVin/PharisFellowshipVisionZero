@@ -1482,19 +1482,28 @@ function drawWorstStreets(){
 }
 
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function modeKSI(p){ return p[2]===1 && modeMatch(p[4],p[5]) && inArea(p) && ownerOk(p[13]) && selOk(p); }   // severe + lens + district + owner + selection
-function yearStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'year')||!modeKSI(p))continue;
-  const y=p[6]; if(p[3]) f[y]=(f[y]||0)+1; else s[y]=(s[y]||0)+1; } return {f,s}; }
-function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!timeOk(p,'year')||!modeKSI(p))continue;
-  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; if(p[3]) f[m]=(f[m]||0)+1; else s[m]=(s[m]||0)+1; } return {f,s}; }
-function hourStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'hour')||!modeKSI(p))continue;
-  const h=p[8]; if(h==null)continue; if(p[3]) f[h]=(f[h]||0)+1; else s[h]=(s[h]||0)+1; } return {f,s}; }
-function dayStacks(){ const f={},s={}; for(let i=0;i<pts.length;i++){ const p=pts[i]; if(!timeOk(p,'dow')||!modeKSI(p))continue;
-  if(!p[7])continue; const d=dowArr[i]; if(p[3]) f[d]=(f[d]||0)+1; else s[d]=(s[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun (precomputed)
+function inLens(p){ return modeMatch(p[4],p[5]) && inArea(p) && ownerOk(p[13]) && selOk(p); }   // lens + district + owner + selection (no severity filter)
+// The by-year / time-of-day / day-of-week charts follow the SHOW toggle (sev).
+// KSI mode: count only KSI, split dark=killed / light=seriously injured.
+// All-crashes mode: count every crash, split dark=killed or seriously injured / light=other crashes.
+// In both, f is the dark (top) series and s is the light (bottom) series.
+function chartInc(p){ return sev==='all' ? true : p[2]===1; }     // is this crash counted in the active mode
+function chartTop(p){ return sev==='all' ? p[2]===1 : !!p[3]; }   // does it go in the dark (top) series
+function yearStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'year')||!inLens(p)||!chartInc(p))continue;
+  const t=chartTop(p)?f:s, y=p[6]; t[y]=(t[y]||0)+1; } return {f,s}; }
+function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!timeOk(p,'year')||!inLens(p)||!chartInc(p))continue;
+  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
+function hourStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'hour')||!inLens(p)||!chartInc(p))continue;
+  const h=p[8]; if(h==null)continue; const t=chartTop(p)?f:s; t[h]=(t[h]||0)+1; } return {f,s}; }
+function dayStacks(){ const f={},s={}; for(let i=0;i<pts.length;i++){ const p=pts[i]; if(!timeOk(p,'dow')||!inLens(p)||!chartInc(p))continue;
+  if(!p[7])continue; const d=dowArr[i]; const t=chartTop(p)?f:s; t[d]=(t[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun (precomputed)
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
-function stackLegend(){ return '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
-  +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>'; }
+function stackLegend(){ return sev==='all'
+  ? '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed or seriously injured</span>'
+    +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Other crashes</span>'
+  : '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span>'
+    +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>'; }
 // SVG charts morph in place: the bars (rect.bar) keep their identity across
 // renders and transition their height/y to the new values (CSS) instead of the
 // chart being rebuilt and fading in. The SVG is only rebuilt when the bar set
@@ -1537,7 +1546,7 @@ function drawBarChart(container, labels, fatal, serious, opt){
     rfa.setAttribute('y',fa>0?yFa:(se>0?ySe:T+ph)); rfa.setAttribute('height',fa>0?hFa:0); rfa.setAttribute('opacity',op);
     const xl=st.xlab[i]; xl.setAttribute('x',x+bw/2); xl.setAttribute('y',H-9); xl.textContent=labels[i]||'';
     if(opt.clickKeys){ const hit=st.hit[i]; hit.setAttribute('x',x-1); hit.setAttribute('y',T); hit.setAttribute('width',bw+2); hit.setAttribute('height',ph);
-      hit.setAttribute('onclick',opt.clickKeys[i]); hit.firstChild.textContent=tot[i]+' KSI · click to view'; }
+      hit.setAttribute('onclick',opt.clickKeys[i]); hit.firstChild.textContent=tot[i]+' '+(opt.unit||'KSI')+' · click to view'; }
   }
   if(st.line){
     const lp=[]; for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue; lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
@@ -1579,13 +1588,14 @@ function drawTrend(){
         const pct=Math.round((a1-a0)/a0*100), base=yr(0)+(k>1?(' to '+yr(k-1)):'');
         const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)');
         const dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
-        headline='<b style="color:'+col+'">KSI are '+dir+' vs '+base+'</b>';
+        headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>';
       }
     }
   }
-  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78});
+  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78,unit:(sev==='all'?'crashes':'KSI')});
+  const trendNoun = sev==='all' ? 'All crashes' : 'Killed or seriously injured';
   document.getElementById('trend-title').textContent = year===null
-    ? 'Killed or seriously injured, by year' : 'Killed or seriously injured in '+year+', by month';
+    ? trendNoun+', by year' : trendNoun+' in '+year+', by month';
   document.getElementById('trend-sub').innerHTML = mrActive()
     ? ('Range <b>'+timeSpan(false)+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all months</span>')
     : (year===null && yrNarrow())
@@ -1969,7 +1979,7 @@ async function generateReport(cfg){
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
     return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline; Vision Zero targets zero by 2030.</div>'; })();
   let chartsHTML='';
-  if(S.trend) chartsHTML += chart('Killed or seriously injured, by year', _ih('trend'), _ih('trend-leg'), trendNote);
+  if(S.trend) chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
   if(S.tod)   chartsHTML += chart('By time of day', _ih('tod'), _ih('tod-leg'));
   if(S.dow)   chartsHTML += chart('By day of week', _ih('dow'), _ih('dow-leg'));
   if(S.mode)  chartsHTML += chart('By travel mode', stackBody('modebar'), _ih('modeleg'));
