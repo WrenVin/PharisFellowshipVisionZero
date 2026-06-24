@@ -370,6 +370,7 @@
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div><div class="fill" id="yr-fill2" style="display:none"></div><input type="range" id="yr-from" min="0" step="1" aria-label="From year"><input type="range" id="yr-to" min="0" step="1" aria-label="To year"></div></div>
       <div class="bleg" id="trend-leg"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
@@ -377,6 +378,7 @@
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="month-title">Killed or seriously injured, by month</span> <button class="info" onclick="toggleTip(this)" aria-label="About the month chart">i</button></h3>
       <div class="sub" id="month-sub"></div>
       <div id="month"></div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="mo-fill"></div><div class="fill" id="mo-fill2" style="display:none"></div><input type="range" id="mo-from" min="0" step="1" aria-label="From month"><input type="range" id="mo-to" min="0" step="1" aria-label="To month"></div></div>
       <div class="bleg" id="month-leg"></div>
       <div class="tip">Each bar totals the people killed or seriously injured in that calendar month across every year shown (seasonality), not a single year. Click a month, or drag across a range, to filter.</div>
     </div>
@@ -384,6 +386,7 @@
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
       <div class="sub" id="tod-sub"></div>
       <div id="tod"></div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div><div class="fill" id="hr-fill2" style="display:none"></div><input type="range" id="hr-from" min="0" step="1" aria-label="From hour"><input type="range" id="hr-to" min="0" step="1" aria-label="To hour"></div></div>
       <div class="bleg" id="tod-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows the hours of day when severe crashes are most frequent.</div>
     </div>
@@ -391,6 +394,7 @@
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
       <div class="sub" id="dow-sub"></div>
       <div id="dow"></div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="dw-fill"></div><div class="fill" id="dw-fill2" style="display:none"></div><input type="range" id="dw-from" min="0" step="1" aria-label="From day"><input type="range" id="dw-to" min="0" step="1" aria-label="To day"></div></div>
       <div class="bleg" id="dow-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows the days of week when severe crashes are most frequent.</div>
     </div>
@@ -731,10 +735,9 @@ function rangeStr(arr, fmt){ if(!arr.length) return ''; if(arr.length===1) retur
 // year+month label for the active selection (or the report month-range, or the full span)
 function timeSpan(short){
   if(mrActive()) return ymLo===ymHi ? ymStr(ymLo,short) : (ymStr(ymLo,short)+'–'+ymStr(ymHi,short));
-  const yA=[...selY].sort((a,b)=>a-b), mA=[...selM].sort((a,b)=>a-b);
-  const mFmt=m=> short?MONTHS[m-1].slice(0,3):MONTHS[m-1];
-  const yStr = yA.length ? rangeStr(yA, y=>String(y)) : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
-  if(mA.length) return yA.length ? (rangeStr(mA,mFmt)+' '+yStr) : rangeStr(mA,mFmt);
+  const yl=facetLabel('year'), ml=facetLabel('month');   // arc-aware (handles wrap), null when the axis is "all"
+  const yStr = yl!==null ? yl : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
+  if(ml!==null) return yl!==null ? (ml+' '+yStr) : ml;
   return yStr;
 }
 function timeSuffix(short){ return (mrActive()||selY.size||selM.size) ? (' · '+timeSpan(short)) : ''; }
@@ -960,7 +963,7 @@ Promise.all([
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
   try{fitCity();}catch(e){}
   buildStreetIndex();
-  setupYearSlider();
+  ['year','month','hour','dow'].forEach(wireRange);   // attach the four range sliders (data is loaded, so year bounds are known)
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
@@ -1195,8 +1198,8 @@ function drawViewing(){
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
   if(mrActive() || selY.size || selM.size) parts.push('<b>'+timeSpan(false)+'</b>');
-  if(selD.size){ const a=[...selD].sort((x,y)=>x-y); parts.push('<b>'+rangeStr(a,d=>DOW_LAB[d])+'</b>'); }
-  if(selH.size){ const a=[...selH].sort((x,y)=>x-y); parts.push('<b>'+rangeStr(a,h=>hourLabel(h))+'</b>'); }
+  if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
+  if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
     v.querySelector('span').onclick=clearView;
@@ -1529,18 +1532,56 @@ function stackLegend(){ return sev==='all'
 // itself changes (e.g. drilling year -> month), where a morph isn't meaningful.
 const _SVGNS='http://www.w3.org/2000/svg';
 function _svg(tag,attrs){ const e=document.createElementNS(_SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
-// ----- selection on bar charts (Option A): click a bar = that bucket, drag across = a range,
-// shift = add/remove. dim is 'year'|'month'|'dow'|'hour'; bar index maps to the facet value. -----
-function _setFor(dim){ return dim==='year'?selY:dim==='month'?selM:dim==='dow'?selD:selH; }
-function _valAt(dim,i){ return dim==='year'?vz.years[i] : dim==='month'?i+1 : i; }
-function _commitSel(){ ymLo=ymHi=null; syncDerived(); render(); }   // any facet click clears the report's month-range override
-function chartClick(dim,i,shift){ const S=_setFor(dim), v=_valAt(dim,i);
-  if(shift){ S.has(v)?S.delete(v):S.add(v); }
-  else { if(S.size===1 && S.has(v)) S.clear(); else { S.clear(); S.add(v); } }
-  _commitSel(); }
-function chartRange(dim,a,b,shift){ const S=_setFor(dim); if(!shift) S.clear();
-  const lo=Math.min(a,b), hi=Math.max(a,b); for(let i=lo;i<=hi;i++) S.add(_valAt(dim,i)); _commitSel(); }
-function clearDim(dim){ _setFor(dim).clear(); _commitSel(); }
+// ----- temporal facet selection: a two-handle slider sets a range; clicking a bar collapses to
+// that one bucket. Cyclical axes (month/dow/hour) wrap, so a range can span e.g. 6pm->6am. -----
+const AX={
+  year: {cyc:false, set:()=>selY, n:()=>vz.years.length, val:i=>vz.years[i], idx:v=>vz.years.indexOf(v), fmt:v=>String(v)},
+  month:{cyc:true,  set:()=>selM, n:()=>12, val:i=>i+1, idx:v=>v-1, fmt:v=>MONTHS[v-1]},
+  dow:  {cyc:true,  set:()=>selD, n:()=>7,  val:i=>i,   idx:v=>v,   fmt:v=>DOW_LAB[v]},
+  hour: {cyc:true,  set:()=>selH, n:()=>24, val:i=>i,   idx:v=>v,   fmt:v=>hourLabel(v)}
+};
+const RPFX={year:'yr', month:'mo', hour:'hr', dow:'dw'};       // slider element id prefix per dim
+const RCHART={year:'trend', month:'month', hour:'tod', dow:'dow'};  // chart container id per dim
+function _setFor(dim){ return AX[dim].set(); }
+function _valAt(dim,i){ return AX[dim].val(i); }
+function _commitSel(){ ymLo=ymHi=null; syncDerived(); render(); }   // any facet change clears the report's month-range override
+// the selected buckets as a contiguous arc {from,to,all} in index space (for the slider + labels).
+// cyclical wrap is encoded as from>to (e.g. hour 18..6 = evening through morning).
+function arcOf(dim){ const ax=AX[dim], S=ax.set(), n=ax.n();
+  if(!S.size || S.size>=n) return {from:0,to:n-1,all:true};
+  const sel=new Array(n).fill(false); S.forEach(v=>{ const i=ax.idx(v); if(i>=0)sel[i]=true; });
+  if(!ax.cyc){ let lo=sel.indexOf(true), hi=n-1; while(hi>0&&!sel[hi])hi--; return {from:lo,to:hi,all:false}; }
+  let from=0,to=n-1; for(let i=0;i<n;i++){ if(sel[i]&&!sel[(i-1+n)%n])from=i; if(sel[i]&&!sel[(i+1)%n])to=i; }
+  return {from,to,all:false}; }
+// write an arc (from->to, forward with wrap for cyclical) into the facet Set; a full span clears it (= no filter)
+function setArc(dim,from,to){ const ax=AX[dim], n=ax.n(), S=ax.set(); S.clear();
+  const idxs=[];
+  if(!ax.cyc){ const lo=Math.min(from,to),hi=Math.max(from,to); for(let i=lo;i<=hi;i++)idxs.push(i); }
+  else if(from<=to){ for(let i=from;i<=to;i++)idxs.push(i); }
+  else { for(let i=from;i<n;i++)idxs.push(i); for(let i=0;i<=to;i++)idxs.push(i); }
+  if(idxs.length<n) idxs.forEach(i=>S.add(ax.val(i))); }
+function chartCollapse(dim,i){ const S=AX[dim].set(), v=AX[dim].val(i); if(S.size===1&&S.has(v)) S.clear(); else { S.clear(); S.add(v); } _commitSel(); }
+function clearDim(dim){ AX[dim].set().clear(); _commitSel(); }
+function facetLabel(dim){ const ax=AX[dim], arc=arcOf(dim); if(arc.all) return null;
+  return arc.from===arc.to ? ax.fmt(ax.val(arc.from)) : (ax.fmt(ax.val(arc.from))+'–'+ax.fmt(ax.val(arc.to))); }
+// position a panel's slider handles + fill(s) from its facet Set (one band, or two for a wrap)
+function paintRange(dim, from, to){ const px=RPFX[dim], n=AX[dim].n();
+  const f1=document.getElementById(px+'-fill'), f2=document.getElementById(px+'-fill2'); if(!f1) return;
+  const pos=i=> (n<=1?0:i/(n-1)*100), wrap = AX[dim].cyc && from>to;
+  if(!wrap){ const lo=Math.min(from,to),hi=Math.max(from,to); f1.style.display=''; f1.style.left=pos(lo)+'%'; f1.style.right=(100-pos(hi))+'%'; if(f2)f2.style.display='none'; }
+  else { f1.style.display=''; f1.style.left='0%'; f1.style.right=(100-pos(to))+'%'; if(f2){ f2.style.display=''; f2.style.left=pos(from)+'%'; f2.style.right='0%'; } } }
+function syncRange(dim){ const px=RPFX[dim], n=AX[dim].n();
+  const f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
+  f.max=n-1; t.max=n-1; const arc=arcOf(dim); f.value=arc.from; t.value=arc.to; paintRange(dim, arc.from, arc.to); }
+// live preview while dragging a handle: fade the chart's bars to the arc, no recompute
+function previewFadeDim(dim, from, to){ const c=document.getElementById(RCHART[dim]); if(!c||!c._chart) return; const st=c._chart, ax=AX[dim];
+  const inArc=i=> ax.cyc ? (from<=to ? (i>=from&&i<=to) : (i>=from||i<=to)) : (i>=Math.min(from,to)&&i<=Math.max(from,to));
+  paintRange(dim, from, to);
+  for(let i=0;i<st.se.length;i++){ let op=inArc(i)?1:0.3; if(dim==='year'&&vz.years[i]===2026) op=Math.min(op,0.45); st.se[i].setAttribute('opacity',op); st.fa[i].setAttribute('opacity',op); } }
+function wireRange(dim){ const px=RPFX[dim], f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
+  const n=AX[dim].n(); f.min=0; t.min=0; f.max=n-1; t.max=n-1; f.step=1; t.step=1;
+  f.oninput=t.oninput=()=>previewFadeDim(dim, +f.value, +t.value);
+  f.onchange=t.onchange=()=>{ setArc(dim, +f.value, +t.value); _commitSel(); }; }
 // labels[], fatal[], serious[]; opt:{dim?, clickKeys?, fadeIdx?:Set, h?, line?, unit?}
 function drawBarChart(container, labels, fatal, serious, opt){
   opt=opt||{}; const W=340, H=opt.h||156, L=30, R=6, T=10, B=26;
@@ -1562,18 +1603,6 @@ function drawBarChart(container, labels, fatal, serious, opt){
       if(opt.dim||opt.clickKeys){ const hit=_svg('rect',{class:'barhit',style:'cursor:pointer'}); const ti=_svg('title',{}); hit.appendChild(ti); svg.appendChild(hit); st.hit.push(hit); }
     }
     if(opt.line){ st.line=_svg('polyline',{fill:'none',stroke:'#15212b','stroke-width':1.5,'stroke-dasharray':'4 3',opacity:0.7}); svg.appendChild(st.line); }
-    // brush + click selection: a pointer on the svg maps its x to a bar index. Click = one bucket,
-    // drag across = a contiguous range, shift = add/remove. Commits via render() (which resets opacity).
-    if(opt.dim){
-      const idxAt=ev=>{ const r=svg.getBoundingClientRect(); const vx=(ev.clientX-r.left)/r.width*W; return Math.max(0,Math.min(n-1,Math.floor((vx-L)/gap))); };
-      let dn=null;
-      svg.style.touchAction='none'; svg.style.cursor='pointer';
-      svg.addEventListener('pointerdown',ev=>{ if(ev.button)return; dn={i:idxAt(ev),shift:ev.shiftKey,moved:false}; try{svg.setPointerCapture(ev.pointerId);}catch(e){} ev.preventDefault(); });
-      svg.addEventListener('pointermove',ev=>{ if(!dn)return; const j=idxAt(ev); if(j!==dn.i)dn.moved=true; const a=Math.min(dn.i,j),b=Math.max(dn.i,j);
-        for(let k=0;k<st.se.length;k++){ const op=(k>=a&&k<=b)?1:0.3; st.se[k].setAttribute('opacity',op); st.fa[k].setAttribute('opacity',op); } });
-      svg.addEventListener('pointerup',ev=>{ if(!dn)return; const j=idxAt(ev), d=dn; dn=null; if(d.moved&&j!==d.i) chartRange(st.dim,d.i,j,d.shift); else chartClick(st.dim,d.i,d.shift); });
-      svg.addEventListener('pointercancel',()=>{ dn=null; });
-    }
     container.appendChild(svg); container._chart=st;
   }
   st.dim=opt.dim;
@@ -1590,7 +1619,9 @@ function drawBarChart(container, labels, fatal, serious, opt){
     rfa.setAttribute('y',fa>0?yFa:(se>0?ySe:T+ph)); rfa.setAttribute('height',fa>0?hFa:0); rfa.setAttribute('opacity',op);
     const xl=st.xlab[i]; xl.setAttribute('x',x+bw/2); xl.setAttribute('y',H-9); xl.textContent=labels[i]||'';
     if(opt.dim||opt.clickKeys){ const hit=st.hit[i]; hit.setAttribute('x',x-1); hit.setAttribute('y',T); hit.setAttribute('width',bw+2); hit.setAttribute('height',ph);
-      if(opt.clickKeys) hit.setAttribute('onclick',opt.clickKeys[i]); hit.firstChild.textContent=tot[i]+' '+(opt.unit||'KSI'); }
+      if(opt.dim){ const dd=opt.dim, ii=i; hit.onclick=()=>chartCollapse(dd, ii); }   // click a bar -> collapse the range to that one bucket
+      else if(opt.clickKeys) hit.setAttribute('onclick',opt.clickKeys[i]);
+      hit.firstChild.textContent=tot[i]+' '+(opt.unit||'KSI'); }
   }
   if(st.line){
     const lp=[]; for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue; lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
@@ -1601,9 +1632,8 @@ function drawBarChart(container, labels, fatal, serious, opt){
 function monthStacksC(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'month')||!inLens(p)||!chartInc(p))continue;
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
 // per-panel sub line: a hint when nothing is selected on this axis, else the selection + a clear link
-function facetSub(dim, S, fmt, hint){ if(!S.size) return hint;
-  const arr=[...S].sort((a,b)=>a-b);
-  return '<b>'+rangeStr(arr,fmt)+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="clearDim(\''+dim+'\')">clear</span>'; }
+function facetSub(dim, hint){ const lab=facetLabel(dim); if(lab===null) return hint;
+  return '<b>'+lab+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="clearDim(\''+dim+'\')">clear</span>'; }
 function drawTrend(){
   const k=yearStacks(); const labels=[],fatal=[],serious=[],fadeIdx=new Set(),fullSet=new Set();
   vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0); serious.push(k.s[yr]||0);
@@ -1624,8 +1654,9 @@ function drawTrend(){
       headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>'; } }
   drawBarChart(document.getElementById('trend'),labels,fatal,serious,{fadeIdx,line,h:78,dim:'year',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('trend-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by year';
-  document.getElementById('trend-sub').innerHTML=facetSub('year',selY,y=>String(y),'Click a year, or drag across a range, to filter');
+  document.getElementById('trend-sub').innerHTML=facetSub('year','Click a bar, or drag the slider, to filter');
   document.getElementById('trend-leg').innerHTML=stackLegend();
+  syncRange('year');
   const parts=[]; if(headline) parts.push(headline);
   parts.push('<span style="color:var(--muted)">goal: zero deaths by 2030'+(vz.years.includes(2026)?' · 2026 partial':'')+'</span>');
   document.getElementById('trend-note').innerHTML=parts.join(' · ');
@@ -1636,8 +1667,9 @@ function drawMonth(){
   for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); if(selM.size && !selM.has(m)) fadeIdx.add(m-1); }
   drawBarChart(document.getElementById('month'),labels,fatal,serious,{fadeIdx,h:78,dim:'month',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('month-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by month';
-  document.getElementById('month-sub').innerHTML=facetSub('month',selM,m=>MONTHS[m-1],'Seasonality across all years · click or drag months');
+  document.getElementById('month-sub').innerHTML=facetSub('month','Seasonality across all years · click a bar or drag the slider');
   document.getElementById('month-leg').innerHTML=stackLegend();
+  syncRange('month');
 }
 function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[], fadeIdx=new Set();
@@ -1645,16 +1677,18 @@ function drawTimeOfDay(){
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : '');
     if(selH.size && !selH.has(h)) fadeIdx.add(h); }
   drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx,dim:'hour',unit:(sev==='all'?'crashes':'KSI')});
-  document.getElementById('tod-sub').innerHTML=facetSub('hour',selH,h=>hourLabel(h),'By hour, '+totalsSpan()+' · click or drag hours');
+  document.getElementById('tod-sub').innerHTML=facetSub('hour','By hour, '+totalsSpan()+' · click a bar or drag the slider');
   document.getElementById('tod-leg').innerHTML=stackLegend();
+  syncRange('hour');
 }
 const DOW_LAB=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 function drawDayOfWeek(){
   const k=dayStacks(), labels=DOW_LAB.slice(), fatal=[], serious=[], fadeIdx=new Set();
   for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); if(selD.size && !selD.has(d)) fadeIdx.add(d); }
   drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx,dim:'dow',unit:(sev==='all'?'crashes':'KSI')});
-  document.getElementById('dow-sub').innerHTML=facetSub('dow',selD,d=>DOW_LAB[d],'By weekday, '+totalsSpan()+' · click or drag days');
+  document.getElementById('dow-sub').innerHTML=facetSub('dow','By weekday, '+totalsSpan()+' · click a bar or drag the slider');
   document.getElementById('dow-leg').innerHTML=stackLegend();
+  syncRange('dow');
 }
 // programmatic single-bucket toggles (kept for any external callers; charts use the brush handlers)
 function selectYear(y){ if(selY.size===1 && selY.has(y)) selY.clear(); else { selY.clear(); selY.add(y); } _commitSel(); }
