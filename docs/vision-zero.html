@@ -1298,7 +1298,7 @@ function drawKPIs(t){
     const metric = sev==='all'?'crashes':'KSI';
     const half = con.pctForHalf!=null ? con.pctForHalf*100 : null;
     const halfStr = half!=null ? (half<10?half.toFixed(1):Math.round(half))+'%' : '–';
-    const conSub = 'of streets carry half the '+metric+(con.gini!=null?' · Gini '+con.gini.toFixed(2):'');
+    const conSub = 'of streets, half the harm';   // mode-independent + short so this KPI stays on one row in both modes (metric + Gini are in the Lorenz panel below)
     const conTip = 'The headline figure is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = spread evenly across streets, 1 = all on one street) summarizes the full concentration curve in a single value, independent of any cutoff. At the 6% threshold the City uses for its High Injury Network, '+Math.round(con.hinKsi*100)+'% of '+metric+' fall on those streets. See the concentration panel below.';
     kpi4=kpi(KICON.conc,'Harm is concentrated', halfStr, conSub, true, conTip);
   }
