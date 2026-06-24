@@ -1658,7 +1658,7 @@ function drawTrend(){
   document.getElementById('trend-leg').innerHTML=stackLegend();
   syncRange('year');
   const parts=[]; if(headline) parts.push(headline);
-  parts.push('<span style="color:var(--muted)">goal: zero deaths by 2030'+(vz.years.includes(2026)?' · 2026 partial':'')+'</span>');
+  if(vz.years.includes(2026)) parts.push('<span style="color:var(--muted)">2026 partial</span>');
   document.getElementById('trend-note').innerHTML=parts.join(' · ');
 }
 function drawMonth(){
@@ -1837,64 +1837,6 @@ document.getElementById('hin').onchange=e=>{
 };
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
-// --- dual-range sliders (year / hour / day-of-week) --------------------------
-const _rngLabel={
-  yr:(v)=>String(v),
-  hr:(v)=>hourLabel(v),
-  dow:(v)=>['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][v]
-};
-// reflect lo/hi onto a slider's thumbs, fill bar, and text label (no event fired)
-function syncSlider(id, lo, hi){
-  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
-  if(!mn||!mx) return;
-  const a=+mn.min, b=+mn.max; if(b<=a) return;
-  mn.value=lo; mx.value=hi;
-  const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
-  if(fill){ fill.style.left=((lo-a)/(b-a)*100)+'%'; fill.style.right=(100-(hi-a)/(b-a)*100)+'%'; }
-  if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); }
-}
-// wire one slider: on input, write [lo,hi] back to the two globals via setFn, then render
-// live-fade the dragged chart's bars to a preview range (cheap: opacity only, no recompute).
-// each chart skips its own dimension, so the bar HEIGHTS don't change with its range, only the fade.
-function previewFade(chartId, lo, hi, dim){
-  const c=document.getElementById(chartId); if(!c||!c._chart) return;
-  const st=c._chart, n=st.se.length;
-  if(dim==='year' && n!==vz.years.length) return;   // chart is in month-drill mode: year preview does not apply
-  for(let i=0;i<n;i++){
-    const val = dim==='year' ? vz.years[i] : i;
-    let faded = (val<lo || val>hi);
-    if(dim==='year' && vz.years[i]===2026) faded=true;   // 2026 partial stays dim
-    const op = faded ? 0.45 : 1;
-    st.se[i].setAttribute('opacity', op); st.fa[i].setAttribute('opacity', op);
-  }
-}
-function wireSlider(id, setFn, chartId, dim){
-  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
-  if(!mn||!mx) return;
-  // during drag (input): cheap visual preview only (fill bar + label + the chart's fade), no recompute
-  const preview=()=>{ const A=+mn.min, B=+mn.max; if(B<=A) return;
-    const lo=Math.min(+mn.value,+mx.value), hi=Math.max(+mn.value,+mx.value);
-    const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
-    if(fill){ fill.style.left=((lo-A)/(B-A)*100)+'%'; fill.style.right=(100-(hi-A)/(B-A)*100)+'%'; }
-    if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); }
-    previewFade(chartId, lo, hi, dim); };
-  // on release (change): commit to the globals and recompute the whole dashboard once
-  const commit=()=>{ let a=+mn.value, b=+mx.value; if(a>b){ [a,b]=[b,a]; } setFn(a,b); render(); };
-  mn.oninput=preview; mx.oninput=preview;
-  mn.onchange=commit; mx.onchange=commit;
-}
-// the year slider's bounds depend on the loaded data, so set them once here
-function setupYearSlider(){
-  const mn=document.getElementById('yr-min'), mx=document.getElementById('yr-max');
-  if(!mn||!mx||!vz) return;
-  const lo=vz.years[0], hi=vz.years[vz.years.length-1];
-  mn.min=lo; mn.max=hi; mx.min=lo; mx.max=hi;
-  document.getElementById('yr-rng').style.display='';
-  syncSlider('yr', yrLo, yrHi);
-}
-wireSlider('yr', (a,b)=>{ yrLo=a; yrHi=b; month=null; deriveYear(); }, 'trend', 'year');
-wireSlider('hr', (a,b)=>{ hrLo=a; hrHi=b; }, 'tod', 'hour');
-wireSlider('dow',(a,b)=>{ dowLo=a; dowHi=b; }, 'dow', 'dow');
 // range-reset links (used by the chart sub text)
 function resetYearRange(){ selY.clear(); selM.clear(); _commitSel(); }
 function resetHourRange(){ selH.clear(); _commitSel(); }
@@ -2022,7 +1964,7 @@ async function generateReport(cfg){
     const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
     const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return '';
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
-    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline; Vision Zero targets zero by 2030.</div>'; })();
+    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline.</div>'; })();
   let chartsHTML='';
   if(S.trend) chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
   if(S.tod)   chartsHTML += chart('By time of day', _ih('tod'), _ih('tod-leg'));

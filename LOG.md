@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-23 — Unified temporal filters: month panel, wrap-capable sliders, click-to-filter
+
+Reworked the four time controls (built on `feature/unified-temporal-filter`, merged to main) so they are consistent. The arc started as "Option A" (four equal facet panels with drag-across-bars selection); Vincent found dragging unintuitive and hit a cyclical bug (couldn't select 6pm–6am), so the range mechanism was reverted to sliders, made wrap-capable, plus click-to-collapse.
+
+- **Month is its own panel.** Months were a drill-down hidden inside the by-year chart (click a year → its 12 months); now there is a standalone **by month** seasonality panel (Jan–Dec across all years). Clicking April = all Aprils; combine with a year for April 2021.
+- **One model, four facets.** Filtering is driven by four selection Sets (`selY`/`selM`/`selD`/`selH`, empty = all); the legacy `year`/`month`/`yrLo`/`hr`/`dow` vars are derived from them (`syncDerived`, run at the top of `render`) so existing labels/KPIs/report keep working. `timeOk` checks Set membership, so multi/wrapping selections work downstream unchanged. The report's continuous month-range (`ymLo`/`ymHi`) stays as an override.
+- **Each panel: a two-handle range slider + click a bar to collapse to one bucket.** The cyclical axes (month, day-of-week, time-of-day) **wrap**: drag the start handle past the end and the slider paints two end-bands, so 6 PM–6 AM (overnight), Nov–Feb (winter), and Fri–Mon (long weekend) are selectable. `arcOf()`/`setArc()` translate between a Set and the slider's from/to handles; the panel sub and the "Viewing" pill label wraps correctly ("6 PM–6 AM"). A full-span slider clears the axis (= no filter).
+- **Every bar is clickable to filter to it** (before, only the year chart reacted, and it drilled). All four panel titles follow the Show toggle ("Killed or seriously injured" / "All crashes, by …").
+- **Removed** the "goal: zero deaths by 2030" line from the trend note and the report note; kept the "2026 partial" caveat. Pruned the old dual-range slider code.
+- Verified in-browser: linear year range, wrapping month/hour ranges, click-collapse + toggle-off, wrap-aware labels (subs + Viewing pill), share-URL round-trip (`y`/`mo`/`hr`/`dw` dot-lists), report modal prefill/apply, no console errors, no em dashes.
+
 ## 2026-06-23 — Breakdown charts follow the Show (KSI vs all crashes) toggle
 
 The **by-year**, **by-time-of-day**, and **by-day-of-week** charts always counted KSI only, ignoring the **Show** toggle. So selecting **All crashes** updated the map, KPIs, worst-streets list, and report, but those three time charts stayed KSI-only. On a street with crashes but no KSI (e.g. East 11th Street), they rendered empty even in all-crashes mode, which is what Vincent flagged.

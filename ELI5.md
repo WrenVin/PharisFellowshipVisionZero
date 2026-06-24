@@ -278,15 +278,16 @@ actually sees and can do:
 - **Click any street** (or one block) and the *whole* dashboard updates to just
   that street; a popup shows the road's design (lanes, width, speed, sidewalks,
   traffic, owner), and you can expand a single block to the whole street.
-- **Charts below:** a year-by-year trend you can **click into months**, with a
-  trend line and a plain-English note on whether things are improving (they
-  aren't, as it turns out); plus breakdowns **by time of day**, **by travel mode**, **by
-  neighborhood income**, **by road owner**, and a **"most dangerous streets"
-  top-5 list** you can click to filter to. When you switch the toggle to **all
-  crashes**, every breakdown below (year, time of day, day of week, travel mode,
-  neighborhood income, road owner) switches with it and counts every crash, so a
-  street that has crashes but nobody killed or seriously hurt still shows a
-  pattern instead of empty bars.
+- **Charts below:** four time breakdowns — **by year** (with a trend line),
+  **by month** (the season), **by time of day**, and **by day of week** — plus
+  **by travel mode**, **by neighborhood income**, **by road owner**, and a
+  **"most dangerous streets" top-5 list** you can click to filter to. On the four
+  time charts you **click a bar** to filter to that one (a year / month / hour /
+  weekday) or **drag the slider** for a range; the month, time-of-day, and
+  day-of-week sliders **wrap**, so you can pick something like **6 PM to 6 AM**.
+  When you switch the toggle to **all crashes**, every breakdown counts every
+  crash, so a street that has crashes but nobody killed or seriously hurt still
+  shows a pattern instead of empty bars.
 - **Easy to use:** when you filter down to just a few crashes it **flashes them**
   so they're easy to find on the map, and you can **share a link** that reopens
   the exact view you're looking at.
@@ -298,8 +299,7 @@ conclusions we haven't proven yet.
 A few things the dashboard makes plain:
 
 - **The toll is not going down.** Killed-or-seriously-injured are up about
-  **19%** versus 2016–2018, while the City's official goal is **zero traffic
-  deaths by 2030**. We're moving the wrong way.
+  **19%** versus 2016–2018. We're moving the wrong way.
 - **The harm is wildly concentrated.** **Half of all the serious harm is on about 2% of
   the street-miles**; most streets have had none. (Instead of cherry-picking a "top X%"
   cutoff, the dashboard shows the whole concentration curve and a single Gini score of ~0.94,
