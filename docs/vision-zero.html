@@ -370,38 +370,31 @@
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
-      <div class="rng" id="yr-rng" style="display:none">
-        <div class="lab"><span>Year range</span><b id="yr-lab"></b></div>
-        <div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div>
-          <input type="range" id="yr-min" aria-label="Earliest year">
-          <input type="range" id="yr-max" aria-label="Latest year"></div>
-      </div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div><div class="fill" id="yr-fill2" style="display:none"></div><input type="range" id="yr-from" min="0" step="1" aria-label="From year"><input type="range" id="yr-to" min="0" step="1" aria-label="To year"></div></div>
       <div class="bleg" id="trend-leg"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
+    <div class="card" data-card="month">
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="month-title">Killed or seriously injured, by month</span> <button class="info" onclick="toggleTip(this)" aria-label="About the month chart">i</button></h3>
+      <div class="sub" id="month-sub"></div>
+      <div id="month"></div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="mo-fill"></div><div class="fill" id="mo-fill2" style="display:none"></div><input type="range" id="mo-from" min="0" step="1" aria-label="From month"><input type="range" id="mo-to" min="0" step="1" aria-label="To month"></div></div>
+      <div class="bleg" id="month-leg"></div>
+      <div class="tip">Each bar totals the people killed or seriously injured in that calendar month across every year shown (seasonality), not a single year. Click a month, or drag across a range, to filter.</div>
+    </div>
     <div class="card" data-card="tod">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>By time of day <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span id="tod-title">By time of day</span> <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
       <div class="sub" id="tod-sub"></div>
       <div id="tod"></div>
-      <div class="rng">
-        <div class="lab"><span>Hour range</span><b id="hr-lab"></b></div>
-        <div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div>
-          <input type="range" id="hr-min" min="0" max="23" value="0" aria-label="Earliest hour">
-          <input type="range" id="hr-max" min="0" max="23" value="23" aria-label="Latest hour"></div>
-      </div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div><div class="fill" id="hr-fill2" style="display:none"></div><input type="range" id="hr-from" min="0" step="1" aria-label="From hour"><input type="range" id="hr-to" min="0" step="1" aria-label="To hour"></div></div>
       <div class="bleg" id="tod-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows the hours of day when severe crashes are most frequent.</div>
     </div>
     <div class="card" data-card="dow">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span>By day of week <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="dow-title">By day of week</span> <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
       <div class="sub" id="dow-sub"></div>
       <div id="dow"></div>
-      <div class="rng">
-        <div class="lab"><span>Day range</span><b id="dow-lab"></b></div>
-        <div class="dual"><div class="track"></div><div class="fill" id="dow-fill"></div>
-          <input type="range" id="dow-min" min="0" max="6" value="0" aria-label="First day">
-          <input type="range" id="dow-max" min="0" max="6" value="6" aria-label="Last day"></div>
-      </div>
+      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="dw-fill"></div><div class="fill" id="dw-fill2" style="display:none"></div><input type="range" id="dw-from" min="0" step="1" aria-label="From day"><input type="range" id="dw-to" min="0" step="1" aria-label="To day"></div></div>
       <div class="bleg" id="dow-leg"></div>
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows the days of week when severe crashes are most frequent.</div>
     </div>
@@ -637,7 +630,11 @@ let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner=
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
-let ymLo=null, ymHi=null;   // optional month-granularity range (year*12 + (month-1)); when set it overrides the year/month filter (used by the report's month range)
+let ymLo=null, ymHi=null;   // report's continuous month-granularity range (year*12 + (month-1)); when set it overrides the year/month facets
+// Temporal facets (Option A): each is a Set of selected buckets, empty = all. These are the
+// source of truth for filtering; the legacy year/month/yrLo/yrHi/hr/dow vars above are DERIVED
+// from them by syncDerived() so the existing labels, KPIs, and report keep working unchanged.
+let selY=new Set(), selM=new Set(), selD=new Set(), selH=new Set();   // years, months 1-12, days 0(Mon)-6(Sun), hours 0-23
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[], dowArr=null;
@@ -722,37 +719,50 @@ const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
 const selOk=p=>selIds.size===0 || selIds.has(p[SEG]);
-// month filter (1-12) within the selected year; p[7] is the date string "YYYY-MM-DD"
-const monthOk=p=> month===null || (p[7] && (+p[7].slice(5,7))===month);
-// is the year range narrowed off its full span? (yrLo/yrHi null before data loads)
-const yrNarrow=()=> yrLo!==null && (yrLo!==vz.years[0] || yrHi!==vz.years[vz.years.length-1]);
-const hrNarrow=()=> hrLo>0 || hrHi<23;
-const dowNarrow=()=> dowLo>0 || dowHi<6;
-const mrActive=()=> ymLo!=null;   // a month-granularity range (start/end month+year) is active
+// any facet active on a dimension? (a non-empty selection set)
+const yrNarrow=()=> selY.size>0;
+const hrNarrow=()=> selH.size>0;
+const dowNarrow=()=> selD.size>0;
+const mrActive=()=> ymLo!=null;   // report's continuous month-range override
 function ymStr(ym, short){ const y=Math.floor(ym/12), m=ym%12; return (short?MONTHS[m].slice(0,3):MONTHS[m])+' '+y; }
-// the active time window as a display string (month-range, single year+month, year range, or full span)
-function timeSpan(short){
-  if(mrActive()) return ymLo===ymHi ? ymStr(ymLo,short) : (ymStr(ymLo,short)+'–'+ymStr(ymHi,short));
-  if(year!==null) return month!==null ? ((short?MONTHS[month-1].slice(0,3):MONTHS[month-1])+' '+year) : String(year);
-  if(yrNarrow()) return yrLo+'–'+yrHi;
-  return vz.years[0]+'–'+vz.years[vz.years.length-2];
-}
-function timeSuffix(short){ if(mrActive()) return ' · '+timeSpan(short); if(year!==null) return ' · '+year; if(yrNarrow()) return ' · '+yrLo+'–'+yrHi; return ''; }
-function totalsSpan(){ const s=timeSpan(false); if(mrActive()) return 'totals over '+s; if(yrNarrow()) return s; if(year!==null) return 'totals in '+s; return 'totals over '+s; }
-// keep the legacy single-year drill model: a one-year range behaves like the old `year`;
-// a multi-year range means year=null (and month=null) so existing labels/KPIs still work.
-function deriveYear(){ ymLo=ymHi=null; if(yrLo===null) return; if(yrLo===yrHi){ year=yrLo; } else { year=null; month=null; } }
 // Mon=0..Sun=6 weekday for a "YYYY-MM-DD" date string.
 const dowOf=ds=> (new Date(ds+'T00:00:00').getDay()+6)%7;
-// unified temporal predicate. skip ('year'|'hour'|'dow') excludes ONE dimension so a
-// chart can render its own full distribution while still filtered by the other two.
+// a sorted list -> "a", "a–b" (contiguous), "a, b, c" (a few), or "N selected"
+function rangeStr(arr, fmt){ if(!arr.length) return ''; if(arr.length===1) return fmt(arr[0]);
+  const contig=arr.every((v,i)=> i===0 || v===arr[i-1]+1);
+  if(contig) return fmt(arr[0])+'–'+fmt(arr[arr.length-1]);
+  return arr.length<=3 ? arr.map(fmt).join(', ') : arr.length+' selected'; }
+// year+month label for the active selection (or the report month-range, or the full span)
+function timeSpan(short){
+  if(mrActive()) return ymLo===ymHi ? ymStr(ymLo,short) : (ymStr(ymLo,short)+'–'+ymStr(ymHi,short));
+  const yl=facetLabel('year'), ml=facetLabel('month');   // arc-aware (handles wrap), null when the axis is "all"
+  const yStr = yl!==null ? yl : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
+  if(ml!==null) return yl!==null ? (ml+' '+yStr) : ml;
+  return yStr;
+}
+function timeSuffix(short){ return (mrActive()||selY.size||selM.size) ? (' · '+timeSpan(short)) : ''; }
+function totalsSpan(){ const one = selY.size===1 && !selM.size && !mrActive();
+  return (one?'totals in ':'totals over ')+timeSpan(false); }
+// derive the legacy year/month/yrLo../hr/dow vars from the facet Sets so the many existing
+// readers (labels, KPIs, report prefill) keep working. Called at the top of render().
+function syncDerived(){ if(!vz) return; const Y=vz.years;
+  if(selY.size){ const a=[...selY].sort((x,y)=>x-y); yrLo=a[0]; yrHi=a[a.length-1]; year=(selY.size===1?a[0]:null); }
+  else { yrLo=Y[0]; yrHi=Y[Y.length-1]; year=null; }
+  month = selM.size===1 ? [...selM][0] : null;
+  if(selH.size){ const a=[...selH].sort((x,y)=>x-y); hrLo=a[0]; hrHi=a[a.length-1]; } else { hrLo=0; hrHi=23; }
+  if(selD.size){ const a=[...selD].sort((x,y)=>x-y); dowLo=a[0]; dowHi=a[a.length-1]; } else { dowLo=0; dowHi=6; }
+}
+function deriveYear(){ syncDerived(); }   // back-compat alias for old callers
+// unified temporal predicate. skip ('year'|'month'|'hour'|'dow') excludes ONE dimension so a
+// chart can render its own full distribution while still filtered by the others.
 function timeOk(p, skip){
   if(skip!=='year'){
-    if(ymLo!=null){ const d=p[7]; if(!d) return false; const ym=p[6]*12+(+d.slice(5,7)-1); if(ym<ymLo || ym>ymHi) return false; }
-    else { if(yrLo!==null && (p[6]<yrLo || p[6]>yrHi)) return false; if(!monthOk(p)) return false; }
+    if(mrActive()){ const d=p[7]; if(!d) return false; const ym=p[6]*12+(+d.slice(5,7)-1); if(ym<ymLo || ym>ymHi) return false; }
+    else if(selY.size && !selY.has(p[6])) return false;
   }
-  if(skip!=='hour' && hrNarrow()){ if(p[8]==null || p[8]<hrLo || p[8]>hrHi) return false; }
-  if(skip!=='dow' && dowNarrow()){ if(!p[7]) return false; const d=dowOf(p[7]); if(d<dowLo || d>dowHi) return false; }
+  if(skip!=='month' && !mrActive() && selM.size){ const m=p[7]?+p[7].slice(5,7):0; if(!selM.has(m)) return false; }
+  if(skip!=='hour' && selH.size){ if(p[8]==null || !selH.has(p[8])) return false; }
+  if(skip!=='dow' && selD.size){ if(!p[7] || !selD.has(dowOf(p[7]))) return false; }
   return true;
 }
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -781,7 +791,7 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
-  const narrowed = yrNarrow() || month!==null || mrActive() || hrNarrow() || dowNarrow();
+  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive();
   if(narrowed){
     for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
@@ -953,7 +963,7 @@ Promise.all([
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); });  // rescale dots to zoom
   try{fitCity();}catch(e){}
   buildStreetIndex();
-  setupYearSlider();
+  ['year','month','hour','dow'].forEach(wireRange);   // attach the four range sliders (data is loaded, so year bounds are known)
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
@@ -1087,11 +1097,12 @@ function syncURL(){
   const q=[];
   if(mode!=='all') q.push('mode='+mode);
   if(sev!=='ksi') q.push('sev='+sev);
-  if(mrActive()) q.push('ym='+ymLo+'-'+ymHi);   // month-granularity range (year*12 + month-1)
-  else if(yrNarrow()) q.push('yr='+yrLo+'-'+yrHi);   // narrowed year range (a single drilled year is yrLo==yrHi)
-  if(month!=null) q.push('month='+month);
-  if(hrNarrow()) q.push('hr='+hrLo+'-'+hrHi);
-  if(dowNarrow()) q.push('dow='+dowLo+'-'+dowHi);
+  const encSet=S=>[...S].sort((a,b)=>a-b).join('.');   // facet selection -> dot-separated list
+  if(mrActive()) q.push('ym='+ymLo+'-'+ymHi);   // report's continuous month-range (year*12 + month-1)
+  else if(selY.size) q.push('y='+encSet(selY));
+  if(!mrActive() && selM.size) q.push('mo='+encSet(selM));
+  if(selH.size) q.push('hr='+encSet(selH));
+  if(selD.size) q.push('dw='+encSet(selD));
   if(district!=null) q.push('district='+encodeURIComponent(district));
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(owner!=='all') q.push('owner='+owner);
@@ -1119,15 +1130,19 @@ function applyURL(){
   const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
   const vw=p.get('view'); if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
   const ow=p.get('owner'); if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
-  const yr=p.get('yr');   // "lo-hi" year range
-  if(yr && /^\d{4}-\d{4}$/.test(yr)){ const [a,b]=yr.split('-').map(Number); yrLo=Math.min(a,b); yrHi=Math.max(a,b); }
-  else { const y=p.get('year'); if(y!=null && y!=='' && !isNaN(+y)){ yrLo=+y; yrHi=+y; } }   // legacy single-year links
-  const hr=p.get('hr'); if(hr && /^\d{1,2}-\d{1,2}$/.test(hr)){ let [a,b]=hr.split('-').map(Number); if(a>b)[a,b]=[b,a]; hrLo=Math.max(0,a); hrHi=Math.min(23,b); }
-  const dw=p.get('dow'); if(dw && /^\d-\d$/.test(dw)){ let [a,b]=dw.split('-').map(Number); if(a>b)[a,b]=[b,a]; dowLo=Math.max(0,a); dowHi=Math.min(6,b); }
-  const mo=p.get('month'); if(mo!=null && mo!=='' && +mo>=1 && +mo<=12) month=+mo;
-  deriveYear();   // resolve year/month from the range now that it's set
-  const ym=p.get('ym');   // month-granularity range overrides the year range (applied after deriveYear, which clears it)
-  if(ym && /^\d+-\d+$/.test(ym)){ let [a,b]=ym.split('-').map(Number); if(a>b)[a,b]=[b,a]; ymLo=a; ymHi=b; yrLo=Math.floor(a/12); yrHi=Math.floor(b/12); year=null; month=null; }
+  // facet selections: "y/mo/hr/dw" are dot-separated lists; legacy "yr"/"dow" ranges (a-b) still parse
+  const decSet=(str, lo, hi)=>{ const S=new Set(); if(!str) return S;
+    if(/^\d+-\d+$/.test(str)){ let [a,b]=str.split('-').map(Number); if(a>b)[a,b]=[b,a]; for(let i=Math.max(lo,a);i<=Math.min(hi,b);i++) S.add(i); }
+    else str.split('.').forEach(x=>{ const v=+x; if(!isNaN(v)&&v>=lo&&v<=hi) S.add(v); }); return S; };
+  const Ylo=(vz&&vz.years)?vz.years[0]:2000, Yhi=(vz&&vz.years)?vz.years[vz.years.length-1]:2030;
+  const yp=p.get('y')||p.get('yr'); if(yp) selY=decSet(yp,Ylo,Yhi);
+  else { const y1=p.get('year'); if(y1!=null && y1!=='' && !isNaN(+y1)) selY=new Set([+y1]); }   // legacy single-year link
+  const mp=p.get('mo')||p.get('month'); if(mp) selM=decSet(mp,1,12);
+  const hp=p.get('hr'); if(hp) selH=decSet(hp,0,23);
+  const dp=p.get('dw')||p.get('dow'); if(dp) selD=decSet(dp,0,6);
+  const ym=p.get('ym');   // report's continuous month-range overrides the facets
+  if(ym && /^\d+-\d+$/.test(ym)){ let [a,b]=ym.split('-').map(Number); if(a>b)[a,b]=[b,a]; ymLo=a; ymHi=b; selY=new Set(); selM=new Set(); }
+  syncDerived();
   const d=p.get('district');
   if(d && distFeats.length && distFeats.some(f=>f.properties.DISTRICT===d)){
     const sel=document.getElementById('district'); if(sel) sel.value=d;
@@ -1148,6 +1163,7 @@ function applyURL(){
   return null;
 }
 function render(){
+  syncDerived();   // refresh the legacy year/month/hr/dow vars from the facet Sets
   computeCounts();
   if(view==='corridor') computeCorridorCounts();
   // resolve the active selection within the current filter (before the panels,
@@ -1165,7 +1181,7 @@ function render(){
   if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // keep the HIN overlay trimmed to the active area
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawConcentration(); drawViewing(); updateBlinkBtn();
+  const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawMonth(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawConcentration(); drawViewing(); updateBlinkBtn();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1181,9 +1197,9 @@ function drawViewing(){
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
-  if(mrActive()) parts.push('<b>'+timeSpan(false)+'</b>');
-  else if(year!==null) parts.push('<b>'+(month!==null?MONTHS[month-1]+' ':'')+year+'</b>');
-  else if(yrNarrow()) parts.push('<b>'+yrLo+'–'+yrHi+'</b>');   // multi-year range (single year handled above)
+  if(mrActive() || selY.size || selM.size) parts.push('<b>'+timeSpan(false)+'</b>');
+  if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
+  if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
     v.querySelector('span').onclick=clearView;
@@ -1246,16 +1262,16 @@ function selectSN(v){
   render();
 }
 function clearView(){
-  year=null; month=null; ymLo=ymHi=null; selStreet=null; selSeg=null; selIds=new Set();   // clear year/month + selection
-  yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1];   // return the year range to full
+  selY.clear(); selM.clear(); selD.clear(); selH.clear(); ymLo=ymHi=null; syncDerived();   // clear all time facets
+  selStreet=null; selSeg=null; selIds=new Set();   // clear selection
   _clearSN();   // clear any super-neighborhood filter too
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
 }
 // reset EVERY filter/selection back to the default citywide view in one click
 function resetAll(){
-  mode='all'; sev='ksi'; view='streets'; owner='all'; year=null; month=null; ymLo=ymHi=null;
-  yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; hrLo=0; hrHi=23; dowLo=0; dowHi=6;   // ranges back to full
+  mode='all'; sev='ksi'; view='streets'; owner='all'; ymLo=ymHi=null;
+  selY.clear(); selM.clear(); selD.clear(); selH.clear(); syncDerived();   // all time facets back to full
   selStreet=null; selSeg=null; selIds=new Set();
   document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
@@ -1516,13 +1532,63 @@ function stackLegend(){ return sev==='all'
 // itself changes (e.g. drilling year -> month), where a morph isn't meaningful.
 const _SVGNS='http://www.w3.org/2000/svg';
 function _svg(tag,attrs){ const e=document.createElementNS(_SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
-// labels[], fatal[], serious[]; opt:{clickKeys?, fadeIdx?:Set, h?, line?}
+// ----- temporal facet selection: a two-handle slider sets a range; clicking a bar collapses to
+// that one bucket. Cyclical axes (month/dow/hour) wrap, so a range can span e.g. 6pm->6am. -----
+const AX={
+  year: {cyc:false, set:()=>selY, n:()=>vz.years.length, val:i=>vz.years[i], idx:v=>vz.years.indexOf(v), fmt:v=>String(v)},
+  month:{cyc:true,  set:()=>selM, n:()=>12, val:i=>i+1, idx:v=>v-1, fmt:v=>MONTHS[v-1]},
+  dow:  {cyc:true,  set:()=>selD, n:()=>7,  val:i=>i,   idx:v=>v,   fmt:v=>DOW_LAB[v]},
+  hour: {cyc:true,  set:()=>selH, n:()=>24, val:i=>i,   idx:v=>v,   fmt:v=>hourLabel(v)}
+};
+const RPFX={year:'yr', month:'mo', hour:'hr', dow:'dw'};       // slider element id prefix per dim
+const RCHART={year:'trend', month:'month', hour:'tod', dow:'dow'};  // chart container id per dim
+function _setFor(dim){ return AX[dim].set(); }
+function _valAt(dim,i){ return AX[dim].val(i); }
+function _commitSel(){ ymLo=ymHi=null; syncDerived(); render(); }   // any facet change clears the report's month-range override
+// the selected buckets as a contiguous arc {from,to,all} in index space (for the slider + labels).
+// cyclical wrap is encoded as from>to (e.g. hour 18..6 = evening through morning).
+function arcOf(dim){ const ax=AX[dim], S=ax.set(), n=ax.n();
+  if(!S.size || S.size>=n) return {from:0,to:n-1,all:true};
+  const sel=new Array(n).fill(false); S.forEach(v=>{ const i=ax.idx(v); if(i>=0)sel[i]=true; });
+  if(!ax.cyc){ let lo=sel.indexOf(true), hi=n-1; while(hi>0&&!sel[hi])hi--; return {from:lo,to:hi,all:false}; }
+  let from=0,to=n-1; for(let i=0;i<n;i++){ if(sel[i]&&!sel[(i-1+n)%n])from=i; if(sel[i]&&!sel[(i+1)%n])to=i; }
+  return {from,to,all:false}; }
+// write an arc (from->to, forward with wrap for cyclical) into the facet Set; a full span clears it (= no filter)
+function setArc(dim,from,to){ const ax=AX[dim], n=ax.n(), S=ax.set(); S.clear();
+  const idxs=[];
+  if(!ax.cyc){ const lo=Math.min(from,to),hi=Math.max(from,to); for(let i=lo;i<=hi;i++)idxs.push(i); }
+  else if(from<=to){ for(let i=from;i<=to;i++)idxs.push(i); }
+  else { for(let i=from;i<n;i++)idxs.push(i); for(let i=0;i<=to;i++)idxs.push(i); }
+  if(idxs.length<n) idxs.forEach(i=>S.add(ax.val(i))); }
+function chartCollapse(dim,i){ const S=AX[dim].set(), v=AX[dim].val(i); if(S.size===1&&S.has(v)) S.clear(); else { S.clear(); S.add(v); } _commitSel(); }
+function clearDim(dim){ AX[dim].set().clear(); _commitSel(); }
+function facetLabel(dim){ const ax=AX[dim], arc=arcOf(dim); if(arc.all) return null;
+  return arc.from===arc.to ? ax.fmt(ax.val(arc.from)) : (ax.fmt(ax.val(arc.from))+'–'+ax.fmt(ax.val(arc.to))); }
+// position a panel's slider handles + fill(s) from its facet Set (one band, or two for a wrap)
+function paintRange(dim, from, to){ const px=RPFX[dim], n=AX[dim].n();
+  const f1=document.getElementById(px+'-fill'), f2=document.getElementById(px+'-fill2'); if(!f1) return;
+  const pos=i=> (n<=1?0:i/(n-1)*100), wrap = AX[dim].cyc && from>to;
+  if(!wrap){ const lo=Math.min(from,to),hi=Math.max(from,to); f1.style.display=''; f1.style.left=pos(lo)+'%'; f1.style.right=(100-pos(hi))+'%'; if(f2)f2.style.display='none'; }
+  else { f1.style.display=''; f1.style.left='0%'; f1.style.right=(100-pos(to))+'%'; if(f2){ f2.style.display=''; f2.style.left=pos(from)+'%'; f2.style.right='0%'; } } }
+function syncRange(dim){ const px=RPFX[dim], n=AX[dim].n();
+  const f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
+  f.max=n-1; t.max=n-1; const arc=arcOf(dim); f.value=arc.from; t.value=arc.to; paintRange(dim, arc.from, arc.to); }
+// live preview while dragging a handle: fade the chart's bars to the arc, no recompute
+function previewFadeDim(dim, from, to){ const c=document.getElementById(RCHART[dim]); if(!c||!c._chart) return; const st=c._chart, ax=AX[dim];
+  const inArc=i=> ax.cyc ? (from<=to ? (i>=from&&i<=to) : (i>=from||i<=to)) : (i>=Math.min(from,to)&&i<=Math.max(from,to));
+  paintRange(dim, from, to);
+  for(let i=0;i<st.se.length;i++){ let op=inArc(i)?1:0.3; if(dim==='year'&&vz.years[i]===2026) op=Math.min(op,0.45); st.se[i].setAttribute('opacity',op); st.fa[i].setAttribute('opacity',op); } }
+function wireRange(dim){ const px=RPFX[dim], f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
+  const n=AX[dim].n(); f.min=0; t.min=0; f.max=n-1; t.max=n-1; f.step=1; t.step=1;
+  f.oninput=t.oninput=()=>previewFadeDim(dim, +f.value, +t.value);
+  f.onchange=t.onchange=()=>{ setArc(dim, +f.value, +t.value); _commitSel(); }; }
+// labels[], fatal[], serious[]; opt:{dim?, clickKeys?, fadeIdx?:Set, h?, line?, unit?}
 function drawBarChart(container, labels, fatal, serious, opt){
   opt=opt||{}; const W=340, H=opt.h||156, L=30, R=6, T=10, B=26;
   const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
   const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
   const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
-  const key=n+'|'+labels.join('|')+'|line:'+(opt.line?1:0)+'|click:'+(opt.clickKeys?1:0);  // structure identity
+  const key=n+'|'+labels.join('|')+'|line:'+(opt.line?1:0)+'|hit:'+((opt.dim||opt.clickKeys)?1:0);  // structure identity
   let st=container._chart;
   if(!st || st.key!==key){   // (re)build from scratch: structure changed
     container.textContent='';
@@ -1534,11 +1600,12 @@ function drawBarChart(container, labels, fatal, serious, opt){
       const rse=_svg('rect',{class:'bar',rx:1,fill:SERIOUS_C,y:T+ph,height:0}); svg.appendChild(rse); st.se.push(rse);
       const rfa=_svg('rect',{class:'bar',rx:1,fill:FATAL_C,y:T+ph,height:0}); svg.appendChild(rfa); st.fa.push(rfa);
       const xl=_svg('text',{'text-anchor':'middle','font-size':12,'font-weight':500,fill:'#5b6672'}); svg.appendChild(xl); st.xlab.push(xl);
-      if(opt.clickKeys){ const hit=_svg('rect',{class:'barhit',style:'cursor:pointer'}); const ti=_svg('title',{}); hit.appendChild(ti); svg.appendChild(hit); st.hit.push(hit); }
+      if(opt.dim||opt.clickKeys){ const hit=_svg('rect',{class:'barhit',style:'cursor:pointer'}); const ti=_svg('title',{}); hit.appendChild(ti); svg.appendChild(hit); st.hit.push(hit); }
     }
     if(opt.line){ st.line=_svg('polyline',{fill:'none',stroke:'#15212b','stroke-width':1.5,'stroke-dasharray':'4 3',opacity:0.7}); svg.appendChild(st.line); }
     container.appendChild(svg); container._chart=st;
   }
+  st.dim=opt.dim;
   [0,nice/2,nice].forEach((t,i)=>{ const yy=y(t);   // gridlines fixed in pixels; only the labels change with the scale
     st.grid[i].setAttribute('x1',L); st.grid[i].setAttribute('y1',yy); st.grid[i].setAttribute('x2',W-R); st.grid[i].setAttribute('y2',yy);
     st.gridT[i].setAttribute('x',L-5); st.gridT[i].setAttribute('y',yy+4); st.gridT[i].textContent=fmtTick(t); });
@@ -1551,111 +1618,83 @@ function drawBarChart(container, labels, fatal, serious, opt){
     const rfa=st.fa[i]; rfa.setAttribute('x',x); rfa.setAttribute('width',bw);
     rfa.setAttribute('y',fa>0?yFa:(se>0?ySe:T+ph)); rfa.setAttribute('height',fa>0?hFa:0); rfa.setAttribute('opacity',op);
     const xl=st.xlab[i]; xl.setAttribute('x',x+bw/2); xl.setAttribute('y',H-9); xl.textContent=labels[i]||'';
-    if(opt.clickKeys){ const hit=st.hit[i]; hit.setAttribute('x',x-1); hit.setAttribute('y',T); hit.setAttribute('width',bw+2); hit.setAttribute('height',ph);
-      hit.setAttribute('onclick',opt.clickKeys[i]); hit.firstChild.textContent=tot[i]+' '+(opt.unit||'KSI')+' · click to view'; }
+    if(opt.dim||opt.clickKeys){ const hit=st.hit[i]; hit.setAttribute('x',x-1); hit.setAttribute('y',T); hit.setAttribute('width',bw+2); hit.setAttribute('height',ph);
+      if(opt.dim){ const dd=opt.dim, ii=i; hit.onclick=()=>chartCollapse(dd, ii); }   // click a bar -> collapse the range to that one bucket
+      else if(opt.clickKeys) hit.setAttribute('onclick',opt.clickKeys[i]);
+      hit.firstChild.textContent=tot[i]+' '+(opt.unit||'KSI'); }
   }
   if(st.line){
     const lp=[]; for(let i=0;i<n;i++){ const v=opt.line[i]; if(v==null) continue; lp.push((L+gap*i+gap/2)+','+y(Math.max(0,v))); }
     if(lp.length>1){ st.line.setAttribute('points',lp.join(' ')); st.line.style.display=''; } else st.line.style.display='none';
   }
 }
+// cyclical month distribution (Jan-Dec) across every year shown -- seasonality
+function monthStacksC(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'month')||!inLens(p)||!chartInc(p))continue;
+  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
+// per-panel sub line: a hint when nothing is selected on this axis, else the selection + a clear link
+function facetSub(dim, hint){ const lab=facetLabel(dim); if(lab===null) return hint;
+  return '<b>'+lab+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="clearDim(\''+dim+'\')">clear</span>'; }
 function drawTrend(){
-  let labels=[], fatal=[], serious=[], clickKeys=null, fadeIdx=new Set();
-  if(year===null){
-    const k=yearStacks(); clickKeys=[];
-    vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0);
-      serious.push(k.s[yr]||0); clickKeys.push('selectYear('+yr+')');
-      if(yr===2026 || (yrLo!==null && (yr<yrLo || yr>yrHi))) fadeIdx.add(i); });   // dim partial 2026 + out-of-range years
-  } else {
-    const k=monthStacks(year), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
-    clickKeys=[];
-    for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0);
-      clickKeys.push('selectMonth('+m+')'); if(month!==null && m!==month) fadeIdx.add(m-1); }
-  }
+  const k=yearStacks(); const labels=[],fatal=[],serious=[],fadeIdx=new Set(),fullSet=new Set();
+  vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0); serious.push(k.s[yr]||0);
+    if(yr===2026 || (selY.size && !selY.has(yr))) fadeIdx.add(i);   // fade partial 2026 + unselected years
+    if(yr!==2026) fullSet.add(i); });                               // full years drive the trend line/headline
+  const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
+  const full=[]; fullSet.forEach(i=>full.push([i,tot[i]])); full.sort((a,b)=>a[0]-b[0]);
   let line=null, headline='';
-  if(year===null){
-    // full-year totals only (exclude faded/partial years), least-squares fit on (index,total)
-    const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
-    const full=[]; for(let i=0;i<labels.length;i++) if(!fadeIdx.has(i)) full.push([i,tot[i]]);
-    if(full.length>=2){
-      const N=full.length, sx=full.reduce((a,p)=>a+p[0],0), sy=full.reduce((a,p)=>a+p[1],0),
-            sxx=full.reduce((a,p)=>a+p[0]*p[0],0), sxy=full.reduce((a,p)=>a+p[0]*p[1],0),
-            den=N*sxx-sx*sx, m=den?(N*sxy-sx*sy)/den:0, b=(sy-m*sx)/N;
-      line=labels.map((_,i)=>fadeIdx.has(i)?null:m*i+b);
-    }
-    // headline: avg of last k full years vs first k full years
-    if(full.length>=4){
-      const fy=full.map(p=>p[0]), yr=j=>vz.years[fy[j]];
-      const k=Math.min(3,Math.floor(full.length/2));
-      const first=full.slice(0,k), last=full.slice(-k);
-      const avg=a=>a.reduce((s,p)=>s+p[1],0)/a.length;
-      const a0=avg(first), a1=avg(last);
-      if(a0>0){
-        const pct=Math.round((a1-a0)/a0*100), base=yr(0)+(k>1?(' to '+yr(k-1)):'');
-        const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)');
-        const dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
-        headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>';
-      }
-    }
-  }
-  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{clickKeys,fadeIdx,line,h:78,unit:(sev==='all'?'crashes':'KSI')});
-  const trendNoun = sev==='all' ? 'All crashes' : 'Killed or seriously injured';
-  document.getElementById('trend-title').textContent = year===null
-    ? trendNoun+', by year' : trendNoun+' in '+year+', by month';
-  document.getElementById('trend-sub').innerHTML = mrActive()
-    ? ('Range <b>'+timeSpan(false)+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all months</span>')
-    : (year===null && yrNarrow())
-    ? ('Years <b>'+yrLo+'–'+yrHi+'</b> · drag the slider or click a year · <span style="color:#1d4ed8;cursor:pointer" onclick="resetYearRange()">all years</span>')
-    : year===null
-    ? 'Click a year, or drag the slider, to filter the dashboard'
-    : (month!==null
-        ? 'Viewing <b>'+MONTHS[month-1]+' '+year+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectMonth('+month+')">back to all months</span> · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">all years</span>'
-        : 'Click a month to filter the dashboard to it · <span style="color:#1d4ed8;cursor:pointer" onclick="selectYear('+year+')">‹ Back to all years</span>');
+  if(full.length>=2){ const N=full.length, sx=full.reduce((a,p)=>a+p[0],0), sy=full.reduce((a,p)=>a+p[1],0),
+      sxx=full.reduce((a,p)=>a+p[0]*p[0],0), sxy=full.reduce((a,p)=>a+p[0]*p[1],0),
+      den=N*sxx-sx*sx, m=den?(N*sxy-sx*sy)/den:0, b=(sy-m*sx)/N;
+    line=labels.map((_,i)=> fullSet.has(i)?m*i+b:null); }
+  if(full.length>=4){ const yr=j=>vz.years[full[j][0]], k2=Math.min(3,Math.floor(full.length/2));
+    const first=full.slice(0,k2), last=full.slice(-k2), avg=a=>a.reduce((s,p)=>s+p[1],0)/a.length;
+    const a0=avg(first), a1=avg(last);
+    if(a0>0){ const pct=Math.round((a1-a0)/a0*100), base=yr(0)+(k2>1?(' to '+yr(k2-1)):'');
+      const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)'), dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
+      headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>'; } }
+  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{fadeIdx,line,h:78,dim:'year',unit:(sev==='all'?'crashes':'KSI')});
+  document.getElementById('trend-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by year';
+  document.getElementById('trend-sub').innerHTML=facetSub('year','Click a bar, or drag the slider, to filter');
   document.getElementById('trend-leg').innerHTML=stackLegend();
-  syncSlider('yr', yrLo, yrHi);
-  if(year===null){
-    const parts=[];
-    if(headline) parts.push(headline);
-    parts.push('<span style="color:var(--muted)">goal: zero deaths by 2030'+(vz.years.includes(2026)?' · 2026 partial':'')+'</span>');
-    document.getElementById('trend-note').innerHTML = parts.join(' · ');
-  } else {
-    document.getElementById('trend-note').innerHTML = '';
-  }
+  syncRange('year');
+  const parts=[]; if(headline) parts.push(headline);
+  if(vz.years.includes(2026)) parts.push('<span style="color:var(--muted)">2026 partial</span>');
+  document.getElementById('trend-note').innerHTML=parts.join(' · ');
+}
+function drawMonth(){
+  const k=monthStacksC(), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const labels=[],fatal=[],serious=[],fadeIdx=new Set();
+  for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); if(selM.size && !selM.has(m)) fadeIdx.add(m-1); }
+  drawBarChart(document.getElementById('month'),labels,fatal,serious,{fadeIdx,h:78,dim:'month',unit:(sev==='all'?'crashes':'KSI')});
+  document.getElementById('month-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by month';
+  document.getElementById('month-sub').innerHTML=facetSub('month','Seasonality across all years · click a bar or drag the slider');
+  document.getElementById('month-leg').innerHTML=stackLegend();
+  syncRange('month');
 }
 function drawTimeOfDay(){
   const k=hourStacks(), labels=[], fatal=[], serious=[], fadeIdx=new Set();
   for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
     labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : '');
-    if(hrNarrow() && (h<hrLo || h>hrHi)) fadeIdx.add(h); }
-  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx});
-  const span = totalsSpan();
-  document.getElementById('tod-sub').innerHTML = hrNarrow()
-    ? ('Hours <b>'+hourLabel(hrLo)+'–'+hourLabel(hrHi)+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetHourRange()">reset</span>')
-    : ('By hour of day, '+span);
+    if(selH.size && !selH.has(h)) fadeIdx.add(h); }
+  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx,dim:'hour',unit:(sev==='all'?'crashes':'KSI')});
+  document.getElementById('tod-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by time of day';
+  document.getElementById('tod-sub').innerHTML=facetSub('hour','By hour, '+totalsSpan()+' · click a bar or drag the slider');
   document.getElementById('tod-leg').innerHTML=stackLegend();
-  syncSlider('hr', hrLo, hrHi);
+  syncRange('hour');
 }
 const DOW_LAB=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 function drawDayOfWeek(){
   const k=dayStacks(), labels=DOW_LAB.slice(), fatal=[], serious=[], fadeIdx=new Set();
-  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0);
-    if(dowNarrow() && (d<dowLo || d>dowHi)) fadeIdx.add(d); }
-  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx});
-  const span = totalsSpan();
-  document.getElementById('dow-sub').innerHTML = dowNarrow()
-    ? ('Days <b>'+DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]+'</b> · drag to change · <span style="color:#1d4ed8;cursor:pointer" onclick="resetDowRange()">reset</span>')
-    : ('By day of week, '+span);
+  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); if(selD.size && !selD.has(d)) fadeIdx.add(d); }
+  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx,dim:'dow',unit:(sev==='all'?'crashes':'KSI')});
+  document.getElementById('dow-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by day of week';
+  document.getElementById('dow-sub').innerHTML=facetSub('dow','By weekday, '+totalsSpan()+' · click a bar or drag the slider');
   document.getElementById('dow-leg').innerHTML=stackLegend();
-  syncSlider('dow', dowLo, dowHi);
+  syncRange('dow');
 }
-// clicking a year bar drills into that single year (range collapses to y..y);
-// clicking the same year again returns to the full span.
-function selectYear(y){
-  if(yrLo===y && yrHi===y){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }
-  else { yrLo=y; yrHi=y; }
-  month=null; deriveYear(); render();
-}
-function selectMonth(m){ ymLo=ymHi=null; month = (m===month) ? null : m; render(); }
+// programmatic single-bucket toggles (kept for any external callers; charts use the brush handlers)
+function selectYear(y){ if(selY.size===1 && selY.has(y)) selY.clear(); else { selY.clear(); selY.add(y); } _commitSel(); }
+function selectMonth(m){ if(selM.size===1 && selM.has(m)) selM.clear(); else { selM.clear(); selM.add(m); } _commitSel(); }
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
 // nearest street segment to a crash, found geometrically at click time (crash
 // points carry no segment link, so this avoids bloating crash_points.json).
@@ -1798,68 +1837,10 @@ document.getElementById('hin').onchange=e=>{
 };
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
-// --- dual-range sliders (year / hour / day-of-week) --------------------------
-const _rngLabel={
-  yr:(v)=>String(v),
-  hr:(v)=>hourLabel(v),
-  dow:(v)=>['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][v]
-};
-// reflect lo/hi onto a slider's thumbs, fill bar, and text label (no event fired)
-function syncSlider(id, lo, hi){
-  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
-  if(!mn||!mx) return;
-  const a=+mn.min, b=+mn.max; if(b<=a) return;
-  mn.value=lo; mx.value=hi;
-  const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
-  if(fill){ fill.style.left=((lo-a)/(b-a)*100)+'%'; fill.style.right=(100-(hi-a)/(b-a)*100)+'%'; }
-  if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); }
-}
-// wire one slider: on input, write [lo,hi] back to the two globals via setFn, then render
-// live-fade the dragged chart's bars to a preview range (cheap: opacity only, no recompute).
-// each chart skips its own dimension, so the bar HEIGHTS don't change with its range, only the fade.
-function previewFade(chartId, lo, hi, dim){
-  const c=document.getElementById(chartId); if(!c||!c._chart) return;
-  const st=c._chart, n=st.se.length;
-  if(dim==='year' && n!==vz.years.length) return;   // chart is in month-drill mode: year preview does not apply
-  for(let i=0;i<n;i++){
-    const val = dim==='year' ? vz.years[i] : i;
-    let faded = (val<lo || val>hi);
-    if(dim==='year' && vz.years[i]===2026) faded=true;   // 2026 partial stays dim
-    const op = faded ? 0.45 : 1;
-    st.se[i].setAttribute('opacity', op); st.fa[i].setAttribute('opacity', op);
-  }
-}
-function wireSlider(id, setFn, chartId, dim){
-  const mn=document.getElementById(id+'-min'), mx=document.getElementById(id+'-max');
-  if(!mn||!mx) return;
-  // during drag (input): cheap visual preview only (fill bar + label + the chart's fade), no recompute
-  const preview=()=>{ const A=+mn.min, B=+mn.max; if(B<=A) return;
-    const lo=Math.min(+mn.value,+mx.value), hi=Math.max(+mn.value,+mx.value);
-    const fill=document.getElementById(id+'-fill'), lab=document.getElementById(id+'-lab');
-    if(fill){ fill.style.left=((lo-A)/(B-A)*100)+'%'; fill.style.right=(100-(hi-A)/(B-A)*100)+'%'; }
-    if(lab){ const f=_rngLabel[id]; lab.textContent=f(lo)+'–'+f(hi); }
-    previewFade(chartId, lo, hi, dim); };
-  // on release (change): commit to the globals and recompute the whole dashboard once
-  const commit=()=>{ let a=+mn.value, b=+mx.value; if(a>b){ [a,b]=[b,a]; } setFn(a,b); render(); };
-  mn.oninput=preview; mx.oninput=preview;
-  mn.onchange=commit; mx.onchange=commit;
-}
-// the year slider's bounds depend on the loaded data, so set them once here
-function setupYearSlider(){
-  const mn=document.getElementById('yr-min'), mx=document.getElementById('yr-max');
-  if(!mn||!mx||!vz) return;
-  const lo=vz.years[0], hi=vz.years[vz.years.length-1];
-  mn.min=lo; mn.max=hi; mx.min=lo; mx.max=hi;
-  document.getElementById('yr-rng').style.display='';
-  syncSlider('yr', yrLo, yrHi);
-}
-wireSlider('yr', (a,b)=>{ yrLo=a; yrHi=b; month=null; deriveYear(); }, 'trend', 'year');
-wireSlider('hr', (a,b)=>{ hrLo=a; hrHi=b; }, 'tod', 'hour');
-wireSlider('dow',(a,b)=>{ dowLo=a; dowHi=b; }, 'dow', 'dow');
 // range-reset links (used by the chart sub text)
-function resetYearRange(){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; month=null; deriveYear(); render(); }
-function resetHourRange(){ hrLo=0; hrHi=23; render(); }
-function resetDowRange(){ dowLo=0; dowHi=6; render(); }
+function resetYearRange(){ selY.clear(); selM.clear(); _commitSel(); }
+function resetHourRange(){ selH.clear(); _commitSel(); }
+function resetDowRange(){ selD.clear(); _commitSel(); }
 // share: copy the current URL (syncURL keeps it in step with the active filters/selection)
 let _shareTimer=null;
 document.getElementById('share').onclick=async()=>{
@@ -1983,7 +1964,7 @@ async function generateReport(cfg){
     const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
     const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return '';
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
-    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline; Vision Zero targets zero by 2030.</div>'; })();
+    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline.</div>'; })();
   let chartsHTML='';
   if(S.trend) chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
   if(S.tod)   chartsHTML += chart('By time of day', _ih('tod'), _ih('tod-leg'));
@@ -2099,11 +2080,12 @@ async function _rcGenerate(){
   const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
   if(!isNaN(fy) && !isNaN(ty)){
     let lo=fy*12+(fm-1), hi=ty*12+(tm-1); if(lo>hi){ const t=lo; lo=hi; hi=t; }
-    yrLo=Math.floor(lo/12); yrHi=Math.floor(hi/12); month=null; year=null;
-    // a January–December span is just a year range; anything finer is a month range
-    if(lo===yrLo*12 && hi===yrHi*12+11){ ymLo=ymHi=null; deriveYear(); }
+    const yLo=Math.floor(lo/12), yHi=Math.floor(hi/12);
+    selM.clear(); selY.clear();
+    // a January–December span is a plain year facet; anything finer is the continuous month-range override
+    if(lo===yLo*12 && hi===yHi*12+11){ ymLo=ymHi=null; for(let y=yLo;y<=yHi;y++) selY.add(y); }
     else { ymLo=lo; ymHi=hi; }
-    if(typeof syncSlider==='function') syncSlider('yr', yrLo, yrHi);
+    syncDerived();
   }
   // High Injury Network overlay: match the sidebar checkbox + layer
   const wantHin=_rcEl('rc-hin').checked, hinBox=_rcEl('hin');
