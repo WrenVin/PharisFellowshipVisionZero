@@ -1499,6 +1499,8 @@ function dayStacks(){ const f={},s={}; for(let i=0;i<pts.length;i++){ const p=pt
   if(!p[7])continue; const d=dowArr[i]; const t=chartTop(p)?f:s; t[d]=(t[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun (precomputed)
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
+// compact y-axis tick label so large all-crashes counts fit the narrow left margin (41500 -> "42k", 8400 -> "8.4k")
+function fmtTick(v){ v=Math.round(v); if(v<1000) return ''+v; const k=v/1000; return (k>=10?Math.round(k):Math.round(k*10)/10)+'k'; }
 function stackLegend(){ return sev==='all'
   ? '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed or seriously injured</span>'
     +'<span><span class="dot" style="background:'+SERIOUS_C+'"></span>Other crashes</span>'
@@ -1535,7 +1537,7 @@ function drawBarChart(container, labels, fatal, serious, opt){
   }
   [0,nice/2,nice].forEach((t,i)=>{ const yy=y(t);   // gridlines fixed in pixels; only the labels change with the scale
     st.grid[i].setAttribute('x1',L); st.grid[i].setAttribute('y1',yy); st.grid[i].setAttribute('x2',W-R); st.grid[i].setAttribute('y2',yy);
-    st.gridT[i].setAttribute('x',L-5); st.gridT[i].setAttribute('y',yy+4); st.gridT[i].textContent=t; });
+    st.gridT[i].setAttribute('x',L-5); st.gridT[i].setAttribute('y',yy+4); st.gridT[i].textContent=fmtTick(t); });
   for(let i=0;i<n;i++){
     const x=L+gap*i+(gap-bw)/2, se=serious[i]||0, fa=fatal[i]||0;
     const hSe=(se/nice)*ph, hFa=(fa/nice)*ph, ySe=T+ph-hSe, yFa=ySe-hFa;
