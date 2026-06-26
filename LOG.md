@@ -8,7 +8,7 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 The data-first Street Explorer (`docs/index.html`) is old and was deprecated. Removed its link from the Vision Zero dashboard footer and took it offline: `docs/index.html` is now a small redirect page to `vision-zero.html` (meta refresh + `location.replace` + a fallback link), so the GitHub Pages root lands on the dashboard. The old Explorer page is preserved in git history; existing `.../vision-zero.html` links are unaffected.
 
-Note: the full `docs/segments.geojson` (~66 MB) was only loaded by the Explorer and is now unused (the dashboard reads the slim `segments_vz.geojson`). Left in place for now and `export_webmap_data.py` still writes it; deleting it and dropping it from the export would trim the published site by ~66 MB. Docs (README, ELI5, CODEBOOK) updated to describe a single dashboard.
+Also deleted the full `docs/segments.geojson` (~66 MB), which only the Explorer loaded, and dropped it from `export_webmap_data.py` (the export now writes only the slim `segments_vz.geojson` the dashboard reads, and removes any stale full copy). Trims ~66 MB off the published site. The full per-segment data still lives in the processed gpkg/CSV. Docs (README, ELI5, CODEBOOK) updated to describe a single dashboard.
 
 ## 2026-06-23 — Unified temporal filters: month panel, wrap-capable sliders, click-to-filter
 

@@ -45,7 +45,6 @@ src/
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # redirect to vision-zero.html (Street Explorer retired)
-  segments.geojson             # full per-street data (was the Street Explorer; no longer loaded live)
   segments_vz.geojson          # slim per-street data (VZ dashboard; only the 20 fields it uses, incl. sn)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)

@@ -222,7 +222,6 @@ These are not columns in the processed `.gpkg`; they are computed at export time
 
 **Exported files for the dashboard:**
 
-- `docs/segments.geojson` — full per-segment property set (was the retired Street Explorer / `index.html`; no longer loaded by a live app).
 - `docs/segments_vz.geojson` — slim copy for the Vision Zero dashboard (`vision-zero.html`), only the 20 fields in `WEB_KEEP`: `seg_id`, `name`, `road_class`, `district`, `sn`, `on_txdot`, `on_hin`, `n_crash`, `n_severe`, `n_fatal`, `n_ped`, `n_ped_severe`, `n_bike`, `n_bike_severe`, `length_ft`, `lanes_final`, `roadway_width_ft`, `posted_speed_mph`, `sidewalk_presence`, `adt`.
 - `docs/crash_points.json` — one array per crash, 21 fields in order: `[lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj]`. Fields 16–20 are the **per-crash person counts by KABCO injury severity** (`n_k` killed, `n_a` serious, `n_b` minor, `n_c` possible, `n_noinj` no-injury), pulled from the raw CRIS crash-level injury-count fields (`Death_Cnt`, `Sus_Serious_Injry_Cnt`, `Nonincap_Injry_Cnt`, `Poss_Injry_Cnt`, `Non_Injry_Cnt`) and matched by `Crash_ID`. `sev`/`fatal` are still the crash-level flags (`sev`=K or A, `fatal`=K). (The processed gpkg also carries a `kabco` letter, but the web export uses person counts, not `kabco`.)
 

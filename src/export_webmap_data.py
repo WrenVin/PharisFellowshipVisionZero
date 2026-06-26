@@ -273,14 +273,12 @@ keep["geometry"] = keep.geometry.simplify(25, preserve_topology=False)
 keep = keep.to_crs(4326)
 
 DOCS.mkdir(exist_ok=True)
-# Full property set -> segments.geojson, used by the Street Explorer (index.html),
-# which surfaces every design + demographic field.
-out = DOCS / "segments.geojson"
-if out.exists():
-    out.unlink()
-keep.to_file(out, driver="GeoJSON", COORDINATE_PRECISION=5)
-# Super Neighborhood id is added to the SLIM file only (the dashboard filters by
-# it); the full Street Explorer file above doesn't use it, so we skip it there.
+# The full-property segments.geojson is retired with the Street Explorer; only the
+# slim segments_vz.geojson (below) is published now. Delete any stale copy.
+_full = DOCS / "segments.geojson"
+if _full.exists():
+    _full.unlink()
+# Super Neighborhood id (the dashboard filters by it) is added to the slim file.
 if sn_4326 is not None and "sn" in seg.columns:
     keep["sn"] = seg["sn"].values
 # Slim copy -> segments_vz.geojson for the Vision Zero dashboard, which only reads
@@ -305,7 +303,6 @@ if bpath.exists():
     bpath.unlink()
 boundary[["geometry"]].to_file(bpath, driver="GeoJSON", COORDINATE_PRECISION=5)
 
-print(f"Wrote {len(keep):,} segments -> {out} ({out.stat().st_size/1e6:.1f} MB)")
 print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
