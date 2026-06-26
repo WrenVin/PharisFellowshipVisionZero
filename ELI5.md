@@ -121,14 +121,12 @@ it. After this, the network is clean — no more confusing scraps.
 ### Keeping everything honest and shareable
 Alongside the street-building, we set up the habit stuff so this project stays
 trustworthy and isn't a black box:
-- **Interactive dashboards — live on the web** at
+- **An interactive dashboard, live on the web** at
   https://wrenvin.github.io/PharisFellowshipVisionZero/ (no software needed,
-  just open the link). There are now two: a data-first **Street Explorer**
-  where you can color the streets by anything (traffic, speed, lanes, income…),
-  filter to just the streets you care about (e.g. "show me wide, fast streets
-  with no sidewalk"), search by name, and click any street to see everything we
-  know about it; and a public-friendly **Vision Zero dashboard** focused on
-  safety, described at the end of this file.
+  just open the link): the public-friendly **Vision Zero dashboard** focused on
+  safety, described at the end of this file. (An earlier data-first "Street
+  Explorer" has been retired and taken offline; the link now opens the Vision
+  Zero dashboard.)
 - **Four documents we keep updated:** the README (quick facts), the LOG (a
   dated diary of every decision and *why*), the CODEBOOK (what every piece of
   data means), and this ELI5.

@@ -2,9 +2,9 @@
 
 A traffic-safety analysis and dashboard for the **City of Houston**, built in partnership with the office of Council Member Joseph Panzarella (District C). This is the author's research project for the **Pharis Fellowship** (University of Houston Honors College / HPE Data Science Institute, summer 2026). The pipeline is area-agnostic (see *Retargeting* below) — it began on District C and now covers the whole city.
 
-**Two public dashboards (one GitHub Pages site, shared data):**
+**The public dashboard** (GitHub Pages; the site root redirects here):
 - **🚦 Vision Zero view** (safety-first): https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html — the toll (people killed, **years of life lost**, seriously injured, and the **economic cost** of those crashes) and a concentration measure (about half of all KSI sits on ~2% of street-miles; a threshold-free **Gini coefficient** ~0.94 and a **Lorenz/concentration-curve panel** describe the whole distribution rather than one arbitrary "top X%" cutoff, with the City's 6% High Injury Network marked on the curve for comparison). Left-sidebar filters: find a street (search), council district (All / A–K, zooms and recomputes everything), super neighborhood (Houston's 88 named planning areas like Montrose or Second Ward; mutually exclusive with district, since the two geographies overlap), travel mode (everyone / driving / walking / biking), road owner (all / city-owned / TxDOT-owned), Show (people killed or injured vs all crashes), Display as (three map levels: shaded whole streets, shaded street segments per block [the default], or crash-location points), and an overlay of the City's official High Injury Network (2022) for comparison. Breakdowns respond to the active filters (including **Show**: with **all crashes** selected, every breakdown counts every crash rather than only KSI, so a street with crashes but no KSI still shows a distribution instead of empty bars): **by year (with a trend line), by month (seasonality across all years), by time of day, and by day of week** — each filterable by clicking a bar (one bucket) or dragging its range slider; the cyclical sliders (month / time of day / day of week) wrap, so a range like 6 PM–6 AM works — plus by travel mode, by neighborhood income (the equity angle), by road owner (city vs TxDOT), and a clickable "most dangerous streets" top-5 list. **Clicking any street or segment cross-filters the whole dashboard** (every KPI and panel recomputes for that selection); the popup shows the road's physical makeup and a "view this whole street" link widens a block to its corridor. Also: **draggable, reorderable data panels**; a manual "Blink crash locations" button; a shareable URL that encodes the current filters/selection; a **"Create report" button** that opens a full-screen "Build your report" dialog (filters pre-filled from the current view, plus checkboxes to include/omit each section), then exports a clean, page-break-safe **printable PDF** (headline stats, a one-line summary, the map, the selected breakdown charts, and a most-affected-streets table, with no UI chrome) for city-council and print use; and a "Data & methods" modal with linked official sources. Single-screen desktop layout, keyboard-accessible, mobile-responsive.
-- **🗺️ Street Explorer** (data-first): https://wrenvin.github.io/PharisFellowshipVisionZero/ — every street, **color by any attribute** (design, traffic, demographics, crashes), **stacking filters**, search, click-to-pin info. Mobile-friendly; sources + vintages disclosed in-app. A **shareable URL** encodes the current color/filters/selection so a copied link reopens the same view (Share button, with a native share sheet on mobile); plus a loading spinner and a clear message if the large street file fails to load.
+- *(Retired: the data-first "Street Explorer" at the site root has been deprecated and taken offline; the root now redirects to the Vision Zero dashboard. The old page is preserved in git history.)*
 
 ## Research question
 
@@ -44,8 +44,8 @@ src/
   fetch_superneighborhoods.py  # pull Houston's 88 Super Neighborhood boundaries (data/raw/)
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
-  index.html                   # Street Explorer (data-first: color/filter/search)
-  segments.geojson             # full per-street data (Street Explorer)
+  index.html                   # redirect to vision-zero.html (Street Explorer retired)
+  segments.geojson             # full per-street data (was the Street Explorer; no longer loaded live)
   segments_vz.geojson          # slim per-street data (VZ dashboard; only the 20 fields it uses, incl. sn)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)
@@ -93,7 +93,7 @@ python3 -m venv .venv
 .venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
 ```
 
-The web apps are static Leaflet (`docs/index.html`, `docs/vision-zero.html`; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
+The web app is static Leaflet (`docs/vision-zero.html`; `docs/index.html` redirects to it; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
 
 **Analysis dataset:** `data/processed/houston_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
 **To inspect by hand:** `data/processed/houston_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.
@@ -127,7 +127,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 - **Economic cost:** applying FHWA per-person costs by KABCO injury severity (FHWA-SA-25-021, 2024 dollars) to the people hurt in each crash, the citywide crashes carry an estimated **~$15.3B in economic cost** (~$64.8B comprehensive, which additionally values lost quality/length of life and overlaps the YLL figure). The dashboard recomputes this live for any filter; it is a conservative floor (unknown-severity injuries excluded, reported crashes undercount).
 - **Equity:** neighborhoods under $100k median household income account for ~81% of KSI; the citywide block-group median is ~$71k.
 - Both dashboards are live and citywide; the Vision Zero page overlays the City's official HIN 2022 (1,261 segments).
-- **Web-app note:** the dashboards load all features client-side. The Vision Zero page loads the slim `segments_vz.geojson` (~34 MB) plus `crash_points.json` (~30 MB), `hin.geojson`, and the boundary/district outlines (~65 MB total); the Street Explorer loads the full `segments.geojson` (~66 MB). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
+- **Web-app note:** the dashboard loads all features client-side. The Vision Zero page loads the slim `segments_vz.geojson` (~34 MB) plus `crash_points.json` (~30 MB), `hin.geojson`, and the boundary/district outlines (~65 MB total). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
 - **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis (now citywide).
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
