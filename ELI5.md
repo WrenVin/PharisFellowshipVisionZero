@@ -132,6 +132,12 @@ trustworthy and isn't a black box:
   data means), and this ELI5.
 - **Everything saved to GitHub** after each step, so there's a full history and
   nothing can get lost.
+- **An automatic data check-up.** The website updates itself the moment we
+  publish a new file, so we added a little robot inspector that runs every time:
+  it makes sure the data files aren't empty or broken, that the crash dots land
+  inside Houston, and that the headline numbers still add up and agree with each
+  other. If something looks wrong, it raises a red flag *before* the public ever
+  sees it — so a bad file can't quietly go live.
 
 ---
 

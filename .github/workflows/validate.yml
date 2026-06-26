@@ -1,0 +1,29 @@
+name: Validate data exports
+
+# The dashboard auto-deploys from docs/ via GitHub Pages, so this is the CI gate:
+# it runs the data-contract checks on every push and PR. A red X here means a
+# malformed or inconsistent export is about to go (or has gone) live.
+
+on:
+  push:
+    paths:
+      - "docs/**"
+      - "tests/validate_exports.py"
+      - ".github/workflows/validate.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "tests/validate_exports.py"
+  workflow_dispatch: {}   # allow manual runs from the Actions tab
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # No dependencies: the validator uses only the Python standard library.
+      - name: Validate dashboard exports
+        run: python tests/validate_exports.py
