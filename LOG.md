@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-26 — CI: automated data-contract validation of the published exports
+
+The dashboard auto-deploys from `docs/` via GitHub Pages, which meant a broken export (empty/truncated file, malformed rows, headline numbers drifting from the per-crash data) would go live with no human in the loop. Added a CI gate to close that gap — genuine **continuous integration** to pair with the continuous deployment that was already in place.
+
+- **`tests/validate_exports.py`** — standard-library-only (no pandas/geopandas; runs in ~1 s) data-contract checker over the three files the dashboard depends on plus the aux GeoJSON. Checks: each file parses and is non-empty; `crash_points.json` is a list of 21-field rows with counts in 300k–550k, non-null lat/lon inside the Houston bbox, plausible years, and 0/1 `sev`/`fatal` flags; `segments_vz.geojson` is a FeatureCollection of 55k–85k line features with unique `seg_id`s and the properties the dashboard reads; `vz_summary.json` is internally consistent (`toll.ksi == killed + serious`, `ksi_by_year` sums to `toll.ksi`, `years` ascending).
+- **Cross-file reconciliation** (the high-value part): `crash_points.json` derived totals must match `vz_summary.json` within tolerance — crash count (±1%), KSI count = rows with `sev==1` (±2%), fatal count = rows with `fatal==1` (±2%). On the current data these line up tightly (crash count 421,570 vs 421,699 = 0.03%; KSI 9,923 vs 9,928; fatal 1,687 vs 1,687 exact), which also documents the field semantics: **index 2 `sev` is the KSI flag and index 3 `fatal` is the fatal-crash flag** (both crash-level, not person sums).
+- **Referential integrity:** crash `seg_id`s should resolve to a published segment. Currently **48 of 39,578 (0.12%)** don't — those segments exist in the full enriched network (75,260) but not in the slimmed `segments_vz.geojson` (66,917). Emitted as a *warning* (hard-fails only above 1%); clicking those few crashes won't resolve a street. Worth fixing in the export later.
+- **`.github/workflows/validate.yml`** — runs the validator on every push / PR touching `docs/` (plus manual dispatch). No deps to install. Note: it flags a bad push red but doesn't yet *block* the Pages publish; gating the deploy would mean moving Pages to an Actions-based deploy (build → test → deploy) — deferred.
+- Verified both directions: passes clean on the live files (exit 0, 1 warning); a negative test with a truncated `crash_points`, a malformed row, an out-of-bbox point, and an inconsistent `toll.ksi` produced 8 failures and exit 1. The script takes an optional docs-dir argument (`python3 tests/validate_exports.py <dir>`) used by that negative test.
+
+README repo map + a new "CI / data validation" note, CODEBOOK, and ELI5 updated to match.
+
 ## 2026-06-23 — Retired the Street Explorer; site root redirects to the dashboard
 
 The data-first Street Explorer (`docs/index.html`) is old and was deprecated. Removed its link from the Vision Zero dashboard footer and took it offline: `docs/index.html` is now a small redirect page to `vision-zero.html` (meta refresh + `location.replace` + a fallback link), so the GitHub Pages root lands on the dashboard. The old Explorer page is preserved in git history; existing `.../vision-zero.html` links are unaffected.

@@ -58,6 +58,10 @@ reports/
   sliver_cleanup_report.md  # sliver cleanup report (generated)
   speed_conflation_report.md # speed limit conflation report (generated)
   …plus one report per conflation step (lanes/width/median, ADT, demographics, sidewalks, land use)
+tests/
+  validate_exports.py        # data-contract checks on the docs/ files (run in CI before the site goes live)
+.github/workflows/
+  validate.yml               # GitHub Action: runs validate_exports.py on every push / PR touching docs/
 ELI5.md        # plain-English story of the project (start here if non-technical)
 LOG.md         # dated project log: decisions, findings, rationale
 CODEBOOK.md    # definition of every variable in the segment dataset
@@ -90,9 +94,12 @@ python3 -m venv .venv
 .venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points (tags segments/crashes by district + SN)
 .venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (toll/trend/HIN)
 .venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
+python3 tests/validate_exports.py                # sanity-check the refreshed docs/ files before committing
 ```
 
 The web app is static Leaflet (`docs/vision-zero.html`; `docs/index.html` redirects to it; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
+
+**CI / data validation.** The site auto-deploys from `docs/` on every push, so `tests/validate_exports.py` is the safety net: it asserts a data contract on the published files (each parses and is non-empty; crash/segment counts in range; lat/lon inside Houston; `vz_summary` is internally consistent and reconciles with `crash_points.json`; crash `seg_id`s resolve to a segment). The GitHub Action `.github/workflows/validate.yml` runs it on every push and PR — a red check means a malformed export is about to go (or has gone) live. Standard-library only; run it locally anytime with `python3 tests/validate_exports.py`.
 
 **Analysis dataset:** `data/processed/houston_segments_enriched.gpkg` (layer `segments`) — clean network plus conflated city data.
 **To inspect by hand:** `data/processed/houston_segments.csv` (run `src/export_csv.py` to refresh) — opens in Excel/Sheets, one row per segment, with a Google Maps link per row.

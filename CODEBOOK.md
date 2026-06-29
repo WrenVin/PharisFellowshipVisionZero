@@ -243,6 +243,10 @@ Unknown-severity injuries carry no FHWA cost and are not counted. **Economic** =
 - `district` (segment + crash) is the council-district letter; `sn` is the **Super Neighborhood POLYID** (1–88, or NA where the segment/crash falls in no Super Neighborhood — they don't tile the whole city). Both are export-time spatial joins from the City GIS Administrative_Boundary service (district by nearest, SN by point-in-polygon). `docs/superneighborhoods.geojson` carries each `POLYID` + `SNBNAME` for the dashboard's SN dropdown and outline; the dashboard treats district and SN as mutually exclusive filters.
 - The dashboard's year/month/hour/day shading and charts all filter `crash_points.json` directly by the per-crash `date`/`year`/`hour` fields, so no pre-aggregated per-year file is needed. (An earlier `crash_year.json` served that role and has been removed.)
 
+### Data contract (validated in CI)
+
+These export files are checked by `tests/validate_exports.py` (run by `.github/workflows/validate.yml` on every push/PR, and worth running locally after any export). The contract: each file parses and is non-empty; `crash_points.json` is a list of 21-field rows with counts in 300k–550k, non-null lat/lon inside the Houston bbox, plausible years, and 0/1 `sev`/`fatal` flags; `segments_vz.geojson` is 55k–85k unique-`seg_id` line features carrying the properties the dashboard reads; `vz_summary.json` is internally consistent (`toll.ksi == killed + serious`; `ksi_by_year` sums to `toll.ksi`); and the per-crash totals **reconcile** with `vz_summary` within tolerance (crash count ±1%, KSI = rows with `sev==1` ±2%, fatal = rows with `fatal==1` ±2%). Because the site auto-deploys from `docs/`, this is the guardrail against publishing a broken or inconsistent export.
+
 ## Intersection context (tier 1 — computed from the street graph)
 
 | Variable | Type | Description |
