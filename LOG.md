@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-06-29 — Equity fix: each crash gets its OWN block group's income (not the nearest street's)
+
+**Problem.** A crash's neighborhood-income tier (`inc_tier`, the basis of the "By neighborhood income" panel) was inherited from its *nearest street*, which itself got income from the one block group its *midpoint* fell in. The Census draws block-group boundaries down the **centerline of major roads**, so the highest-KSI streets are exactly the ones straddling a boundary — and which side the midpoint lands on is decided by the sub-10-ft mismatch between OpenStreetMap (road centerlines) and Census TIGER (boundary lines), i.e. noise.
+
+**Measured before fixing.** Re-assigning each crash by its OWN point gives a different income tier for **14% of KSI crashes (1 in 7)** and flips **5% across the $100k line**. It *washes out* of the citywide headline (under-$100k KSI share 81.4% → 81.9%, because the boundary noise is symmetric), so the big number was safe — but that 14% noise would corrupt any finer-grained (per-corridor / income-quintile / design-by-income) equity work, which is where the equity story actually lives.
+
+**Fix.** A crash is a point and sits unambiguously inside one block group. `export_webmap_data.py` now derives `inc_tier` from a point-in-polygon of the crash's own coordinates against the block-group polygons (income joined from the enriched segments), instead of hopping crash → nearest street → street-midpoint-BG. `seg_id` / `on_hin` / `on_txdot` still come from the nearest segment (correct — those describe the road). Falls back to the old nearest-street income only if the BG cache is absent.
+
+**Applied surgically to the live data.** Recomputed index 11 only in `docs/crash_points.json` (verified: 0 rows where any non-`inc_tier` field changed) rather than via a full re-export — because a full re-run also drags in **unrelated data drift**: the processed data has crept to 421,679 crashes / 66,922 segments vs the committed 421,570 / 66,917, a separate refresh we haven't vetted (and which would also need `vz_summary`/`hin` regenerated and the headline numbers re-checked). The source fix makes the next full run correct; this keeps the diff to exactly the equity fix.
+
+**CI.** Added an equity guard to `validate_exports.py`: `inc_tier ∈ {null,0,1,2,3}`, ≥80% of crashes carry a known tier, and the under-$100k KSI share must sit in a 70–90% band — so a broken income assignment can't silently skew the panel. Validator green (share 81.9%).
+
+**Deferred.** The per-segment income upgrade (buffer / length-weighted average of adjacent BGs) is for later — only needed for a future *design-by-income* panel or a street-level income overlay; the current dashboard's income panel is driven entirely by per-crash `inc_tier`, which this fixes. Also unaddressed (separate, flagged): the data drift above, and the long-standing 48 orphan crash `seg_id`s.
+
 ## 2026-06-29 — Repo cleanup + doc-accuracy pass (audited via subagents)
 
 Walked the whole repo to strip stale code/docs left over from the District C → citywide retarget and the recent feature changes. Ran three read-only audit subagents (code, README/ELI5, CODEBOOK) against verified ground truth, then applied every confirmed finding by hand (preserving each doc's voice).

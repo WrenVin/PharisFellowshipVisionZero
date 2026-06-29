@@ -248,6 +248,37 @@ def check_integrity(crashes, segments):
             warn("referential integrity: " + msg + " (clicking these crashes won't resolve a street)")
 
 
+def check_equity(pts):
+    """inc_tier (index 11) domain + a sanity band on the under-$100k KSI share,
+    so a broken neighborhood-income assignment can't silently skew the equity panel."""
+    if not isinstance(pts, list):
+        return
+    bad = known = ksi_known = ksi_under = 0
+    for r in pts:
+        if not isinstance(r, list) or len(r) < 12:
+            continue
+        t = r[11]
+        if t not in (None, 0, 1, 2, 3):
+            bad += 1
+            continue
+        if t is not None:
+            known += 1
+            if r[2] == 1:                 # KSI crash
+                ksi_known += 1
+                if t in (0, 1):           # tiers 0,1 = under $100k
+                    ksi_under += 1
+    n = len(pts)
+    if bad:
+        err(f"crash_points.json: {bad:,} rows have an inc_tier outside {{None,0,1,2,3}}")
+    if n and known / n < 0.80:
+        err(f"crash_points.json: only {100*known/n:.0f}% of crashes have a known income tier (<80%)")
+    if ksi_known:
+        share = 100 * ksi_under / ksi_known
+        if not 70 <= share <= 90:
+            err(f"equity: under-$100k KSI share is {share:.0f}% (outside the expected 70-90% band)")
+        print(f"  equity: under-$100k KSI share {share:.1f}% ({ksi_known:,} KSI with known income)")
+
+
 def check_aux_geojson():
     # Required by the dashboard's initial Promise.all (no .catch fallback).
     for name in ("boundary.geojson", "hin.geojson"):
@@ -275,6 +306,8 @@ def main():
     if vz is not None:
         check_summary(vz, crashes)
     check_integrity(crashes, segments)
+    if pts is not None:
+        check_equity(pts)
     check_aux_geojson()
 
     print()

@@ -328,18 +328,39 @@ else:
     print("WARNING: no raw CRIS crash files found; crash-cost person counts will be 0")
     for _dst in ("n_k", "n_a", "n_b", "n_c", "n_noinj"):
         cr[_dst] = 0
-# nearest segment carries the crash's neighborhood income (-> tier), on-HIN flag,
-# whether its road is TxDOT-owned (state), and the segment id itself (so the
-# dashboard can cross-filter every panel to a clicked street/segment). on_txdot
-# is a LABEL (for the ownership view), not an exclusion; at-grade arterials stay.
-nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "median_hh_income", "on_hin", "on_txdot", "geometry"]], how="left")
+# Nearest segment carries the assigned street id (so the dashboard can cross-
+# filter every panel to a clicked street/segment), the on-HIN flag, and whether
+# the road is TxDOT-owned (state). on_txdot is a LABEL (for the ownership view),
+# not an exclusion; at-grade arterials stay.
+nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "on_hin", "on_txdot", "geometry"]], how="left")
 nj = nj[~nj.index.duplicated()]
 cr["seg_id"] = nj["seg_id"].values
-cr["inc_tier"] = pd.Series(pd.to_numeric(nj["median_hh_income"].values,
-                                         errors="coerce")).map(inc_tier).values
 cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
 cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
 print(f"Crash points: {int(cr['on_txdot'].sum()):,} on TxDOT-owned (state) roads (kept, labeled)")
+
+# Neighborhood income (-> inc_tier for the equity panel) comes from the block
+# group the crash POINT falls in, NOT the nearest street. Census draws block-
+# group lines down the middle of major roads, so nearest-street inheritance
+# mislabels ~14% of crashes near a boundary (5% across the $100k line); a crash
+# is a point and sits unambiguously inside one block group. (cr is still in the
+# projected segment CRS here; the to_crs(4326) happens just below.)
+_bgcache = cfg.external("census_bg.gpkg")
+if _bgcache.exists():
+    bg_inc = gpd.read_file(_bgcache)[["GEOID", "geometry"]].to_crs(seg.crs)
+    bg_inc["GEOID"] = bg_inc["GEOID"].astype(str)
+    _bg2inc = (seg.dropna(subset=["bg_geoid"])
+                  .assign(bg_geoid=lambda d: d["bg_geoid"].astype(str))
+                  .groupby("bg_geoid")["median_hh_income"].first())
+    bg_inc["median_hh_income"] = bg_inc["GEOID"].map(_bg2inc)
+    ij = gpd.sjoin(cr[["geometry"]], bg_inc[["median_hh_income", "geometry"]],
+                   how="left", predicate="within")
+    inc_src = ij[~ij.index.duplicated()]["median_hh_income"].values
+else:  # fallback to nearest-street income if the block-group cache is absent
+    print("WARNING: block-group cache missing; inc_tier falls back to nearest-street income")
+    _ni = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "geometry"]], how="left")
+    inc_src = _ni[~_ni.index.duplicated()]["median_hh_income"].values
+cr["inc_tier"] = pd.Series(pd.to_numeric(inc_src, errors="coerce")).map(inc_tier).values
 cr = cr.to_crs(4326)
 if districts_4326 is not None:  # council district per crash, for the per-district filter
     cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
