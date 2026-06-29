@@ -13,7 +13,6 @@ Steps:
 """
 
 import math
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
@@ -226,7 +225,7 @@ PROCESSED.mkdir(parents=True, exist_ok=True)
 seg_out = seg.copy()
 seg_out["lit"] = seg_out["lit"].map({True: "yes", False: "no"})
 seg_out.to_file(cfg.processed("segments.gpkg"), layer="segments", driver="GPKG")
-print(f"Saved {len(seg):,} segments -> data/processed/district_c_segments.gpkg")
+print(f"Saved {len(seg):,} segments -> {cfg.processed('segments.gpkg')}")
 
 # --- coverage report -----------------------------------------------------------
 total_mi = seg["length_ft"].sum() / 5280

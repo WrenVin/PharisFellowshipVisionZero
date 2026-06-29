@@ -10,11 +10,10 @@ so crashes on either side of a boulevard land on the one analysis segment.
 
 Adds per-segment crash counts to the enriched segment layer (idempotent).
 Outputs:
-  data/processed/district_c_segments_enriched.gpkg  (+ crash count columns)
+  data/processed/houston_segments_enriched.gpkg  (+ crash count columns)
   reports/crash_assignment_report.md
 """
 
-from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd

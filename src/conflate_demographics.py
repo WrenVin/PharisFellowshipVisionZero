@@ -24,7 +24,6 @@ median_hh_income, pct_poverty, pct_zero_car_hh, pop_density_sqmi.
 """
 
 import os
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np

@@ -9,9 +9,9 @@ the full City of Houston) in two steps:
 …then rerun the pipeline. The clip polygon, the query bounding box, and every
 output filename all follow from here, so nothing else needs editing. Output
 files are prefixed with AREA, so several areas can be built side by side without
-colliding (e.g. district_c_segments.gpkg vs district_h_segments.gpkg).
+colliding (e.g. houston_segments.gpkg vs district_c_segments.gpkg).
 
-Published web-app files in docs/ keep fixed names (segments.geojson, etc.) —
+Published web-app files in docs/ keep fixed names (segments_vz.geojson, crash_points.json, etc.) —
 one built site per area; that's a deployment choice, not a pipeline one.
 """
 

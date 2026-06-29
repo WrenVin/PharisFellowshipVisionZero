@@ -1,6 +1,6 @@
-"""Export segment + boundary GeoJSON for the interactive web map (docs/).
+"""Export segment + boundary GeoJSON for the Vision Zero dashboard (docs/).
 
-The web app (docs/index.html) loads these and does all styling/filtering live
+The dashboard (docs/vision-zero.html) loads these and does all styling/filtering live
 in the browser. We keep the files lean: simplify geometry, round coordinates,
 round attribute values, and carry only display/filter-relevant columns.
 """
@@ -8,7 +8,6 @@ round attribute values, and carry only display/filter-relevant columns.
 import glob
 import json
 import math
-from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
@@ -77,7 +76,7 @@ COLS = {
 }
 
 # Only these fields are read by the dashboard (docs/vision-zero.html). Everything
-# else in COLS stays out of segments.geojson to keep the browser payload small:
+# else in COLS stays out of segments_vz.geojson to keep the browser payload small:
 # the full property set is ~52 MB at city scale (vs ~6 MB of geometry) and was
 # crashing low-memory tabs. The richer per-segment data lives in the CSV/GPKG.
 WEB_KEEP = [

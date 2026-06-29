@@ -20,7 +20,6 @@ sidewalk mapped near here", which is strong evidence but not a field survey.
 """
 
 import math
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np

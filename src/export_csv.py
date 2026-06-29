@@ -5,7 +5,6 @@ writes a flat CSV: all attribute columns, geometry dropped, plus a midpoint
 lat/lon and a Google Maps link so any row can be located instantly.
 """
 
-from pathlib import Path
 
 import geopandas as gpd
 

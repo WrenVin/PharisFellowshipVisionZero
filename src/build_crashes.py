@@ -15,14 +15,13 @@ Mode (pedestrian / bicycle) is derived from the CRIS `unit` table
 `person` table (Prsn_Type_ID 4/3). Codes confirmed from the CRIS lookup table.
 
 Outputs (no segment assignment yet):
-  data/processed/district_c_crashes.gpkg   (points, EPSG:2278)
+  data/processed/houston_crashes.gpkg   (points, EPSG:2278)
   reports/crash_build_report.md
   reports/crash_points_preview.png
 """
 
 import glob
 import re
-from pathlib import Path
 
 import geopandas as gpd
 import matplotlib

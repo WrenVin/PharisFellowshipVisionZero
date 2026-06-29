@@ -130,7 +130,7 @@ Source: Traffic_gx count stations (layers 4 major / 5 local) joined to count rea
 
 ### Neighborhood demographics (Census ACS — confounder + equity analysis)
 
-Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 96.8% of segments assigned; the city spans ~2,445 block groups. See `reports/demographics_conflation_report.md`.
+Source: U.S. Census ACS 2023 5-year, **block group** level; each segment inherits the block group containing its midpoint (geometry from Census TIGERweb). 100% of segments are assigned a block group; the ACS estimates themselves are present on ~96.5% of segments (median income on 89.1%, population density on 96.8%, wherever the block group has a published value). The city spans ~2,445 block groups. See `reports/demographics_conflation_report.md`.
 
 | Variable | Type | Units | Description |
 |---|---|---|---|

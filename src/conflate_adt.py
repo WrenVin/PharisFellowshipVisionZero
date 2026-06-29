@@ -24,7 +24,6 @@ Operating speed (op_speed_85_mph) is carried the same way but is sparser; it
 is the mediator, NOT a predictor to adjust for — flagged in the codebook.
 """
 
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np

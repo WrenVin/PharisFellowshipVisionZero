@@ -23,6 +23,7 @@ data/
   external/    # cached third-party pulls (city Traffic_gx, HCAD parcels, Census; API key gitignored)
 src/
   config.py                    # central study-area config (area slug, boundary, derived bbox, paths) — change to retarget
+  fetch_boundary.py            # pull the City of Houston full-purpose boundary (data/raw/)
   pull_osm.py                  # pull OSM street network clipped to the study area (City of Houston)
   build_segments.py            # intersection-to-intersection segments + coverage report
   merge_dual_carriageways.py   # collapse divided-road halves into single segments
@@ -39,9 +40,10 @@ src/
   assign_crashes.py            # assign crashes to segments (200-ft buffer) -> counts
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   export_webmap_data.py        # export GeoJSON for the web apps (docs/)
-  export_vz_summary.py         # export headline Vision Zero stats (docs/vz_summary.json)
+  export_vz_summary.py         # export docs/vz_summary.json (a static snapshot; the dashboard reads only its `years` list)
   export_hin.py                # export the City's official HIN, clipped to the area (docs/hin.geojson)
   fetch_superneighborhoods.py  # pull Houston's 88 Super Neighborhood boundaries (data/raw/)
+  analyze_concentration.py     # KSI concentration: Gini + Lorenz curve (reports/concentration_exposure_note.md)
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # redirect to vision-zero.html (Street Explorer retired)
@@ -49,7 +51,7 @@ docs/                          # public web apps (GitHub Pages)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)
   superneighborhoods.geojson   # the 88 Super Neighborhood outlines (SN filter + zoom)
-  vz_summary.json              # citywide toll / trend / concentration / equity numbers
+  vz_summary.json              # static snapshot (toll/trend/equity); dashboard reads only its `years` list, recomputing the rest live
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   crash_points.json            # one row per crash; powers the points view, KPIs, charts, and all time/area filtering
 reports/
@@ -57,7 +59,7 @@ reports/
   dual_merge_report.md      # divided-road merge report (generated)
   sliver_cleanup_report.md  # sliver cleanup report (generated)
   speed_conflation_report.md # speed limit conflation report (generated)
-  …plus one report per conflation step (lanes/width/median, ADT, demographics, sidewalks, land use)
+  …plus one report per conflation step (lanes/width/median, ADT, demographics, sidewalks, land use), the crash build/assignment reports, and a KSI-concentration note (concentration_exposure_note.md)
 tests/
   validate_exports.py        # data-contract checks on the docs/ files (run in CI before the site goes live)
 .github/workflows/
@@ -92,7 +94,7 @@ python3 -m venv .venv
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
 .venv/bin/python src/fetch_superneighborhoods.py # pull Super Neighborhood boundaries (once; feeds the export below)
 .venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points (tags segments/crashes by district + SN)
-.venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (toll/trend/HIN)
+.venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (static snapshot; dashboard uses only its years list)
 .venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
 python3 tests/validate_exports.py                # sanity-check the refreshed docs/ files before committing
 ```
@@ -124,10 +126,10 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 - **CRS:** EPSG:2278 (Texas State Plane South Central, US survey feet) for all distance work, so buffer distances are honest feet.
 - **Geometry source:** OpenStreetMap as the geometric spine; design/traffic features conflated from City of Houston Public Works (`Traffic_gx`), demographics from Census ACS, crashes from TxDOT CRIS, ownership from TxDOT's roadway inventory. (Land use from HCAD parcels is deferred at city scale; see below.)
 
-## Current status (as of 2026-06-14) — citywide build
+## Current status (as of 2026-06-29) — citywide build
 
-- **Road network:** 66,917 surface-street segments / ~6,407 centerline miles across the full-purpose City of Houston (limited-access freeways + frontage roads excluded; at-grade arterials incl. state-owned kept and labeled `on_txdot`; divided roads merged, slivers cleaned, `seg_id`s prefixed `H-`). 6,165 segments (9.2%) carry at least one severe crash; the worst single segment has 16. About 974 segments are labeled TxDOT-owned (state). (The enriched analysis network is the comprehensive ~75k-segment build; the dashboard serves the full-purpose subset.)
-- **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (96.8% assigned, 89% with income); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
+- **Road network:** an enriched analysis network of **75,260 surface-street segments / ~7,336 centerline miles** across the full-purpose City of Houston (limited-access freeways + frontage roads excluded; at-grade arterials incl. state-owned kept and labeled `on_txdot`; divided roads merged, slivers cleaned, `seg_id`s prefixed `H-`). The dashboard publishes a slimmed **66,917-segment subset** (`segments_vz.geojson`, ~6,407 mi). Of that published set, 6,165 segments (9.2%) carry at least one severe crash; the worst single segment has 16. About 974 segments are labeled TxDOT-owned (state).
+- **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (block group on 100% of segments, income on 89%); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
 - **Crash outcome:** TxDOT CRIS 2016–2025 (plus partial 2026), **surface streets** (limited-access freeways/tollways excluded; at-grade arterials incl. state-owned kept). 421,699 crashes; **9,928 KSI (1,687 killed, 8,241 seriously injured)**; ~69,500 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98% assigned, median 4 ft). Each crash is labeled city- vs TxDOT-owned; ~11% (1,109) of KSI are on TxDOT-owned arterials, the rest on city streets. KSI are up ~19% vs 2016–2018.
 - **Vulnerable road users:** walking and biking are only ~3% of all crashes but ~27% of severe crashes and ~41% of deaths. Walking: 597 killed, 2,226 KSI, 8,772 crashes. Biking: 89 killed, 459 KSI, 3,293 crashes.
 - **Economic cost:** applying FHWA per-person costs by KABCO injury severity (FHWA-SA-25-021, 2024 dollars) to the people hurt in each crash, the citywide crashes carry an estimated **~$15.3B in economic cost** (~$64.8B comprehensive, which additionally values lost quality/length of life and overlaps the YLL figure). The dashboard recomputes this live for any filter; it is a conservative floor (unknown-severity injuries excluded, reported crashes undercount).

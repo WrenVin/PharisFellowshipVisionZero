@@ -4,7 +4,21 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
-## 2026-06-26 — CI: automated data-contract validation of the published exports
+## 2026-06-29 — Repo cleanup + doc-accuracy pass (audited via subagents)
+
+Walked the whole repo to strip stale code/docs left over from the District C → citywide retarget and the recent feature changes. Ran three read-only audit subagents (code, README/ELI5, CODEBOOK) against verified ground truth, then applied every confirmed finding by hand (preserving each doc's voice).
+
+- **Real bug fixed.** `build_segments.py` *printed* `Saved … district_c_segments.gpkg` while actually *writing* the correct `houston_segments.gpkg` (the write used `cfg`; the print was a hardcoded stale literal). Now prints `cfg.processed('segments.gpkg')`.
+- **Stale `district_c_*` filenames** in docstrings and generated-report literals updated to `houston_*`: `pull_osm.py`, `build_crashes.py`, `merge_dual_carriageways.py` (+ `"C-00001"`→`"H-00001"`), `clean_slivers.py`, `conflate_speed.py`, `assign_crashes.py`. `config.py`'s side-by-side example is now `houston_segments.gpkg vs district_c_segments.gpkg`, and its docs/ note lists `segments_vz.geojson` (the retired `segments.geojson` dropped). The two committed reports that carried the old names (`dual_merge_report.md`, `sliver_cleanup_report.md`) were fixed too.
+- **Retired-file references.** `export_webmap_data.py` docstring now points at the dashboard `docs/vision-zero.html` (not the retired Street Explorer `index.html`); the payload comment says `segments_vz.geojson`.
+- **Dead code.** Removed the unused `from pathlib import Path` import from 15 `src/` files (kept in the 3 that use it). All `src/` still compiles.
+- **Docs accuracy.**
+  - **README** — the road-network bullet now leads with the **75,260-segment / ~7,336-mi enriched analysis network** and notes the dashboard publishes a slimmed **66,917-segment** subset (the two stages had been conflated under the 66,917 number); demographics corrected (block group on 100%, income on 89%); `vz_summary.json` re-described as a static snapshot the dashboard reads only its `years` list from (toll/trend/equity are recomputed live from `crash_points.json`); added the missing `fetch_boundary.py` and `analyze_concentration.py` to the src map and broadened the reports list; status date → 2026-06-29.
+  - **CODEBOOK** — demographics coverage fixed: 100% of segments are assigned a block group, ~96.5% carry ACS estimates (income 89.1%, density 96.8%); the old "96.8% assigned" conflated the two. (Audit otherwise found CODEBOOK accurate end-to-end: the 20 `segments_vz` fields, the 21 `crash_points` fields with `sev`=KSI / `fatal`=fatal semantics, the coverage table, and the land-use-deferred section all verified against the live data.)
+  - **ELI5** — "all ~66,917 city street segments" reworded to "the whole City of Houston — ~75,000 segments, ~67,000 shown on the public map."
+- **Left alone (intentional):** the parked `conflate_landuse.py` (land use deferred citywide), the annotated `# noqa` import in `conflate_adt.py`, and the untracked local `MODELING_PLAN.md`.
+
+## 2026-06-29 — CI: automated data-contract validation of the published exports
 
 The dashboard auto-deploys from `docs/` via GitHub Pages, which meant a broken export (empty/truncated file, malformed rows, headline numbers drifting from the per-crash data) would go live with no human in the loop. Added a CI gate to close that gap — genuine **continuous integration** to pair with the continuous deployment that was already in place.
 

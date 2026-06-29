@@ -24,11 +24,10 @@ speed line (median 1111 ft), i.e. genuinely unposted, not a match failure.
 Under TX Transportation Code 545.352 an unposted urban street is 30 mph.
 
 Enrichment model: reads the enriched file if it exists, else the clean file,
-adds columns, writes data/processed/district_c_segments_enriched.gpkg. This
+adds columns, writes data/processed/houston_segments_enriched.gpkg. This
 is the canonical analysis file once conflation has begun.
 """
 
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np

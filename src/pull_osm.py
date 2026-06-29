@@ -5,12 +5,11 @@ motorway links (ramps); excludes service roads (alleys, driveways, parking
 aisles) via network_type="drive".
 
 Output:
-  data/raw/district_c_drive.graphml   - full simplified graph (for topology work)
-  data/raw/district_c_edges_raw.gpkg  - edges with OSM tags (for inspection)
+  data/raw/houston_drive.graphml   - full simplified graph (for topology work)
+  data/raw/houston_edges_raw.gpkg  - edges with OSM tags (for inspection)
 """
 
 import re
-from pathlib import Path
 
 import geopandas as gpd
 import osmnx as ox

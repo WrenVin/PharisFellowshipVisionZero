@@ -19,7 +19,6 @@ Decisions (see LOG 2026-06-12):
   `median_width_ft`, straight from the city (modal / median over matches).
 """
 
-from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
