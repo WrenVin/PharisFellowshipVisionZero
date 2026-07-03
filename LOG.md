@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Pano fix: 70% of Houston's imagery is 360-degree; panoramas now sliced into perspective views
+
+Vincent inspected the downloaded imagery and caught equirectangular 360 panoramas ("road front and back at the same time"). Measured citywide: **70% of all Mapillary images are panos, including ~100% of the dominant 2012–17 waves** (2018–20: 0%; 2024–26: 36%). Raw equirectangular frames would have degraded both models (trained on perspective photos), so the extraction was held before the full PC run.
+
+- `equirect_views()` slices each pano into four flat 90-degree views (yaw 0/90/180/270), the literature-standard treatment; the four views tile the full circle. Shares average across views; counts sum. Verified visually on a Westheimer pano (lane lines straight, vehicles undistorted) and end-to-end on pano imagery (combined features sane).
+- Runtime consequence: panos cost ~4x inference, so the arterial-scope estimate moves to roughly 6–10 h on the RTX 3070 (overnight).
+- Also fixed: inference progress now prints every 25 images (it previously only printed at buffer flushes, so small runs looked hung — the cause of a killed Mac smoke test); new `--max-images` flag for quick validation runs.
+- Plan and download stages are unchanged: work already done on the PC (tiles, downloads) is fully reusable; only `sv_image_features.parquet` must be deleted if inference ran pre-fix.
+
 ## 2026-07-03 — The extraction pipeline, packaged one-click and smoke-tested end-to-end
 
 The imagery phase's main engine is built and shipped for Vincent's GPU PC (RTX 3070; different OS, nothing preinstalled). Design goal per Vincent: clone → double-click → runs out of the box.

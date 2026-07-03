@@ -185,7 +185,32 @@ def stage_download(workers=8):
 
 
 # ----------------------------------------------------------------- infer ----
-def stage_infer():
+def equirect_views(img, fov_deg=90.0, out=640, yaws=(0, 90, 180, 270)):
+    """Slice an equirectangular 360 pano into flat perspective views.
+
+    The models are trained on normal perspective photos; raw equirectangular
+    frames (70% of Houston's imagery, ~100% of the 2012-17 waves) distort
+    geometry and objects. Four 90-degree views tile the full circle: pixel
+    shares are averaged across views, object counts summed.
+    """
+    from PIL import Image
+    arr = np.asarray(img)
+    H, W = arr.shape[:2]
+    f = 0.5 * out / math.tan(math.radians(fov_deg) / 2)
+    jj, ii = np.meshgrid(np.arange(out), np.arange(out), indexing="ij")
+    x = (ii - out / 2) / f
+    y = (jj - out / 2) / f
+    views = []
+    for yaw in yaws:
+        lon = math.radians(yaw) + np.arctan2(x, 1.0)
+        lat = np.arctan2(y, np.sqrt(x * x + 1.0))
+        u = np.clip(((lon / (2 * math.pi)) % 1.0) * W, 0, W - 1).astype(np.int32)
+        v = np.clip((lat / math.pi + 0.5) * H, 0, H - 1).astype(np.int32)
+        views.append(Image.fromarray(arr[v, u]))
+    return views
+
+
+def stage_infer(max_images=0):
     import torch
     from PIL import Image
     from torchvision.models.detection import (FasterRCNN_ResNet50_FPN_V2_Weights,
@@ -205,6 +230,8 @@ def stage_infer():
         done_ids = set(pd.read_parquet(IMG_FEATS).img_id)
     todo = [i for i in man.img_id
             if i not in done_ids and (IMG_DIR / f"{i}.jpg").exists()]
+    if max_images:
+        todo = todo[:max_images]
     print(f"[infer] {len(todo):,} images to process ({len(done_ids):,} already done)")
     if not todo:
         return
@@ -254,34 +281,70 @@ def stage_infer():
             out.append(c)
         return out
 
-    t0, buf = time.time(), []
-    for i in range(0, len(todo), SEG_BATCH):
-        ids = todo[i:i + SEG_BATCH]
-        imgs = []
-        for iid in ids:
-            try:
-                imgs.append(Image.open(IMG_DIR / f"{iid}.jpg").convert("RGB"))
-            except Exception:
-                imgs.append(None)
-        pairs = [(iid, im) for iid, im in zip(ids, imgs) if im is not None]
-        if not pairs:
+    is_pano = dict(zip(man.img_id, man.is_pano.astype(bool)))
+
+    def process(ids_views):
+        """Run both models on a list of (img_id, PIL) view units; return
+        per-image combined features (shares averaged, counts summed)."""
+        imgs = [im for _, im in ids_views]
+        shares = seg_shares(imgs)
+        counts = det_counts(imgs)
+        per_img = {}
+        for (iid, _), sh, ct in zip(ids_views, shares, counts):
+            rec = per_img.setdefault(iid, {"sh": [], "ct": []})
+            rec["sh"].append(sh)
+            rec["ct"].append(ct)
+        rows = []
+        for iid, rec in per_img.items():
+            keys = {k for s in rec["sh"] for k in s}
+            sh = {k: float(np.mean([s.get(k, 0.0) for s in rec["sh"]])) for k in keys}
+            ct = {k: float(np.sum([c[k] for c in rec["ct"]]))
+                  for k in rec["ct"][0]}
+            rows.append({"img_id": iid,
+                         **{f"share_{k.replace(' ', '_')}": v for k, v in sh.items()},
+                         **{f"cnt_{k}": v for k, v in ct.items()}})
+        return rows
+
+    t0, buf, done_n = time.time(), [], 0
+    pending = []                                   # (img_id, view) units
+    for idx, iid in enumerate(todo):
+        try:
+            im = Image.open(IMG_DIR / f"{iid}.jpg").convert("RGB")
+        except Exception:
+            done_n += 1
             continue
-        ids2, imgs2 = zip(*pairs)
-        shares = seg_shares(list(imgs2))
-        counts = det_counts(list(imgs2))
-        for iid, sh, ct in zip(ids2, shares, counts):
-            buf.append({"img_id": iid,
-                        **{f"share_{k.replace(' ', '_')}": v for k, v in sh.items()},
-                        **{f"cnt_{k}": v for k, v in ct.items()}})
-        if len(buf) >= 240 or i + SEG_BATCH >= len(todo):
-            new = pd.DataFrame(buf)
-            if IMG_FEATS.exists():
-                new = pd.concat([pd.read_parquet(IMG_FEATS), new], ignore_index=True)
-            new.to_parquet(IMG_FEATS)
-            buf = []
-            rate = (i + SEG_BATCH) / max(time.time() - t0, 1)
-            eta = (len(todo) - i - SEG_BATCH) / max(rate, .01) / 3600
-            print(f"  {min(i+SEG_BATCH, len(todo)):,}/{len(todo):,} "
+        if is_pano.get(iid):
+            units = [(iid, v) for v in equirect_views(im)]
+        else:
+            units = [(iid, im)]
+        pending += units
+        while len(pending) >= SEG_BATCH:
+            # keep an image's views inside one flush by cutting at a boundary
+            cut = SEG_BATCH
+            while cut < len(pending) and pending[cut][0] == pending[cut - 1][0]:
+                cut += 1
+            buf += process(pending[:cut])
+            pending = pending[cut:]
+        done_n += 1
+        if done_n % 25 == 0:
+            rate = done_n / max(time.time() - t0, 1)
+            eta = (len(todo) - done_n) / max(rate, .01) / 3600
+            print(f"  {done_n:,}/{len(todo):,} images "
+                  f"({rate:.1f} img/s, ~{eta:.1f} h left)", flush=True)
+        if len(buf) >= 240 or idx == len(todo) - 1:
+            if pending and idx == len(todo) - 1:
+                buf += process(pending)
+                pending = []
+            if buf:
+                new = pd.DataFrame(buf)
+                if IMG_FEATS.exists():
+                    new = pd.concat([pd.read_parquet(IMG_FEATS), new],
+                                    ignore_index=True)
+                new.to_parquet(IMG_FEATS)
+                buf = []
+            rate = done_n / max(time.time() - t0, 1)
+            eta = (len(todo) - done_n) / max(rate, .01) / 3600
+            print(f"  {done_n:,}/{len(todo):,} images "
                   f"({rate:.1f} img/s, ~{eta:.1f} h left)")
     print("[infer] complete")
 
@@ -319,6 +382,8 @@ def main():
                     choices=["all", "plan", "download", "infer", "aggregate"])
     ap.add_argument("--scope", default=os.environ.get("STREETVIEW_SCOPE", "arterials"),
                     choices=["arterials", "all", "smoke"])
+    ap.add_argument("--max-images", type=int, default=0,
+                    help="cap images in the infer stage (validation runs)")
     a = ap.parse_args()
     print(f"=== street-view extraction | stage={a.stage} scope={a.scope} ===")
     if a.stage in ("all", "plan"):
@@ -326,7 +391,7 @@ def main():
     if a.stage in ("all", "download"):
         stage_download()
     if a.stage in ("all", "infer"):
-        stage_infer()
+        stage_infer(a.max_images)
     if a.stage in ("all", "aggregate"):
         stage_aggregate()
     print("=== done ===")
