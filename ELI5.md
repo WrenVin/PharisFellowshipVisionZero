@@ -317,8 +317,38 @@ A few things the dashboard makes plain:
   shown are on TxDOT (state)-owned arterials, the rest on city streets. Those
   are the ones the City can't fix alone and has to push the state to redesign.
 
-Next: build the model that answers the project's real question — **which
-dangerous streets is the city's current crash-only method missing?**
+## Part two: the two maps (where the project is headed now)
+
+The dashboard was part one. Part two — started July 2026 — is one idea, and
+everything we do belongs to it:
+
+**Build two maps of dangerous streets, and compare them.**
+
+- **Map 1: where crashes already happened.** This is what the City's official
+  High Injury Network is. It's *reactive* — a street only gets flagged after
+  people have been hurt on it. It can never warn you about a street that's
+  dangerous but hasn't collected its victims yet.
+- **Map 2: where street design says crashes should happen.** Take everything we
+  know about each street — how wide, how fast, how many lanes, sidewalks or
+  not — and learn, from the streets that *did* have crashes, which combinations
+  of features are dangerous. Then score **every** street on its design, crash
+  history or not. This is *proactive*.
+- **The comparison is the finding.** Streets Map 2 flags that Map 1 misses are
+  streets *built like the deadly ones that haven't made the news yet* — exactly
+  what a city that can't use speed cameras (Texas banned them) needs, because
+  its only lever is fixing street design before the crash.
+
+**Where we are:** Map 1 is done — we rebuilt it from the raw crash data with
+proper statistics, and it actually catches slightly more of the harm on fewer
+miles than the City's official list. (Interesting wrinkle: our crash map and
+the City's only partly overlap — even two "where did it happen" maps disagree
+more than you'd guess.) We also checked whether Houston has enough street-level
+photos to someday read features like tree cover and sidewalk quality straight
+from imagery: yes on the big roads where the serious crashes are, thinner on
+side streets, and — good news — no bias against poorer neighborhoods.
+
+**What's next:** Map 2 itself — the model at the heart of the project — then
+proving it works on parts of town it's never seen, and then the comparison.
 
 ---
 
