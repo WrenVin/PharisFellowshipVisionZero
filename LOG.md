@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Methodology nailed down (Vincent's rulings) — the model spec is now fixed
+
+The MODELING_PLAN's open decisions were put to Vincent one by one; with these rulings the part-two methodology is no longer a draft. Work proceeds on the `modeling` branch (main = the live dashboard, untouched until merge).
+
+1. **ADT gap → full network + honest fill.** Model all 66,922 segments; missing ADT imputed by road-class median plus an explicit `adt_missing` indicator; conclusions verified on the ADT-measured subset as a mandatory sensitivity.
+2. **Model form → plain NB primary, ZINB as check.** Poisson → overdispersion test → NB2; ZINB fitted alongside and adopted only if it clearly wins on AIC/BIC + calibration (interpretability for a council audience is a feature, not a nicety).
+3. **Race → description-only.** The model adjusts for income, poverty, density, zero-car share — not race. Race shares appear descriptively in the divergence equity overlay; a quiet sensitivity fit with race included must show conclusions don't flip.
+4. **Outcome → all severe (K+A) crashes**, matching the HIN's own definition so the divergence comparison is apples-to-apples (9,720 events). A separate ped/bike model is a possible later product, not part of the headline.
+
+Previously settled: weights = shared-endpoint adjacency (evidence: step 1; band kept as sensitivity); divergence reported across multiple thresholds by design; spatial dependence enters as cluster-robust SEs by Super Neighborhood, escalating to an explicit spatial term only if residual Moran's I stays high; operating speed stays OUT (mediator); universe = the 66,922 full-purpose segments.
+
 ## 2026-07-02 — Mapillary coverage audit: the imagery/CV phase is viable (arterial-first)
 
 Gate check before committing to the street-view feature-extraction idea (Yue 2025, AAP 210:107851: semantic segmentation + object detection on street imagery → features for the crash model). New `src/audit_mapillary_coverage.py` (needs a free client token: env `MAPILLARY_TOKEN` or gitignored `data/external/.mapillary_token`); fetched all Mapillary image locations over the study area (585 z14 vector tiles → **4,785,527 image points**, cached to a gitignored parquet) and scored every published segment by the paper's rule (sample every 50 m; point covered when an image lies within 25 m; segment covered at ≥50% of points).
