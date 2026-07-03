@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — The DAG, formalized in DAGitty (reports/dag.txt + dag.png)
+
+The project's causal model is now an explicit DAGitty graph, built interactively with Vincent (code in `reports/dag.txt`, pasteable at dagitty.net; his exported render in `reports/dag.png`). Structure, after two iterations:
+
+- **One composite exposure, "Road design,"** fed by the seven measured features (functional class, lanes, posted speed, median type, one-way, signals/intersection density, sidewalk presence). Vincent preferred this over seven separate exposure nodes; the regression's coefficients are the decomposition of the single exposure. Footnoted honestly: in strict causal-graph terms the features are the causes and the composite is a summary node.
+- **Three causal paths** from design to severe crashes: direct, via operating speed (the excluded mediator), and via pedestrian exposure (latent; the imagery-phase target). The sidewalk variable visibly carries two opposing arrows (protective direct effect vs walker attraction), the cleanest statement yet of why its coefficient must not be read causally.
+- **Latents:** land use (deferred citywide), pedestrian exposure, true-vs-recorded crashes with police reporting (the underreporting collider), reporting fed by neighborhood context.
+- **Key identification result:** with functional class marked adjusted, DAGitty reports a minimal sufficient adjustment set that is EXACTLY the fitted model's covariates (class, income/poverty, density, zero-car, traffic volume, segment length). Under this DAG the NB model identifies the total effect of road design on recorded severe crashes. The result rests on a drawn assumption worth stating in the methods: land use reaches street design only through functional class and traffic volume. It also shifts the class coefficient's reading from "design effect" to "adjustment"; the x2.9 arterial figure is reported as a class-level pattern.
+- With class as one of seven exposures instead (the alternative framing), no sufficient adjustment set exists from observed variables; the composite framing is what makes the effect identifiable. Both framings and the tradeoff are recorded here deliberately.
+
 ## 2026-07-03 — Modeling step 2: the feature model is fit — Map 2 exists
 
 `src/model_nb.py` (on the `modeling` branch) fits the negative binomial severe-crash model per the rulings and scores every street. Full results in `reports/model_nb_report.md`; headlines:

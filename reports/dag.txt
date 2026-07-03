@@ -1,0 +1,58 @@
+dag {
+bb="0,0,1,1"
+"Land use" [latent,pos="0.06,0.06"]
+"Neighborhood income & poverty" [adjusted,pos="0.24,0.06"]
+"Population density" [adjusted,pos="0.44,0.06"]
+"Zero-car households" [adjusted,pos="0.62,0.06"]
+"Police reporting" [latent,pos="0.82,0.10"]
+"Traffic volume (ADT)" [adjusted,pos="0.32,0.22"]
+"Functional class (arterial / collector / local)" [adjusted,pos="0.08,0.26"]
+"Sidewalk presence" [pos="0.08,0.40"]
+"Lanes" [pos="0.08,0.52"]
+"Posted speed limit" [pos="0.08,0.64"]
+"Median type" [pos="0.08,0.76"]
+"One-way operation" [pos="0.08,0.88"]
+"Signals & intersection density" [pos="0.24,0.94"]
+"Road design" [exposure,pos="0.38,0.60"]
+"Pedestrian exposure" [latent,pos="0.58,0.34"]
+"Operating speed (85th pct)" [pos="0.58,0.74"]
+"Segment length" [adjusted,pos="0.40,0.94"]
+"Severe crashes (true)" [latent,pos="0.76,0.52"]
+"Severe crashes (recorded)" [outcome,pos="0.93,0.52"]
+"Land use" <-> "Neighborhood income & poverty"
+"Land use" -> "Functional class (arterial / collector / local)"
+"Land use" -> "Traffic volume (ADT)"
+"Land use" -> "Pedestrian exposure"
+"Neighborhood income & poverty" -> "Functional class (arterial / collector / local)"
+"Neighborhood income & poverty" -> "Sidewalk presence"
+"Neighborhood income & poverty" -> "Severe crashes (true)"
+"Neighborhood income & poverty" -> "Police reporting"
+"Population density" -> "Traffic volume (ADT)"
+"Population density" -> "Pedestrian exposure"
+"Zero-car households" -> "Pedestrian exposure"
+"Traffic volume (ADT)" -> "Lanes"
+"Traffic volume (ADT)" -> "Signals & intersection density"
+"Traffic volume (ADT)" -> "Severe crashes (true)"
+"Functional class (arterial / collector / local)" -> "Lanes"
+"Functional class (arterial / collector / local)" -> "Posted speed limit"
+"Functional class (arterial / collector / local)" -> "Median type"
+"Functional class (arterial / collector / local)" -> "One-way operation"
+"Functional class (arterial / collector / local)" -> "Signals & intersection density"
+"Functional class (arterial / collector / local)" -> "Sidewalk presence"
+"Functional class (arterial / collector / local)" -> "Segment length"
+"Functional class (arterial / collector / local)" -> "Road design"
+"Sidewalk presence" -> "Road design"
+"Lanes" -> "Road design"
+"Posted speed limit" -> "Road design"
+"Median type" -> "Road design"
+"One-way operation" -> "Road design"
+"Signals & intersection density" -> "Road design"
+"Road design" -> "Operating speed (85th pct)"
+"Road design" -> "Pedestrian exposure"
+"Road design" -> "Severe crashes (true)"
+"Operating speed (85th pct)" -> "Severe crashes (true)"
+"Pedestrian exposure" -> "Severe crashes (true)"
+"Segment length" -> "Severe crashes (true)"
+"Severe crashes (true)" -> "Severe crashes (recorded)"
+"Police reporting" -> "Severe crashes (recorded)"
+}
