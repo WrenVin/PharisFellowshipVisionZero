@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Richness scan: recent imagery is thin; the RTX 3070 becomes the primary engine
+
+`src/scan_mapillary_richness.py` sized the extraction work (`reports/mapillary_richness_scan.md`). Three findings that reshape the imagery plan:
+
+- **Recent coverage is thin.** 2019+ imagery covers only 10% of segments (23% of arterials+collectors); 2022+ just 3%/8%. Houston's 4.79M-image trove is overwhelmingly the 2012–2019 capture waves; the fresh 2024–26 wave is small.
+- **Richness by era (205-image stratified citywide sample):** 2024–26 imagery is 100% full-scene (97% with vehicles); 2012–14 is 82% points-only (poles/signs); and the 2018–20 band is 65% detection-DEAD citywide (the pilot's odd 2018 batch generalizes) — era only loosely predicts richness in the middle years (uploader-dependent processing). Middle-era cells have small n (2021–23: n=10); directionally clear, not precision estimates.
+- **Work plan (arterial+collector, 1,912 mi):** harvest-eligible 424 mi (22%), own-CV 1,187 mi (62%), no imagery 301 mi (16%).
+
+**Conclusion:** the harvest path is a minority top-up at best; **own CV on the RTX 3070 is the main engine**. Uniformity argues for running our own models on ALL covered miles (Mapillary's labels span different model generations across eras; mixing them with ours would make features era-inconsistent), using Mapillary's rich labels as a validation/QA set where they exist. The no-imagery 16% takes the established honest-fill pattern (feature + missing flag), mirroring the ADT ruling. Compute estimate unchanged: roughly one evening on the 3070 for the arterial scope.
+
 ## 2026-07-03 — Imagery pilot: Mapillary's precomputed detections are usable, with a vintage split
 
 `src/pilot_mapillary_detections.py` sampled 265 images across three archetypes (Westheimer = HIN corridor, Bay Area Blvd = overlooked archetype, Vassar St = quiet local) and pulled Mapillary's server-side detections for each. Report `reports/mapillary_pilot_report.md`; overlay galleries in `reports/mapillary_pilot/` (24 images; polygon decoding verified visually — person/vegetation/vehicle overlays land correctly).
