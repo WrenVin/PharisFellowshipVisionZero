@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Modeling step 2: the feature model is fit — Map 2 exists
+
+`src/model_nb.py` (on the `modeling` branch) fits the negative binomial severe-crash model per the rulings and scores every street. Full results in `reports/model_nb_report.md`; headlines:
+
+- **Model selection went exactly as ruled:** Poisson overdispersed (1.57) → NB2 warranted (alpha 1.79; AIC 43,740 vs Poisson 46,932); **ZINB does NOT beat plain NB** (AIC 43,743) — ruling #2's check resolves in favor of the simple, explainable model. Max VIF 5.9 (clean). Calibration tracks well through the deciles (top decile overpredicts ~20% — the extreme tail is hard; noted).
+- **Residual Moran's I collapses 0.181 → 0.021** — the design features absorb almost all the spatial structure in severe crashes. Cluster-robust SEs suffice; **no explicit spatial term needed** (another open decision closed by evidence).
+- **Design effects (IRR per SD / vs reference, all p<0.001 unless noted):** road class dominates — Major arterial ×2.88, Arterial ×2.56, Collector ×2.37 vs local streets. Lanes ×1.21/SD, intersection connectivity ×1.22, signals ×1.16, traffic ×1.16, posted speed ×1.10. One-way ×0.74 (protective). Median type: all levels insignificant — inconclusive in this data (honest limitation; 75% of values are defaults). Income ×0.81/SD and poverty ×1.11/SD — **the equity gradient survives full adjustment for road design and traffic**.
+- **⚠ The sidewalk coefficients (×1.37–1.71) are an EXPOSURE PROXY, not a design harm** — sidewalks mark where people walk, and pedestrian exposure is otherwise unmeasured (same artifact in Yue 2025). Never present these raw; this is the standing argument for Mapillary person-counts as a real exposure variable.
+- **Mandatory sensitivities passed:** race-included refit drifts IRRs ≤14.5% (conclusions stable, race stays description-only); ADT-measured subset (n=17,518) produces **zero direction flips among significant effects** — road-class magnitudes grow on that arterial-heavy subset (composition), and the only sign wobbles are the already-insignificant median dummies. `adt_missing` IRR 0.53 shows the honest-fill machinery working (uncountered streets are genuinely quieter, even within class).
+- **Every street now scored:** `pred_severe`, `risk_per_mile`, `risk_pctl` on the modeling layer. Sanity: top predicted corridors (Westheimer 224, Westpark 120, Telephone 116, Main 112…) overlap the observed worst list but not identically — **Westpark Drive jumps to #2 predicted** despite a lower observed count: the first visible hint of Map-2-vs-Map-1 divergence.
+- Two fit-time bugs fixed en route: the modeling layer lacked `road_class`/`sn`/`district` (step 1 now carries them from the published layer) and cluster groups needed non-negative codes (factorized).
+
+Next: step 3, spatially blocked CV (prove Map 2 on parts of town it hasn't seen), then step 4, the divergence.
+
 ## 2026-07-03 — Methodology nailed down (Vincent's rulings) — the model spec is now fixed
 
 The MODELING_PLAN's open decisions were put to Vincent one by one; with these rulings the part-two methodology is no longer a draft. Work proceeds on the `modeling` branch (main = the live dashboard, untouched until merge).

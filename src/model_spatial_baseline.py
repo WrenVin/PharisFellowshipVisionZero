@@ -60,11 +60,16 @@ def fdr_threshold(pvals, alpha=ALPHA):
 def load_universe():
     seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
     vz = json.load(open(DOCS / "segments_vz.geojson"))
-    flags = {f["properties"]["seg_id"]: (f["properties"]["on_hin"], f["properties"]["on_txdot"])
-             for f in vz["features"]}
-    seg = seg[seg["seg_id"].isin(flags)].copy()          # full-purpose universe
-    seg["on_hin"] = seg["seg_id"].map(lambda s: bool(flags[s][0]))
-    seg["on_txdot"] = seg["seg_id"].map(lambda s: bool(flags[s][1]))
+    # carry the published layer's flags + display fields (road_class is the
+    # friendly class derived at export; sn/district feed cluster-robust SEs
+    # and blocked CV downstream)
+    pub = {f["properties"]["seg_id"]: f["properties"] for f in vz["features"]}
+    seg = seg[seg["seg_id"].isin(pub)].copy()            # full-purpose universe
+    for col, cast in [("on_hin", bool), ("on_txdot", bool),
+                      ("road_class", str), ("district", str), ("sn", None)]:
+        seg[col] = seg["seg_id"].map(
+            lambda s, c=col, k=cast: (k(pub[s][c]) if k and pub[s].get(c) is not None
+                                      else pub[s].get(c)))
     seg = seg.reset_index(drop=True)
     print(f"Modeling universe: {len(seg):,} segments "
           f"({seg['n_severe'].sum():,} severe crashes; {seg['on_hin'].sum():,} on the official HIN)")
