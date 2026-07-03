@@ -2,7 +2,7 @@
 # Torch CUDA wheels come from the PyTorch index; versions match what the
 # pipeline was smoke-tested against (RTX 3070 = Ampere, supported by cu126).
 --extra-index-url https://download.pytorch.org/whl/cu126
-torch==2.12.0+cu126; sys_platform == 'win32'
+torch==2.12.1+cu126; sys_platform == 'win32'
 torchvision==0.27.1+cu126; sys_platform == 'win32'
 torch>=2.12,<2.13; sys_platform != 'win32'
 torchvision>=0.27,<0.28; sys_platform != 'win32'
