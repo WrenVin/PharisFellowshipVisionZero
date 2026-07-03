@@ -21,3 +21,7 @@ data/external/.mapillary_token
 *.mapillary_token
 # Mapillary image-point cache — 4.8M rows, re-fetchable via the API
 data/external/*_mapillary_points.parquet
+# street-imagery extraction workspace (downloads + intermediates; regenerable)
+data/imagery/
+data/external/*_extraction_manifest.parquet
+data/external/*_sv_image_features.parquet

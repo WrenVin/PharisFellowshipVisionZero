@@ -79,6 +79,26 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
+## Street-imagery extraction (runs on a GPU PC, one click)
+
+The imagery phase's feature extraction (`src/extract_streetview_features.py`) is
+packaged to run out of the box on a separate Windows PC with an NVIDIA GPU:
+
+1. Clone this repo (GitHub Desktop or `git clone`).
+2. Double-click **`run_extraction.bat`**. First run installs everything
+   (Python via `uv`, CUDA PyTorch, models; ~4 GB) and prompts once for the
+   Mapillary **access token** (Dashboard → Developers → app → Access Token).
+3. Leave it running (arterial scope ≈ one evening on an RTX 3070). Every stage
+   is resumable; re-running the .bat continues where it stopped.
+
+Stages: plan (tile-fetch image locations, assign ≤12 images per segment) →
+download (1024 px thumbnails to `data/imagery/`, ~20 GB) → infer (SegFormer-B2
+Cityscapes segmentation + Faster R-CNN COCO detection; person boxes >15% of
+frame are excluded as photographer self-captures) → aggregate. Output:
+`data/processed/houston_streetview_features.parquet` (commit it back; the model
+refit and divergence v2 run from it). Smoke test on any machine:
+`python src/extract_streetview_features.py --scope smoke`.
+
 ## Pipeline (run in order)
 
 ```bash

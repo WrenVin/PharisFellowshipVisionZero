@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — The extraction pipeline, packaged one-click and smoke-tested end-to-end
+
+The imagery phase's main engine is built and shipped for Vincent's GPU PC (RTX 3070; different OS, nothing preinstalled). Design goal per Vincent: clone → double-click → runs out of the box.
+
+- **`run_extraction.bat`** bootstraps everything with no prerequisites: installs `uv` (which installs Python 3.12 itself), creates a local `.venv-gpu`, installs pinned packages (CUDA torch 2.12/cu126 from the PyTorch index, transformers 5.12.1 — Windows wheel availability verified), prompts once for the Mapillary access token (saved gitignored), then runs all stages. Safe to re-run; window pauses at the end.
+- **`src/extract_streetview_features.py`**, four resumable stages: **plan** (z14 tile fetch with image ids; every arterial+collector sampled at 50 m; nearest image within 25 m; ≤12 images/segment; manifest parquet) → **download** (1024 px thumbnails, threaded, skips existing) → **infer** (SegFormer-B2 Cityscapes segmentation = pixel shares for road/sidewalk/vegetation/sky/etc.; torchvision Faster R-CNN COCO detection = person/bicycle/vehicle/traffic-light counts; fp16 on CUDA; chunked appends so interruption loses ≤240 images) → **aggregate** (per-segment means → `data/processed/houston_streetview_features.parquet`, 28 columns).
+- **Self-capture guard** per the pilot: person boxes >15% of frame excluded from counts, tallied as `sv_n_self_capture`.
+- **Smoke-tested end-to-end on the Mac** (`--scope smoke`, 30 segments): plan 88 tiles → 99 images assigned → 99 downloaded → MPS inference (0.2 img/s; the CUDA path is the real target) → aggregate produced sane values (arterial segment-mean vehicles 10.2, persons 0.29, road share 0.40). Two path bugs and one assignment-logic cleanup fixed before shipping. Smoke artifacts cleaned; all intermediates are gitignored so a fresh clone starts clean.
+- **Throughput expectation:** ~150k arterial-scope images; MPS measured 0.2 img/s → RTX 3070 with CUDA+fp16 expected ~5–15 img/s → roughly 3–8 h (an evening/overnight). Download ~20 GB (1 TB disk fine).
+- Hand-off: clone the repo (`-b modeling`), double-click, paste token once, leave it running, then commit/push the output parquet; the v2 refit and divergence run from it.
+
 ## 2026-07-03 — Richness scan: recent imagery is thin; the RTX 3070 becomes the primary engine
 
 `src/scan_mapillary_richness.py` sized the extraction work (`reports/mapillary_richness_scan.md`). Three findings that reshape the imagery plan:
