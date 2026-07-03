@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Visual audit tool: see exactly what the CV models did on the PC run
+
+Vincent asked to see, image by image, what the overnight extraction actually detected — the right instinct after the methodology audit flagged the CV pipeline as the least-inspected component. New `src/visualize_extraction_sample.py` + one-click `run_visualize_sample.bat` (runs in the existing `.venv-gpu` on the PC, where the images live).
+
+- Re-runs the **identical** inference path from `extract_streetview_features.py` (imports `equirect_views`, same SegFormer processing and share arithmetic, same 0.5 detection threshold, same self-capture rule) on 5 representative images — no reenactment drift.
+- Renders per image: original frame (plus the four gnomonic slices for panos), Cityscapes segmentation overlay with per-class pixel shares, and detection boxes — counted detections in class colors, self-capture exclusions in red, below-threshold detections (0.25–0.5) in thin gray so the "what the detector almost saw" question is answerable on sight.
+- Sample is chosen deterministically to cover the interesting cases: a pano with a counted person, a pano with traffic, a self-capture exclusion, a flat image with traffic, a flat with a traffic light (fallbacks if a stratum is empty; `--ids` renders specific images).
+- Each figure comes with a table comparing features recomputed now vs the values stored by the overnight run — a per-image reproducibility check for free.
+- Output: `reports/extraction_gallery/index.html` (gitignored; the gallery lives on the PC).
+
 ## 2026-07-03 — v2 refit with imagery features: model improves decisively; the sidewalk artifact only partially resolves
 
 The RTX 3070 extraction delivered 59,261 images / 18,133 arterial+collector segments (median 3 images/segment, 87% pano, median vintage 2015). `src/model_v2_imagery.py` refits with five imagery features (person count, vehicle count, sidewalk/vegetation/building pixel shares, log1p on counts) + pano-share control + `sv_missing` honest-fill flag. Report: `reports/model_v2_report.md`; v2 scores and `offhin_highrisk_v2` saved to the modeling layer.

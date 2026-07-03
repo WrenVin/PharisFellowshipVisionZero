@@ -25,3 +25,4 @@ data/external/*_mapillary_points.parquet
 data/imagery/
 data/external/*_extraction_manifest.parquet
 data/external/*_sv_image_features.parquet
+reports/extraction_gallery/
