@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Modeling step 3: blocked cross-validation — the model passes on unseen areas
+
+`src/model_validate.py`: the feature model refit 11 times with an entire council district held out each time, so every street is scored by a model that never saw its part of town (Super-Neighborhood blocking as sensitivity, 89 folds; gradient-boosted benchmark and a no-design null under identical folds). Report: `reports/model_validation_report.md`.
+
+- **Out-of-sample capture:** ranking unseen streets by predicted risk per mile, the top 546 mi carry **45%** of severe crashes and the top 589 mi **47%** — vs the in-sample crash-based references (Gi* 54% at 546 mi; official HIN 52% at 589 mi). The proactive model lands within ~5 points of crash-history screening **without using the judged streets' crash history**, which is the core credential the divergence step needs.
+- **Design adds transferable signal:** the no-design null (context + traffic only) captures 39%/42%; held-out log-likelihood NB −22,213 vs null −23,121. The +6-point capture gap is street design itself, generalizing to new areas.
+- **The interpretability price is ~2–3 points:** GBM benchmark 47%/50%, held-out LL −21,996. Recorded as the measured cost of keeping a defensible, coefficient-based model.
+- **Robust to blocking choice:** district- and SN-blocked NB produce identical capture (45%/47%). Caught and fixed en route: the first SN run silently dropped 2,274 unpredicted segments (small-fold nonconvergence) to the bottom of the ranking, deflating the row to 33%; capture is now computed on the predicted subset with **OOF coverage disclosed as a report column** (97% for SN blocking).
+- **Out-of-fold calibration** tracks through the deciles (483 predicted vs 489 observed mid-scale); the extreme top decile over-predicts ~13% (5,838 vs 5,092), consistent with the in-sample diagnosis.
+
+Verdict: **Map 2 is validated for screening use.** Step 4 (the divergence vs the HIN, with the equity overlay) can proceed on a model with demonstrated out-of-area performance.
+
 ## 2026-07-03 — The DAG, formalized in DAGitty (reports/dag.txt + dag.png)
 
 The project's causal model is now an explicit DAGitty graph, built interactively with Vincent (code in `reports/dag.txt`, pasteable at dagitty.net; his exported render in `reports/dag.png`). Structure, after two iterations:
