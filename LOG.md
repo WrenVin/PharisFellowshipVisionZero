@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — v2 refit with imagery features: model improves decisively; the sidewalk artifact only partially resolves
+
+The RTX 3070 extraction delivered 59,261 images / 18,133 arterial+collector segments (median 3 images/segment, 87% pano, median vintage 2015). `src/model_v2_imagery.py` refits with five imagery features (person count, vehicle count, sidewalk/vegetation/building pixel shares, log1p on counts) + pano-share control + `sv_missing` honest-fill flag. Report: `reports/model_v2_report.md`; v2 scores and `offhin_highrisk_v2` saved to the modeling layer.
+
+- **Imagery earns its place decisively:** AIC 43,740 → 43,418 (Δ322). Out-of-fold (district-blocked, same protocol as step 3): capture 45%→47% at 546 mi, 47%→**49%** at 589 mi — within 3 points of the official HIN's in-sample 52% and effectively at the v1 black-box benchmark (50%). The paper's core claim (imagery features improve crash models) replicates on Houston.
+- **The workhorse is the vehicle count** (×1.24 per SD, p=1e-28, over and above ADT): imagery supplies the traffic signal on the ~75% of streets without counters. Replicates Yue (2025)'s strongest finding exactly.
+- **The honest miss: person counts are null** (×1.00, p=0.93). Sparse mid-2010s snapshots (mean 0.11 persons/image, 21% of segments ≥1) are too weak an instrument for pedestrian exposure. Consequently the **sidewalk coefficients attenuate only partially** (both: 1.71→1.53; partial: 1.54→1.42; one-side: 1.37→1.26 — direction as predicted, far from resolved). The DAG's pedestrian-exposure latent is only partly closed; the artifact caveat stands in v2. Candidate better instruments, logged for future work: the 2024–26 imagery wave, transit ridership, activity data.
+- **Divergence v2:** overlooked set size stable (3,234→3,240 segments; 79% membership stable: 2,558 stay, 676 out, 682 in). **Westpark Drive enters the overlooked top-10** (43.6 pred / 20 obs); **Bay Area Blvd survives exposure measurement** (37.4 pred / 6 obs → design, not quiet streets); **Kingwood Drive, Memorial Drive, Clay Rd deflate** (their v1 risk was partly activity-explainable — deflation driven mainly by the vehicle signal, given the null person count). Equity overlay holds: overlooked v2 median income $63.8k vs $69.6k citywide, 76% vs 64% sub-$100k.
+- Fixed en route: duplicate `risk_per_mile` column when reusing the divergence helper.
+
+Bottom line for the write-up: imagery measurably improves the model and refines the overlooked list; pedestrian exposure remains the honestly-unsolved measurement, now with a quantified null rather than an untested hope.
+
 ## 2026-07-03 — Pano fix: 70% of Houston's imagery is 360-degree; panoramas now sliced into perspective views
 
 Vincent inspected the downloaded imagery and caught equirectangular 360 panoramas ("road front and back at the same time"). Measured citywide: **70% of all Mapillary images are panos, including ~100% of the dominant 2012–17 waves** (2018–20: 0%; 2024–26: 36%). Raw equirectangular frames would have degraded both models (trained on perspective photos), so the extraction was held before the full PC run.
