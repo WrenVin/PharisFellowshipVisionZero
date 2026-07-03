@@ -44,6 +44,8 @@ src/
   export_hin.py                # export the City's official HIN, clipped to the area (docs/hin.geojson)
   fetch_superneighborhoods.py  # pull Houston's 88 Super Neighborhood boundaries (data/raw/)
   analyze_concentration.py     # KSI concentration: Gini + Lorenz curve (reports/concentration_exposure_note.md)
+  model_spatial_baseline.py    # modeling step 1: Moran's I + Gi* hotspots vs the official HIN (reports/)
+  audit_mapillary_coverage.py  # street-view coverage audit (gates the imagery/CV feature phase; needs MAPILLARY_TOKEN)
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # redirect to vision-zero.html (Street Explorer retired)
@@ -137,7 +139,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 - **Equity:** neighborhoods under $100k median household income account for ~81% of KSI; the citywide block-group median is ~$71k.
 - The dashboard is live and citywide; it overlays the City's official HIN 2022 (1,261 segments).
 - **Web-app note:** the dashboard loads all features client-side — the slim `segments_vz.geojson` (~31 MB) plus `crash_points.json` (~36 MB), `hin.geojson`, and the boundary/district outlines (~68 MB total). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
-- **Next: modeling** — spatial baseline (Moran's I / Getis-Ord) → negative binomial → divergence analysis (now citywide).
+- **Modeling (in progress):** step 1, the spatial baseline, is done — severe crashes cluster (Moran's I 0.18, p=0.001); Gi* hotspots (4,567 segments / 546 mi) capture 54% of severe crashes vs the official HIN's 52% on 589 mi, and the two lists only partially overlap (see `reports/spatial_baseline_report.md`). Next: the negative-binomial feature model → divergence analysis. Modeled universe = the 66,922 full-purpose segments (outside the boundary CRIS coverage is ~zero, so those segments' zeros are missing data, not safety).
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).
 

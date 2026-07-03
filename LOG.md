@@ -4,6 +4,29 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-02 — Mapillary coverage audit: the imagery/CV phase is viable (arterial-first)
+
+Gate check before committing to the street-view feature-extraction idea (Yue 2025, AAP 210:107851: semantic segmentation + object detection on street imagery → features for the crash model). New `src/audit_mapillary_coverage.py` (needs a free client token: env `MAPILLARY_TOKEN` or gitignored `data/external/.mapillary_token`); fetched all Mapillary image locations over the study area (585 z14 vector tiles → **4,785,527 image points**, cached to a gitignored parquet) and scored every published segment by the paper's rule (sample every 50 m; point covered when an image lies within 25 m; segment covered at ≥50% of points).
+
+**Findings** (`reports/mapillary_coverage_audit.md`, map PNG alongside; per-segment CSV in `data/processed/`):
+- **Overall 64.8%** of segments covered; **major arterials 99.8%, arterials 93.8%**, collectors 71.6%, locals 54.7%.
+- **No disqualifying income bias:** coverage by neighborhood income tier spans just 61.7–68.7%, and the richest tier is *not* the best-covered. The equity concern that crowdsourced imagery would skip poor neighborhoods does not materialize at the tier level.
+- **Geography is the real variance:** districts C/I/H ~80–87% vs F 28.9%, K 30.9%, E 42.7% — but that gap is a *local-street* phenomenon; **arterials are 87–96% covered even in the weakest districts** (citywide 94.8%). Since severe crashes concentrate on arterials, feature extraction works citywide for the roads that matter.
+- **Vintage caveat:** 92.5% of imagery predates 2020 (bulk 2012/2015/2018 — 0.7M/2.1M/1.1M points); ~292k fresh points 2024–2026 show active recapture. Old imagery is fine for stable design features (lanes, width, sidewalk presence) and sits roughly inside the 2016–2026 crash window, but dynamic exposure counts (vehicles/people per image) would reflect mid-decade traffic.
+
+**Verdict: Phase B (imagery features) is a green light, scoped arterial-first**, with the vintage caveat attached to any exposure-count use. Decision recorded; extraction work not started.
+
+## 2026-07-02 — Modeling step 1: spatial baseline (Moran's I + Gi* vs the official HIN)
+
+Modeling phase opened. Methodology is being nailed down decision-by-decision (per Vincent: the MODELING_PLAN is a draft, not fixed), so this step runs everything under BOTH candidate spatial-weights definitions to settle the weights choice with evidence. New `src/model_spatial_baseline.py`; `libpysal`/`esda` added to the venv + requirements.
+
+- **Modeled universe decision:** the 66,922 full-purpose segments, not the 75,260-segment enriched network. Outside the full-purpose boundary the data carries 0.25 crashes/mi vs 64 inside — CRIS doesn't code those annexation areas to Houston, so their zeros are data coverage, not safety; including them would teach a model that those designs are safe. `on_hin`/`on_txdot` joined onto the modeling layer from the published file (per-`seg_id`), written to `houston_segments_model.gpkg` (gitignored — regenerates in seconds).
+- **Clustering confirmed:** global Moran's I on `n_severe` = **0.181 (p=0.001)** under shared-endpoint weights (W1), **0.144** on the length-adjusted rate (Moran_Rate); positive and significant under the 1,000-ft distance band (W2) too (0.093/0.078). Justifies the spatial framing; step-2 residuals will be spatially correlated and must be handled.
+- **Gi\* hotspots (999 permutations, BH-FDR α=0.05):** under W1, **4,567 hotspot segments (546 mi) carry 54% of all severe crashes** — slightly more efficient than the official HIN (7,397 of our segments / 589 mi / 52%). W1 vs W2 classifications agree on 93% of segments; W2 (23.6 mean neighbors) over-smooths (2,752 hotspots, only 23% capture), so **W1 (network adjacency) is the evidence-backed primary** — decision #3 provisionally resolved, sensitivity preserved in the report.
+- **Divergence preview (two *crash-based* maps already disagree):** only **43% of Gi\* hotspot segments lie on the official HIN**, and only **26% of official-HIN segments are Gi\* hotspots**. Method choice alone moves the map substantially — useful context for interpreting the feature-model divergence later.
+- Top hotspot corridors pass the sanity check (Westheimer 191 severe, Main 89, Bissonnet 80 — matches the dashboard's worst-streets list). W1 has 840 islands (1.3%, boundary-clipping stubs) — documented, harmless to the global stats.
+- Outputs: `reports/spatial_baseline_report.md`, `reports/spatial_baseline_map.png` (hotspots vs HIN), hotspot columns (`gi_z`, `gi_p`, `hotspot`, `hotspot_band`) on the modeling layer.
+
 ## 2026-07-02 — Final pass before modeling: vetted data refresh, dashboard verification, one real consistency fix
 
 The last cleaning/updating sweep before the divergence-analysis phase. Three legs: regenerate the published data (the committed files were built with the pre-2026-06-22 boundary), independently verify everything the dashboard displays, and refresh the docs.

@@ -10,8 +10,14 @@ data/raw/*_edges_raw.gpkg
 # (keep *_segments_clean.gpkg [has merged_away] and *_segments_enriched.gpkg)
 data/processed/*_segments.gpkg
 data/processed/*_segments_merged.gpkg
+# modeling layer — regenerated in seconds from enriched + published (src/model_spatial_baseline.py)
+data/processed/*_segments_model.gpkg
 # raw TxDOT CRIS crash extracts — large (~740 MB), re-downloadable from CRIS
 data/raw/CRIS/
 # secrets — never commit API keys
 data/external/.census_api_key
 *.census_api_key
+data/external/.mapillary_token
+*.mapillary_token
+# Mapillary image-point cache — 4.8M rows, re-fetchable via the API
+data/external/*_mapillary_points.parquet
