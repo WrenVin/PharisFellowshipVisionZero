@@ -925,7 +925,9 @@ Promise.all([
   if(yrLo===null){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }   // full span by default (overridden by applyURL)
   { const y=vz.years, lo=y[0], hi=y[y.length-2], last=y[y.length-1];  // "as of" line (set once)
     const span=lo+'–'+hi+(last>hi?' plus partial '+last:'');
-    const el=document.getElementById('data-asof'); if(el) el.textContent='Data: TxDOT CRIS crashes, '+span+'. Compiled June 2026.'; }
+    const gen=vz.generated?new Date(vz.generated+'T12:00:00'):null;   // compile date from the export itself (noon = timezone-safe), so it can't go stale
+    const when=(gen&&!isNaN(gen))?gen.toLocaleDateString('en-US',{month:'long',year:'numeric'}):'';
+    const el=document.getElementById('data-asof'); if(el) el.textContent='Data: TxDOT CRIS crashes, '+span+'.'+(when?' Compiled '+when+'.':''); }
   for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
     // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
     // unnamed segments are their own corridor (no name to group on).
@@ -1314,7 +1316,7 @@ function drawKPIs(t){
     const half = con.pctForHalf!=null ? con.pctForHalf*100 : null;
     const halfStr = half!=null ? (half<10?half.toFixed(1):Math.round(half))+'%' : '–';
     const conSub = 'of streets, half the harm';   // mode-independent + short so this KPI stays on one row in both modes (metric + Gini are in the Lorenz panel below)
-    const conTip = 'The headline figure is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = spread evenly across streets, 1 = all on one street) summarizes the full concentration curve in a single value, independent of any cutoff. At the 6% threshold the City uses for its High Injury Network, '+Math.round(con.hinKsi*100)+'% of '+metric+' fall on those streets. See the concentration panel below.';
+    const conTip = 'The headline figure is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = spread evenly across streets, 1 = all on one street) summarizes the full concentration curve in a single value, independent of any cutoff. The deadliest 6% of street-miles in this view — the same share of the network the City sized its High Injury Network to — carry '+Math.round(con.hinKsi*100)+'% of '+metric+'. See the concentration panel below.';
     kpi4=kpi(KICON.conc,'Harm is concentrated', halfStr, conSub, true, conTip);
   }
   const cost=costTotal();

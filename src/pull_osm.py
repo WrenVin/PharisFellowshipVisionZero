@@ -11,7 +11,6 @@ Output:
 
 import re
 
-import geopandas as gpd
 import osmnx as ox
 
 import config as cfg

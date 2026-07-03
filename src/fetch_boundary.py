@@ -13,7 +13,6 @@ Writes data/raw/<AREA>_boundary.geojson (cfg.BOUNDARY). Rerun the pipeline after
 to re-clip the network + crashes to the new boundary.
 """
 
-import json
 import geopandas as gpd
 from shapely.ops import unary_union
 import requests

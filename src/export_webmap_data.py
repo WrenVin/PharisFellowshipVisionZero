@@ -328,15 +328,28 @@ else:
     print("WARNING: no raw CRIS crash files found; crash-cost person counts will be 0")
     for _dst in ("n_k", "n_a", "n_b", "n_c", "n_noinj"):
         cr[_dst] = 0
-# Nearest segment carries the assigned street id (so the dashboard can cross-
-# filter every panel to a clicked street/segment), the on-HIN flag, and whether
-# the road is TxDOT-owned (state). on_txdot is a LABEL (for the ownership view),
-# not an exclusion; at-grade arterials stay.
-nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "on_hin", "on_txdot", "geometry"]], how="left")
-nj = nj[~nj.index.duplicated()]
-cr["seg_id"] = nj["seg_id"].values
-cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
-cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
+# Each crash's street (seg_id, for cross-filtering), on-HIN flag, and road
+# ownership come from the PIPELINE's assignment (assign_crashes.py: single
+# nearest segment within 200 ft, merged-away halves credited to their rep) —
+# not re-derived here — so per-crash counting in the dashboard reconciles
+# exactly with the per-segment n_* columns. Crashes with no street within
+# 200 ft (or whose street isn't in the published subset) get a null seg_id:
+# they still count in KPIs/points, they just don't attach to a street.
+# on_txdot is a LABEL (for the ownership view), not an exclusion.
+if "seg_id" in cr.columns:
+    _pub = set(seg["seg_id"])
+    cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].isin(_pub))
+    _lut = seg.set_index("seg_id")[["on_hin", "on_txdot"]]
+    cr["on_hin"] = cr["seg_id"].map(_lut["on_hin"]).fillna(False).astype(bool)
+    cr["on_txdot"] = cr["seg_id"].map(_lut["on_txdot"]).fillna(False).astype(bool)
+    print(f"Crash streets from pipeline assignment: {int(cr['seg_id'].notna().sum()):,} of {len(cr):,} attach to a published street")
+else:  # legacy crashes.gpkg without the persisted assignment: nearest published segment
+    print("WARNING: crashes.gpkg has no seg_id (rerun assign_crashes.py); falling back to unbounded nearest-join")
+    nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "on_hin", "on_txdot", "geometry"]], how="left")
+    nj = nj[~nj.index.duplicated()]
+    cr["seg_id"] = nj["seg_id"].values
+    cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
+    cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
 print(f"Crash points: {int(cr['on_txdot'].sum()):,} on TxDOT-owned (state) roads (kept, labeled)")
 
 # Neighborhood income (-> inc_tier for the equity panel) comes from the block

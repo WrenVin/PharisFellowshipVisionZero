@@ -55,6 +55,15 @@ n_assigned, n_total = len(assigned), len(crashes)
 print(f"Assigned {n_assigned:,}/{n_total:,} crashes ({100*n_assigned/n_total:.1f}%) "
       f"within {MAX_FT} ft")
 
+# Persist the per-crash assignment on the crash layer itself (seg_id, null when
+# no street within MAX_FT), so downstream consumers — the web export above all —
+# reuse THIS assignment instead of re-deriving their own. Keeps the dashboard's
+# per-crash counting and the per-segment n_* columns reconciled by construction.
+crashes["seg_id"] = crashes["cidx"].map(near.set_index("cidx")["target"])
+crashes.drop(columns=["cidx"]).to_file(cfg.processed("crashes.gpkg"),
+                                       layer="crashes", driver="GPKG")
+print(f"Wrote per-crash seg_id back to {cfg.processed('crashes.gpkg')}")
+
 # --- aggregate counts per segment --------------------------------------------
 a = assigned
 counts = pd.DataFrame({
