@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Modeling step 4 (baseline v1): the divergence — half the high-risk network is off the HIN
+
+`src/model_divergence.py` crosses the validated design-risk ranking with the official 2022 HIN. Explicitly labeled the PRE-IMAGERY BASELINE: per Vincent's correction today, the Mapillary/CV feature work is central to the fellowship (not an optional add-on); it refits the model and re-runs this analysis as v2, and the v1-vs-v2 delta is itself a headline. Report: `reports/divergence_report.md`; map: `reports/divergence_map.png`; `offhin_highrisk` flag saved on the modeling layer.
+
+- **The headline (HIN-equivalent threshold, 589 mi of top-ranked design risk):** **49% of the high-risk set is NOT on the HIN** — 3,234 segments / 318 miles carrying 50% of the set's predicted risk. Robust across cutoffs (42% at top-5%, 50% at top-10% of miles), so the finding does not hinge on a chosen threshold.
+- **These are not hypothetical streets:** the overlooked set already recorded **1,399 severe crashes** (2016–2026) — harm diffuse enough to stay off a crash-cluster list, on designs the model recognizes as dangerous.
+- **Named corridors** (off-HIN portions, ranked by predicted severe): Telephone Rd (56 pred / 23 obs), Main St (55/42), **Kingwood Dr (50/16)**, Memorial Dr (44/19), **N Highway 6 (41/12)**, Richmond Ave, **Bay Area Blvd (37/6)**, Airport Blvd, Hillcroft, Bissonnet. The big pred-vs-obs gaps (Kingwood, Bay Area, Hwy 6 — 4–6-lane 40–55 mph arterials in districts E/A) are the "dangerous by design, not yet bloody" archetype the project predicted would exist.
+- **Equity overlay (descriptive, race enters here only):** the overlooked set skews *lower-income than the city overall and slightly below the HIN itself* — median income $61.4k vs $69.6k citywide, 78% of segments in sub-$100k areas vs 64%, higher poverty (22.1% vs 17.2%), more zero-car households (11.7% vs 8.1%), modestly higher Black and Hispanic shares than citywide. Reactive screening's blind spots do not fall evenly.
+- Citywide, 66% of total predicted risk lies off the HIN (long-tail number; the threshold table is the defensible framing).
+- Report language holds the agreed tone: the HIN performs as designed; this list is complementary proactive screening, not a correction of the City.
+
 ## 2026-07-03 — Modeling step 3: blocked cross-validation — the model passes on unseen areas
 
 `src/model_validate.py`: the feature model refit 11 times with an entire council district held out each time, so every street is scored by a model that never saw its part of town (Super-Neighborhood blocking as sensitivity, 89 folds; gradient-boosted benchmark and a no-design null under identical folds). Report: `reports/model_validation_report.md`.
