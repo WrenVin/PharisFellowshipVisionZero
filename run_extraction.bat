@@ -36,7 +36,7 @@ uv venv --python 3.12 .venv-gpu
 if errorlevel 1 goto fail
 :havevenv
 echo [setup] Installing packages. First run downloads about 4 GB incl. CUDA torch...
-uv pip install --python .venv-gpu -r requirements-extraction.txt
+uv pip install --python .venv-gpu --index-strategy unsafe-best-match -r requirements-extraction.txt
 if errorlevel 1 goto fail
 
 REM ---- 3. token ----------------------------------------------------------------
