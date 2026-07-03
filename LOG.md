@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Imagery pilot: Mapillary's precomputed detections are usable, with a vintage split
+
+`src/pilot_mapillary_detections.py` sampled 265 images across three archetypes (Westheimer = HIN corridor, Bay Area Blvd = overlooked archetype, Vassar St = quiet local) and pulled Mapillary's server-side detections for each. Report `reports/mapillary_pilot_report.md`; overlay galleries in `reports/mapillary_pilot/` (24 images; polygon decoding verified visually — person/vegetation/vehicle overlays land correctly).
+
+- **Two token lessons en route:** the Graph API's `images?bbox` search returns empty even where tiles prove dense coverage (discovery must use the vector tiles, which carry image ids); and the original credential Vincent supplied was the app's client SECRET, not the access token — auth "succeeded" but every entity read returned permissions errors. With the real access token: 100% of API calls succeed.
+- **Detections exist on 89% of sampled images, including 100% of the 2012 imagery** — Mapillary did back-process old photos. But **richness splits by vintage**: 2012–13 imagery carries only point features (utility poles, signs, street-lights — no people, vehicles, road, or vegetation segmentation), while 2019 imagery (Bay Area Blvd) carries full-scene segmentation including `object--vehicle--car`, `construction--flat--pedestrian-area`, vegetation, water; fresh 2026 imagery is richest (64 detections on the test image).
+- **Consequence for extraction design:** the harvest-vs-build question is not either/or. Harvest the free labels where full segmentation exists (roughly 2019+); run our own models on the RTX 3070 for corridors whose only imagery is older — the *photos* from 2012 are perfectly good (verified visually), only the precomputed labels are thin. Next scoping step: a citywide scan of detection richness by year/area to size the two buckets.
+- **Extraction detail learned from the gallery:** walking-captured panoramas label the photographer's own body as a person; person-counts must exclude self-captures.
+
 ## 2026-07-03 — Modeling step 4 (baseline v1): the divergence — half the high-risk network is off the HIN
 
 `src/model_divergence.py` crosses the validated design-risk ranking with the official 2022 HIN. Explicitly labeled the PRE-IMAGERY BASELINE: per Vincent's correction today, the Mapillary/CV feature work is central to the fellowship (not an optional add-on); it refits the model and re-runs this analysis as v2, and the v1-vs-v2 delta is itself a headline. Report: `reports/divergence_report.md`; map: `reports/divergence_map.png`; `offhin_highrisk` flag saved on the modeling layer.
