@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — The convergence test: the City's own 2025 update chased the model's 2021 predictions
+
+`src/hin2025_passthrough.py` conflates the 2018 and 2025 HIN vintages onto the network (identical 50 ft / 50% rule as the 2022 ingest; mileage on our network: 399 / 589 / 485 mi) and answers the three new questions. Report: `reports/hin2025_report.md`; `on_hin_2018`/`on_hin_2025` saved to the modeling layer.
+
+- **Convergence, the headline:** of the 302 overlooked miles the pre-2022 model flagged (zero post-2021 data), the City's 2025 update absorbed 60 miles (20%) — a **lift of 2.1x over comparable off-HIN arterials/collectors** (9.5% base) and 7.0x over all off-HIN streets (2.9% base). Corridor level: **Westpark Drive 81% absorbed** (the corridor v2 promoted into the top ten), Bissonnet 41%, Telephone 35%, Beechnut 33%, Bay Area Blvd 26%; Richmond (3.5%) and North Highway 6 (0%) not absorbed. Framing rule per the report: corroboration through the City's own adopted instrument, not independent confirmation (the 2025 HIN is drawn from the same 2021-2025 crashes as the forward test).
+- **HIN drift, the quiet bombshell:** the City's own products churn massively between vintages: mile-Jaccard 0.34 (2018 vs 2022), **0.42 (2022 vs 2025: dropped 271 mi of 589, added 167)**, 0.29 (2018 vs 2025). Count-density screening does not converge on a stable set of streets; this is the within-product signature of the RTM result (Gi* 54 to 40). Meanwhile the model's own list was 79% stable v1 to v2. "The City's map disagrees with its own previous edition more than our model disagrees with itself."
+- **The current divergence vs the NEW list:** at the 2025 HIN's mileage (485 mi), **54% of the high-design-risk network is off the 2025 HIN** (264 mi, 1,363 severe crashes 2016-2026, 508 since 2022). The blind spot did not close with the update; it grew (49% vs the 2022 list). Persistent corridors: North Highway 6, Richmond Ave, N Shepherd, Main St, S Highway 6, Galveston Rd, Almeda, Fannin, Hempstead, and (still) Bay Area Blvd.
+- The 2025 HIN itself: carries 48% of 2016-2026 and 54% of 2022-2026 severe crashes (substantially in-sample for it), on 104 fewer miles than the 2022 vintage.
+
+Paper implications: convergence goes into section 5.5/5.8 as corroboration; drift becomes a short, striking subsection (screening instability in the City's own products); the persistent-blind-spot list updates the District C deliverable. The temporal holdout's comparator stays the 2022 vintage, untouched.
+
 ## 2026-07-03 — HIN 2025 acquired, and a vintage correction: the comparator is the 2022 HIN built on 2018-2022 data
 
 Vincent supplied the City's new HIN Experience page. Its web map revealed the full genealogy, which corrects this morning's vintage note: the City has THREE HIN vintages, and the layer this project ingested as `on_hin` (Transportation/MapServer/20) is **"High Injury Network 2022," built on 2018-2022 crash data** per its own service metadata, NOT the 2014-2018 VZAP-era product. This morning's "2014-2018" language (which correctly describes the 2018 vintage the VZAP documents) was propagated to the wrong layer and is corrected everywhere today (DEFENSE.md comparator entry rewritten as the three-vintage genealogy; deck, skeleton, report templates regenerated).
