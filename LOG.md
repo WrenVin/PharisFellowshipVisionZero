@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — DEFENSE.md: the methodology audit becomes a permanent asset
+
+A three-panel adversarial audit (statistics, causal inference, data/CV, each checking the project against the published literature with web verification) found zero fatal flaws, graded most choices sound or defensible, and produced ~30 verified references plus a fix queue. All of it now lives in `DEFENSE.md`: one entry per methodological choice with its literature anchor, the strongest known attack in hostile-committee phrasing, the honest answer, and a status code. Also includes the gap statement (what makes this publishable: the quantified HIN divergence with equity profiling, the free crowdsourced-imagery pipeline with documented failure modes, the site consistency test applied to the disagreement set), the parameter judgment-call table, the honest limitations ledger, and the tiered fix queue.
+
+Notable audit outcomes folded in: the "v2 coefficients are direct design effects" claim is retracted (person-count instrument was null, and the audit showed the null is likely detector insensitivity at 1024 px thumbnail resolution, not sparse imagery); the Table 2 fallacy on the class coefficient is corrected in the deck; the HIN comparison gains the regression-to-the-mean conservatism argument; the underreporting-absorption defense is now stated affirmatively. Deck updated to 18 slides with the imagery arc and audit-corrected language throughout.
+
+Vincent's question of the day: with every method literature-backed, what is the gap? Answer recorded in DEFENSE.md: agencies are beginning to pair HINs with proactive networks in practice (Alameda CTC 2024), but the peer-reviewed literature does not appear to contain a validated full-network design model tested head to head against an adopted HIN with the disagreement set sized, equity-profiled, and forward-tested; nor city-scale crash modeling on free crowdsourced Mapillary imagery. Systematic novelty review still required before any submission.
+
 ## 2026-07-03 — Visual audit tool: see exactly what the CV models did on the PC run
 
 Vincent asked to see, image by image, what the overnight extraction actually detected — the right instinct after the methodology audit flagged the CV pipeline as the least-inspected component. New `src/visualize_extraction_sample.py` + one-click `run_visualize_sample.bat` (runs in the existing `.venv-gpu` on the PC, where the images live).

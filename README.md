@@ -70,6 +70,7 @@ tests/
 ELI5.md        # plain-English story of the project (start here if non-technical)
 LOG.md         # dated project log: decisions, findings, rationale
 CODEBOOK.md    # definition of every variable in the segment dataset
+DEFENSE.md     # methodology defense notes: every method's literature anchor, strongest attack, honest answer
 ```
 
 ## Setup
