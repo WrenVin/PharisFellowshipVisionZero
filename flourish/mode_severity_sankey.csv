@@ -1,0 +1,16 @@
+source,target,value
+In a vehicle,Killed,1001
+In a vehicle,Seriously injured,6239
+In a vehicle,Minor injury,30674
+In a vehicle,Possible injury,86010
+In a vehicle,No injury,285588
+Walking,Killed,597
+Walking,Seriously injured,1629
+Walking,Minor injury,2700
+Walking,Possible injury,3581
+Walking,No injury,264
+Biking,Killed,89
+Biking,Seriously injured,368
+Biking,Minor injury,1093
+Biking,Possible injury,1514
+Biking,No injury,223

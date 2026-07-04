@@ -246,14 +246,25 @@ streets it flagged off the HIN worsened 17% relative to the citywide trend.
 Texas HB 1631 bars automated enforcement, leaving design as the primary
 lever; a design-based network shows where that lever applies.
 
+The City's own Action Plan commits to exactly this analysis. Vision Zero
+Action Plan (2020) Action 2.3: "Identify high-risk roadway features
+correlated with specific, recurring severe crash types for each mode...
+Address multiple corridors and intersections with similar characteristics of
+streets identified in the High Injury Network." The 2022 Annual Report lists
+the action as Underway. The Concept PSN is an open, reproducible
+implementation of that committed action.
+
 ## Methodology
 
 1. Every one of {len(seg):,} street segments is scored by the validated v2
    negative binomial model (design features, context controls, and street
    imagery features; spatially blocked and temporally validated).
 2. The top-ranked segments by predicted severe crashes per mile are selected
-   at the HIN's own mileage ({hin_mi:.0f} mi), so the two networks are the
-   same size by construction.
+   at the HIN's own mileage ({hin_mi:.0f} mi as measured on this project's
+   network; the City publishes no HIN mileage or formula, defining the
+   network as the 6% of streets carrying nearly 60% of 2014 to 2018 traffic
+   deaths and serious injuries), so the two networks are the same size by
+   construction.
 3. Segments are smoothed into corridors: runs of unselected same-street
    segments totaling 0.25 mi or less that connect selected segments are
    bridged in; isolated fragments under 0.5 mi are dropped.

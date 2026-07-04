@@ -190,6 +190,15 @@ HIN 52% at 589 mi.
 |---|---|---|---|
 {rows}
 
+Reference-footing note: the model rows are out-of-fold; the references are
+not. The Gi* map is graded on the same 2016-2026 crashes it was computed
+from (fully in-sample; regression to the mean inflates it). The official HIN
+was built on 2014-2018 crash data, so its 52% overlaps its selection window
+only for 2016-2018 of the grading years: partially in-sample, partially
+inflated. Both asymmetries favor the references, making the model's parity
+conservative; the temporal holdout (step 5) puts all maps on one prospective
+footing.
+
 Capture is computed on the segments with an out-of-fold prediction; coverage
 below 100% reflects rare small-fold nonconvergence (SN blocking has 89 folds).
 

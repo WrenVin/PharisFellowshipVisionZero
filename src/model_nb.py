@@ -152,12 +152,26 @@ def main():
     print(f"max VIF: {vif.max():.1f} ({vif.idxmax()})")
 
     pois, disp, nb, zinb, zinb_err = fit_all(d, X)
-    print(f"Poisson dispersion: {disp:.2f} (>1 = overdispersed; NB warranted)")
+    # formal overdispersion evidence: boundary-corrected LR test of alpha=0
+    # (the chi2/df dispersion statistic is a screening heuristic, not the test)
+    from scipy.stats import chi2
+    lr_alpha = 2 * (nb.llf - pois.llf)
+    p_alpha = 0.5 * chi2.sf(lr_alpha, 1)
+    print(f"Poisson dispersion {disp:.2f}; LR test of alpha=0: "
+          f"stat {lr_alpha:,.0f}, boundary-corrected p {p_alpha:.2g}")
     print(f"NB2 alpha: {float(nb.params.get('alpha', np.nan)):.3f} | "
           f"AIC {nb.aic:,.0f} (Poisson {pois.aic:,.0f})")
-    zline = (f"ZINB AIC {zinb.aic:,.0f}" if zinb is not None
-             else f"ZINB failed to converge ({zinb_err})")
+    if zinb is not None:
+        zline = (f"ZINB AIC {zinb.aic:,.0f} vs NB {nb.aic:,.0f}; "
+                 f"BIC {zinb.bic:,.0f} vs {nb.bic:,.0f}"
+                 + ("" if getattr(zinb, "mle_retvals", {}).get("converged", True)
+                    else " (ZINB convergence flag: NOT converged)"))
+    else:
+        zline = f"ZINB failed to converge ({zinb_err})"
     print(zline)
+    # zero-share calibration: does plain NB already reproduce the zeros?
+    y_arr = d.n_severe.to_numpy()
+    obs_zero = float((y_arr == 0).mean())
 
     # race sensitivity: design IRRs must not flip -----------------------------
     Xr = design_matrix(d, race=True)
@@ -197,6 +211,11 @@ def main():
     print(f"residual Moran's I: {mi.I:.3f} (p={mi.p_sim:.3f}) — "
           f"raw outcome was 0.181; escalate only if this stays high")
 
+    alpha_hat = float(nb.params.get("alpha", 0))
+    nb_zero = float(np.mean((1.0 / (1.0 + alpha_hat * mu)) ** (1.0 / max(alpha_hat, 1e-9))))
+    print(f"zero-share calibration: observed {100*obs_zero:.1f}% vs NB predicted "
+          f"{100*nb_zero:.1f}%")
+
     # score every street -------------------------------------------------------
     seg["pred_severe"] = mu
     seg["risk_per_mile"] = mu / (seg["length_ft"] / 5280)
@@ -207,7 +226,18 @@ def main():
 
     # report -------------------------------------------------------------------
     irr = irr_table(nb, X)
+    # Table 2 fallacy discipline (Westreich & Greenland 2013): design features
+    # carry a controlled-effect reading under the DAG; adjustment covariates
+    # (functional class, context, missingness flags) carry none and are
+    # reported for transparency only.
+    ADJUST = (["log_adt", "median_hh_income", "pct_poverty", "pct_zero_car_hh",
+               "pop_density_sqmi", "adt_missing", "lanes_missing",
+               "income_missing"]
+              + [c for c in irr.index if c.startswith("road_class_")])
+    irr_design = irr.loc[[c for c in irr.index if c not in ADJUST]]
+    irr_adjust = irr.loc[[c for c in irr.index if c in ADJUST]]
     cal = calibration(d.n_severe.to_numpy(), mu)
+    pred_total, obs_total = float(mu.sum()), int(d.n_severe.sum())
     top_named = (seg[seg.name.notna()]
                  .groupby("name")["pred_severe"].sum().sort_values(ascending=False).head(10))
 
@@ -226,9 +256,14 @@ Race excluded per ruling (description-only); operating speed excluded (mediator)
 roadway width excluded (83% derived as lanes x 12 -> collinear with lanes).
 
 ## Model selection
-- Poisson dispersion {disp:.2f} -> overdispersed, NB warranted.
-- NB2: AIC {nb.aic:,.0f}, alpha {float(nb.params.get('alpha', np.nan)):.3f} (Poisson AIC {pois.aic:,.0f}).
-- {zline}.
+- Overdispersion: LR test of alpha=0, statistic {lr_alpha:,.0f}, boundary-corrected
+  p {p_alpha:.2g} (Poisson decisively rejected; the chi2/df dispersion statistic
+  {disp:.2f} is reported as a descriptive check only).
+- NB2: AIC {nb.aic:,.0f}, BIC {nb.bic:,.0f}, alpha {float(nb.params.get('alpha', np.nan)):.3f} (Poisson AIC {pois.aic:,.0f}).
+- {zline}. Zero-share calibration: observed {100*obs_zero:.1f}% zero segments vs
+  NB predicted {100*nb_zero:.1f}% — the offset NB already reproduces the zeros,
+  so the zero-inflation machinery buys nothing (per the pre-registered ruling,
+  ZINB adopted only if clearly better; Vuong not used per Wilson 2015).
 - Max VIF {vif.max():.1f} ({vif.idxmax()}).
 
 ## Sensitivities (must-pass, per the 2026-07-03 rulings)
@@ -237,18 +272,48 @@ roadway width excluded (83% derived as lanes x 12 -> collinear with lanes).
 - **Residual Moran's I {mi.I:.3f}** (p={mi.p_sim:.3f}) vs 0.181 on the raw outcome — the model absorbs most spatial structure{'; no spatial term needed' if mi.I < 0.05 else '; consider an explicit spatial term'}.
 
 ## Incidence-rate ratios
-{fmt_irr(irr)}
+
+### Panel A: design features (controlled-effect reading under the DAG's assumptions)
+{fmt_irr(irr_design)}
+
+Note: the sidewalk coefficients are a pedestrian-exposure proxy (see the
+standing caveat), not a design harm.
+
+### Panel B: adjustment covariates (no causal reading; reported for transparency, per Westreich & Greenland 2013)
+{fmt_irr(irr_adjust)}
+
+Functional class is adjusted as the setter of design standards; its
+coefficients describe a class-level stratification pattern, not an effect of
+reclassification. The income coefficient additionally absorbs any reporting
+differences by neighborhood income (see the underreporting note below) and is
+never interpreted.
+
+## Under-recording (why the design IRRs survive it)
+Severe crashes are under-recorded, more so in disadvantaged neighborhoods. In
+this log-linear model, recording that acts as a multiplicative thinning
+conditionally independent of design given the adjusted neighborhood covariates
+is absorbed by the intercept and the income coefficient, leaving the design
+IRRs unbiased. Corollaries: absolute predicted counts and cross-neighborhood
+comparisons of observed burdens inherit the reporting bias; and a design-based
+score is less exposed to local under-recording than a crash-count map,
+because coefficients pool citywide.
 
 ## Calibration (predicted vs observed severe crashes, by predicted-risk decile)
 {cal.to_markdown()}
+
+Aggregate: predicted {pred_total:,.0f} vs observed {obs_total:,} severe
+crashes ({100*(pred_total/obs_total-1):+.0f}%); the gap concentrates in the top
+decile. All downstream products (capture, divergence, corridor lists) are
+rank-based and unaffected by monotone miscalibration; point predictions in
+the top tail should be read as ranks, not counts.
 
 ## Top streets by total predicted severe crashes (sanity)
 {top_named.round(1).to_string()}
 
 ## Columns added to the modeling layer
 `pred_severe` (expected severe crashes, 2016–2026), `risk_per_mile`,
-`risk_pctl` (citywide percentile of design risk). Step 3 = spatially blocked CV;
-step 4 = divergence vs the HIN.
+`risk_pctl` (citywide percentile of predicted risk given the design profile).
+Step 3 = spatially blocked CV; step 4 = divergence vs the HIN.
 """
     (REPORTS / "model_nb_report.md").write_text(report)
     print(f"Wrote {REPORTS / 'model_nb_report.md'}")

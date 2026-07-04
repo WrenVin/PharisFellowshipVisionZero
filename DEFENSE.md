@@ -79,7 +79,9 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   p90 is 15 ft, p99 is 106 ft, so the cap almost never binds. Freeway, ramp,
   and frontage-road crashes are filtered upstream via CRIS road-part codes.
   Sensitivity at 100 and 250 ft is queued.
-- **Status:** CAVEAT, citation fix and buffer sensitivity queued.
+- **Status:** SOUND (citation reworded; buffer sensitivity run 2026-07-03:
+  severe assignments 9,565/9,711/9,756 at 100/200/250 ft, per-segment count
+  correlations 0.995 and 0.999 against the 200 ft baseline).
 
 ### Severity definition (KABCO K plus A, from CRIS)
 - **Anchor:** matches the City's own HIN definition, keeping the comparison
@@ -90,9 +92,12 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   A-ratings show roughly 50 percent sensitivity against hospital records."
 - **Answer:** The break is real and disclosed. It shifts the level of a pooled
   ten-year count roughly uniformly; it biases spatial coefficients only if
-  reclassification correlated with street type. A 2018-and-later sensitivity
-  refit is queued; the planned temporal test window (2022 to 2026) sits
-  entirely under the new definition. KABCO misclassification is a field-wide
+  reclassification correlated with street type. The 2018-and-later
+  sensitivity (2026-07-03): max design-IRR drift 12.2 percent, on a
+  statistically insignificant median-type dummy, and the overlooked set is
+  85 percent stable (Jaccard); the definitional break does not drive
+  results. The temporal test window (2022 to 2026) sits entirely under the
+  new definition. KABCO misclassification is a field-wide
   limitation carried by every study using police data, including the HIN
   itself, and both maps inherit it equally.
 - **Status:** CAVEAT, 2018-plus sensitivity queued.
@@ -122,9 +127,14 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   confounding operates only within class strata), the pre-registered
   measured-subset refit produced zero direction flips among significant
   effects, and the large magnitude drifts on that subset are consistent with
-  its arterial-heavy composition. Demonstrating the composition explanation by
-  reweighting, and a multiple-imputation sensitivity, are queued.
-- **Status:** CAVEAT, reweighting demonstration and MI sensitivity queued.
+  its arterial-heavy composition. The reweighting check (2026-07-03)
+  explains only part of the drift (max road-class IRR drift 108 percent
+  unweighted, 83 percent reweighted to the full class mix), so composition
+  is a partial explanation and the remainder is disclosed as unexplained;
+  the pre-registered pass criterion, direction stability, holds. A
+  multiple-imputation sensitivity remains queued for the causal table.
+- **Status:** CAVEAT (reweighting run 2026-07-03, partial; MI queued;
+  magnitude instability on the measured subset is a stated limitation).
 
 ---
 
@@ -140,10 +150,15 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 - **Answer:** The layer's purpose is to reconstruct count-based reactive
   screening from raw public data, so count logic is the design requirement,
   and ArcGIS guidance endorses counts when the question is where incidents
-  concentrate. Segment lengths are partly regularized by the network build. A
-  per-mile Gi* sensitivity with an agreement rate is queued; if agreement is
-  high the objection dies, if low that is itself a finding.
-- **Status:** CAVEAT, per-mile sensitivity queued.
+  concentrate. Segment lengths are partly regularized by the network build.
+  The per-mile sensitivity (2026-07-03): 95.3 percent of segments classify
+  identically, but the top-589-mile sets overlap at Jaccard 0.56, so the
+  hotspot map's exact membership is genuinely sensitive to the
+  counts-versus-rates choice. Reported as a finding in its own right: it
+  echoes the 43 percent Gi*-to-HIN overlap, and both support the point that
+  crash-based maps are method-sensitive, while no model comparison depends
+  on Gi* membership.
+- **Status:** CAVEAT with the sensitivity reported (2026-07-03).
 
 ### Spatial weights (shared-endpoint adjacency, distance band as check)
 - **Anchor:** network-true adjacency from graph topology; both specifications
@@ -164,11 +179,10 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 - **Attack:** "Your overdispersion evidence is a heuristic, chi-square over
   degrees of freedom equal to 1.57, and 1.57 is modest."
 - **Answer:** The formal evidence is the likelihood-ratio test of alpha equals
-  zero: alpha is 1.79 and the Poisson-to-NB AIC gap of roughly 3,190 implies
-  an LR statistic decisive at any level, boundary-corrected or not. The
-  report's phrasing is being upgraded to cite the test rather than the
-  screening heuristic.
-- **Status:** FIX QUEUED (report the LR test).
+  zero: statistic 3,193, boundary-corrected p effectively zero (alpha 1.79).
+  The model report now cites the test; the chi2/df statistic (1.57) is
+  labeled a descriptive check.
+- **Status:** SOUND (LR test reported, 2026-07-03).
 
 ### Zero-inflated challenger rejected on information criteria
 - **Anchor:** Wilson (2015, Economics Letters): the Vuong test is invalid for
@@ -178,10 +192,12 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   model you preferred."
 - **Answer:** The ruling was pre-registered: adopt ZINB only if clearly
   better. Delta AIC of 3 is a tie broken by parsimony, and skipping Vuong is
-  the literature's recommendation, not a shortcut. BIC (which favors NB more
-  strongly), the convergence flag, and a zero-share calibration table are
-  queued to complete the promised comparison.
-- **Status:** CAVEAT, BIC and zero-calibration queued.
+  the literature's recommendation, not a shortcut. Now complete in the
+  report: BIC favors NB outright (43,986 vs 44,008), and the zero-share
+  calibration ends the argument: the offset NB predicts 90.9 percent zero
+  segments against 90.8 observed, so there is no excess zero mass for
+  inflation machinery to explain.
+- **Status:** SOUND (BIC and zero calibration reported, 2026-07-03).
 
 ### Cluster-robust standard errors (88 Super Neighborhood clusters)
 - **Anchor:** Cameron and Miller (2015); 88 clusters is well above common
@@ -199,7 +215,8 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   miscalibration does not reorder a ranking. Corridor tables now lead with
   ranks and rounded estimates, and the aggregate over-prediction is disclosed.
   Out-of-fold tail calibration (13 percent) is better than in-sample (20).
-- **Status:** FIX QUEUED (aggregate disclosure line in the model report).
+- **Status:** SOUND (aggregate over-prediction disclosed in the model
+  report's calibration section with the rank-based reading rule, 2026-07-03).
 
 ---
 
@@ -239,7 +256,8 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   pattern (arterials carry 2.4 to 2.9 times the rate of comparable locals),
   never as a reclassification effect. By the DAG, class is the one coefficient
   with no causal reading, and income inherits the same rule.
-- **Status:** FIX QUEUED (table partition in the model report; deck done).
+- **Status:** SOUND (report table partitioned into design and adjustment
+  panels with the Westreich-Greenland note, 2026-07-03; deck done).
 
 ### The v2 estimand (imagery-adjusted coefficients)
 - **Anchor:** controlled direct effects require no unmeasured
@@ -255,7 +273,8 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   the exposure artifact only partially attenuated. The sidewalk coefficients
   moving in the predicted direction (1.71 to 1.53 and similar) is directional
   evidence for the artifact hypothesis and is claimed as exactly that.
-- **Status:** FIX QUEUED (two sentences in the v2 report and docstring).
+- **Status:** SOUND (docstring and report header rewritten to the corrected
+  estimand, 2026-07-03).
 
 ### Underreporting
 - **Anchor:** nondifferential outcome underascertainment with high specificity
@@ -315,19 +334,49 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   47 percent).
 - **Status:** SOUND.
 
+### The comparator itself: what the City published about the HIN
+- **Verified from the primary documents (2026-07-03 read of the VZAP and the
+  2022 Annual Report):** the HIN was built from 2014 to 2018 crash data
+  ("Crash data in this plan are from 2014-2018 unless otherwise noted," VZAP
+  p. 07); the City's own map layers label it "High Injury Network 2018"; the
+  published definition is two sentences ("Nearly 60% of traffic deaths and
+  serious injuries occur on just 6% of Houston's streets," VZAP p. 14, and
+  "streets and intersections with the highest density of traffic deaths and
+  serious injuries," p. 20). No formula, corridor rules, or total mileage is
+  published anywhere; the 589-mile figure used throughout this project is
+  this project's own measurement of the City's GIS layer. The City's HIN
+  equity statistic: Socially Vulnerable Communities contain 33 percent of
+  streets but 52 percent of HIN streets (SVI-based, VZAP p. 14). No update
+  had been announced as of the August 2023 Annual Report.
+- **The policy hook, from the City's own plan:** VZAP Action 2.3 commits to
+  systemic analysis ("Identify high-risk roadway features correlated with
+  specific, recurring severe crash types for each mode... Address multiple
+  corridors and intersections with similar characteristics of streets
+  identified in the High Injury Network"), status "Underway" in the 2022
+  Annual Report. The Concept PSN is an open implementation of that committed
+  action, not an external critique.
+- **Why the capture windows differ:** the City reports "nearly 60% on 6%"
+  for 2014-2018; this project measures 52 percent on its 2016-2026 window
+  and network. Different windows and network measurements; both correct.
+
 ### Capture at matched mileage, and the HIN comparison
 - **Anchor:** capture at fixed mileage is the standard screening-efficiency
   metric; regression to the mean inflates evaluations of sites selected on
   observed counts (Hauer; Highway Safety Manual network screening).
 - **Attack:** "Your three reference numbers are not on a common footing:
   model out-of-fold, Gi* in-sample, HIN selected on the graded outcome."
-- **Answer:** The asymmetry runs against the model, which makes the parity
-  claim conservative: the HIN's 52 percent is inflated by selection on the
-  outcome, and the model's 47 to 49 is measured on unseen districts. This
-  direction-of-bias argument is now stated in the write-ups. The decisive
-  upgrade, a two-period temporal test, is planned (Layer 8). Uncertainty on
-  capture differences (bootstrap) is queued.
-- **Status:** CAVEAT, temporal test and bootstrap queued.
+- **Answer, with vintage precision:** the asymmetry runs against the model,
+  making the parity claim conservative, but the inflation is PARTIAL, not
+  total: the HIN was selected on 2014-2018 crashes, so only 2016-2018 of the
+  ten-year grading window overlaps its selection years; the Gi* reference is
+  the fully in-sample case. The precise sentence: "the references are graded
+  partly (HIN) or fully (Gi*) on the crashes that selected them; the model is
+  graded on districts it never saw." The decisive upgrade, the two-period
+  temporal test, is complete (Layer 8): all maps on one prospective footing,
+  and the raw Gi* map's collapse there (54 to 40) shows the RTM inflation
+  directly, while the HIN's smaller fall (52 to 49) shows corridor
+  aggregation and its older window buffering it.
+- **Status:** SOUND (temporal test run; bootstrap intervals reported).
 
 ### The black-box benchmark
 - **Attack:** "An untuned default gradient-boosting model is a floor on the
@@ -355,14 +404,31 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   higher predicted risk, and your equity finding is partly baked into the
   selection rule. Also, blind spots falling somewhere is a claim about the
   screening process you have not established."
-- **Answer:** Language corrected to composition ("the overlooked set sits
-  disproportionately in lower-income neighborhoods"), never process. The
-  circularity check is queued: recompute the overlay with a design-only score
-  (context coefficients zeroed); if the income skew persists, the finding is
-  bulletproof. Direction of known biases helps: underreporting in poor
-  neighborhoods deflates their observed and predicted burdens, making the
-  finding conservative. Race stays descriptive per the pre-registered rule.
-- **Status:** FIX QUEUED (design-only overlay check).
+- **Answer, revised after the check RAN AND SUSTAINED THE ATTACK
+  (2026-07-03):** under a design-only score (all demographic covariates
+  removed) the income skew of the overlooked set disappears and mildly
+  reverses (design-only median income $80,313 vs citywide $69,625; sub-$100k
+  62 vs 64 percent), against the full model's $61,405 and 78 percent. The
+  skew is therefore substantially produced by the model's income and poverty
+  coefficients, which steer predicted risk toward poorer areas. The
+  defensible claims: (1) the deployed score's overlooked set IS
+  lower-income, as a description of the product, with the mechanism
+  disclosed; (2) the model's context adjustment is legitimate (it is a
+  validated confounder set and improves prediction), so the deployed score
+  is the right product, but its equity profile is partly its own
+  construction; (3) the DANGER finding is independent of this: the
+  overlooked set's forward worsening (temporal holdout, 17 percent above
+  trend) holds regardless of why its income profile arises. What may no
+  longer be said, anywhere: that reactive screening's blind spots fall in
+  poor neighborhoods as a finding about design or process.
+- **Spoken answer:** "The overlooked streets under our deployed score skew
+  lower-income, and we report exactly why: the model adjusts for
+  neighborhood context, and that adjustment contributes to the skew. A
+  design-only score does not show it. We ran that check ourselves and
+  publish it. What does not depend on any of this is that those streets went
+  on to get worse."
+- **Status:** SOUND only in the revised language (check run 2026-07-03; all
+  project text updated the same day).
 
 ---
 
@@ -410,11 +476,14 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 ### Temporal alignment (2015-vintage imagery, 2016 to 2026 crashes)
 - **Answer shape:** exposure measured at or before the outcome window start
   is the correct ordering (no reverse causation); drift attenuates toward the
-  null; stable design features drift slowly. The capture-year covariate
-  (recorded per segment) is queued as a control, and the mismatch inverts
-  into a strength under the planned temporal test, where imagery fully
-  precedes the 2022 to 2026 evaluation window.
-- **Status:** CAVEAT, vintage control queued.
+  null; stable design features drift slowly. The mismatch inverts into a
+  strength under the temporal test, where imagery fully precedes the 2022 to
+  2026 evaluation window. The vintage-control refit (2026-07-03): adding
+  median capture year moves AIC by 5 points and no coefficient by more than
+  4.5 percent; the vehicle IRR is unchanged at 1.24. Vintage is not driving
+  the imagery results. Separately, the v2 gain is fold-consistent: v2 beats
+  v1 in 10 of 11 district folds (sign test p = 0.012, mean +2.6 points).
+- **Status:** SOUND (vintage control and fold consistency run 2026-07-03).
 
 ---
 
@@ -484,25 +553,31 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 5. Top-tail point predictions run 13 to 20 percent high; rankings, not
    counts, are the supported claim.
 6. Features describe today's streets, not the streets as of each crash.
-7. No temporal validation yet (planned); no hand-labeled validation of the
-   CV models yet (queued).
+7. No hand-labeled validation of the CV models yet (queued for the PC).
 8. Findings are Houston, 2016 to 2026; transfer elsewhere is untested.
+9. The overlooked set's lower-income profile is partly produced by the
+   model's own context adjustment (design-only score shows no skew); it is
+   a description of the deployed score, never a design or process finding.
 
 ## Fix queue (from the 2026-07-03 audit)
 
-Tier 1, language (hours): v2 "direct effects" sentences; IRR table partition;
-person-null phrasing; RTM-conservative and underreporting-absorption
-paragraphs; tail hedges. (Deck done; reports pending.)
+Tier 1, language: COMPLETE 2026-07-03 (v2 estimand rewritten in docstring
+and report; IRR table partitioned; person-null phrasing; RTM and
+underreporting paragraphs; tail hedges and aggregate disclosure; HIN vintage
+precision after the VZAP primary-document read).
 
-Tier 2, cheap runs (about a day): 2018-plus severity refit; per-mile Gi*
-agreement; design-only equity overlay; fold-level bootstrap on capture
-deltas; LR overdispersion test plus BIC and zero-calibration; capture-year
-control refit; measured-subset reweighting; 100/250 ft assignment
-sensitivity; road-share off-street image filter.
+Tier 2, cheap runs: COMPLETE 2026-07-03 except two, see
+`reports/audit_sensitivities_report.md`. Passed: 2018-plus refit, buffer
+sensitivity, vintage control, fold-level v2 consistency, LR test plus BIC
+and zero calibration. Mixed, reported honestly: Gi* per-mile (top-set
+Jaccard 0.56), measured-subset reweighting (partial explanation). SUSTAINED
+the audit's attack: design-only equity overlay (income skew is
+score-mechanical; all language revised). Remaining: off-street image filter
+(needs the per-image table on the PC); multiple-imputation ADT sensitivity.
 
-Tier 3, upgrades: temporal holdout; 2048-pixel pano re-run plus roughly 200
-labeled images; citywide parcel land-use conflation; DAG redraw; modestly
-tuned benchmark.
+Tier 3, upgrades: temporal holdout COMPLETE (Layer 8). Remaining: 2048-pixel
+pano re-run plus roughly 200 labeled images (PC); citywide parcel land-use
+conflation; DAG redraw with the land-use arrow; modestly tuned benchmark.
 
 ## Sources
 
