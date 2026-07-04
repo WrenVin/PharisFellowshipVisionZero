@@ -26,3 +26,6 @@ data/imagery/
 data/external/*_extraction_manifest.parquet
 data/external/*_sv_image_features.parquet
 reports/extraction_gallery/
+MODELING_PLAN.md
+flourish/
+src/export_flourish.py
