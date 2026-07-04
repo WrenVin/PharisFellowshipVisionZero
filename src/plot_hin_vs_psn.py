@@ -36,7 +36,7 @@ def main():
 
     panels = [
         ("City of Houston High Injury Network",
-         "Built from crash history (2014 to 2018 data, adopted 2020)",
+         "Built from crash history (the 2022 network, 2018 to 2022 data)",
          hin, "#7a6fb0"),
         ("Houston Concept Proactive Safety Network",
          "Built from street design: the validated model, no crash history used",

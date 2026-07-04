@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — HIN 2025 acquired, and a vintage correction: the comparator is the 2022 HIN built on 2018-2022 data
+
+Vincent supplied the City's new HIN Experience page. Its web map revealed the full genealogy, which corrects this morning's vintage note: the City has THREE HIN vintages, and the layer this project ingested as `on_hin` (Transportation/MapServer/20) is **"High Injury Network 2022," built on 2018-2022 crash data** per its own service metadata, NOT the 2014-2018 VZAP-era product. This morning's "2014-2018" language (which correctly describes the 2018 vintage the VZAP documents) was propagated to the wrong layer and is corrected everywhere today (DEFENSE.md comparator entry rewritten as the three-vintage genealogy; deck, skeleton, report templates regenerated).
+
+- **Consequence for the temporal holdout, in the model's favor:** the ingested HIN's 2018-2022 selection window overlaps ONE year of the 2022-2026 test window (the model saw none of it), so the 51-vs-49 result is conservative on that axis; and the in-sample reference (52% on 2016-2026) is substantially in-sample (5 of 10 grading years overlap selection). Report text updated; all numbers unchanged.
+- **HIN 2025 (2021-2025 data) downloaded and archived** in data/external/: main network (1,080 features, 509 raw mi), Priority Segments (48 mi), Bike (75 mi), Ped (280 mi) sublayers, plus the 2018 vintage (906 features, 426 raw mi) for drift analysis. **The City published the 2025 methodology**: CRIS crashes geocoded, streets segmented into half-mile lengths, crashes joined within 50 ft, minimum 4.5 severe crashes per half-mile, freeways excluded; 6.81% of streets carrying 52.67% of deaths and serious injuries. Same method family as the 2022 metadata: count-density screening, no exposure, no design, no EB adjustment — the City's own words now support the paper's characterization of reactive screening.
+- **Why the 2025 HIN is analytically golden:** its 2021-2025 window nearly coincides with the temporal test window, making it close to an answer key for the convergence test: which streets did the pre-2022 model flag off the old HIN that the City's own new data then forced onto the 2025 network? Every such corridor is an independent confirmation with three years of lead time.
+- Next (the comprehensive passthrough): conflate hin2025 onto the network as `on_hin_2025` (same matching as the 2022 ingest), re-cut divergence and PSN tiers against it, run the convergence test and the 2018-to-2022-to-2025 drift analysis, and keep the 2022 vintage permanently as the temporal test's comparator.
+
 ## 2026-07-03 — The 2022-HIN wrap-up: Tier 1+2 audit fixes executed, one finding overturned
 
 Before ingesting the newer HIN Vincent has (a comprehensive re-cut comes later), everything built on the 2022 HIN was squared away. Three workstreams:

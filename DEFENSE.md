@@ -334,20 +334,31 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   47 percent).
 - **Status:** SOUND.
 
-### The comparator itself: what the City published about the HIN
-- **Verified from the primary documents (2026-07-03 read of the VZAP and the
-  2022 Annual Report):** the HIN was built from 2014 to 2018 crash data
-  ("Crash data in this plan are from 2014-2018 unless otherwise noted," VZAP
-  p. 07); the City's own map layers label it "High Injury Network 2018"; the
-  published definition is two sentences ("Nearly 60% of traffic deaths and
-  serious injuries occur on just 6% of Houston's streets," VZAP p. 14, and
-  "streets and intersections with the highest density of traffic deaths and
-  serious injuries," p. 20). No formula, corridor rules, or total mileage is
-  published anywhere; the 589-mile figure used throughout this project is
-  this project's own measurement of the City's GIS layer. The City's HIN
-  equity statistic: Socially Vulnerable Communities contain 33 percent of
-  streets but 52 percent of HIN streets (SVI-based, VZAP p. 14). No update
-  had been announced as of the August 2023 Annual Report.
+### The comparator itself: the City's HIN genealogy (corrected 2026-07-03)
+- **Three vintages exist**, per the City's own web map and service metadata,
+  all archived in `data/external/`:
+  1. **HIN 2018** (2014 to 2018 data): the VZAP-era original. The VZAP
+     publishes no formula or mileage, only "nearly 60% of traffic deaths and
+     serious injuries occur on just 6% of Houston's streets" (VZAP p. 14).
+     Measured here: 906 features, 426 raw miles. The VZAP equity statistic
+     (Socially Vulnerable Communities: 33 percent of streets, 52 percent of
+     HIN streets) describes THIS vintage.
+  2. **HIN 2022** (2018 to 2022 data): THE COMPARATOR THIS PROJECT INGESTED
+     as `on_hin` (service: HoustonMap/Transportation/MapServer/20). Its
+     metadata states the method: CRIS crashes geocoded, streets segmented
+     into half-mile lengths, crashes joined within 50 ft. 589 miles as
+     measured on this project's network. The earlier note dating the
+     comparator to 2014-2018 was wrong and is superseded by this entry.
+  3. **HIN 2025** (2021 to 2025 data): published 2026 with a full public
+     methodology (half-mile segmentation, 50 ft join, minimum 4.5 severe
+     crashes per half-mile, freeways excluded; 6.81 percent of streets,
+     52.67 percent of deaths and serious injuries). 1,080 features, 509 raw
+     miles, plus Priority (48 mi), Bike (75 mi), Ped (280 mi) sublayers.
+     Integration pending (the comprehensive passthrough).
+- **Method characterization now rests on the City's own words:** all
+  vintages are count-density screening on half-mile windows with no
+  exposure, design, or empirical-Bayes adjustment; exactly the reactive
+  method this project's two-period test evaluates.
 - **The policy hook, from the City's own plan:** VZAP Action 2.3 commits to
   systemic analysis ("Identify high-risk roadway features correlated with
   specific, recurring severe crash types for each mode... Address multiple
@@ -355,9 +366,11 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   identified in the High Injury Network"), status "Underway" in the 2022
   Annual Report. The Concept PSN is an open implementation of that committed
   action, not an external critique.
-- **Why the capture windows differ:** the City reports "nearly 60% on 6%"
-  for 2014-2018; this project measures 52 percent on its 2016-2026 window
-  and network. Different windows and network measurements; both correct.
+- **Why the capture numbers differ across documents:** the City reports
+  "nearly 60% on 6%" (2018 vintage, 2014-2018 window) and "52.67% on 6.81%"
+  (2025 vintage, 2021-2025 window); this project measures 52 percent for
+  the 2022 vintage on its own 2016-2026 window and network. Different
+  windows, vintages, and network measurements; all correct.
 
 ### Capture at matched mileage, and the HIN comparison
 - **Anchor:** capture at fixed mileage is the standard screening-efficiency
@@ -365,18 +378,19 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   observed counts (Hauer; Highway Safety Manual network screening).
 - **Attack:** "Your three reference numbers are not on a common footing:
   model out-of-fold, Gi* in-sample, HIN selected on the graded outcome."
-- **Answer, with vintage precision:** the asymmetry runs against the model,
-  making the parity claim conservative, but the inflation is PARTIAL, not
-  total: the HIN was selected on 2014-2018 crashes, so only 2016-2018 of the
-  ten-year grading window overlaps its selection years; the Gi* reference is
-  the fully in-sample case. The precise sentence: "the references are graded
-  partly (HIN) or fully (Gi*) on the crashes that selected them; the model is
-  graded on districts it never saw." The decisive upgrade, the two-period
-  temporal test, is complete (Layer 8): all maps on one prospective footing,
-  and the raw Gi* map's collapse there (54 to 40) shows the RTM inflation
-  directly, while the HIN's smaller fall (52 to 49) shows corridor
-  aggregation and its older window buffering it.
-- **Status:** SOUND (temporal test run; bootstrap intervals reported).
+- **Answer, with vintage precision (corrected):** the asymmetry runs against
+  the model, making the parity claim conservative. The ingested HIN (2022
+  vintage) was selected on 2018-2022 crashes, so five of the ten grading
+  years overlap its selection window: substantially in-sample. The Gi*
+  reference is fully in-sample. The precise sentence: "the references are
+  graded substantially (HIN) or fully (Gi*) on the crashes that selected
+  them; the model is graded on districts it never saw." In the temporal test
+  (Layer 8), note one further asymmetry in the HIN's favor: its 2018-2022
+  selection window overlaps one year of the 2022-2026 test window, while
+  the model saw none of it; the model's 51 versus the HIN's 49 is therefore
+  conservative on that axis too.
+- **Status:** SOUND (temporal test run; bootstrap intervals reported;
+  vintage corrected 2026-07-03).
 
 ### The black-box benchmark
 - **Attack:** "An untuned default gradient-boosting model is a floor on the

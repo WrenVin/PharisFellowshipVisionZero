@@ -13,11 +13,11 @@ Maps frozen at end-2021:
     severe crashes only; imagery (median vintage 2015) precedes both windows
   - Gi* hotspots computed on pre-2022 crashes only (what a crash-based method
     honestly knew in 2021)
-  - the official HIN, as published in 2022 and built on 2014-2018 crash data
-    (its true deployment state; underlying data ends three years before the
-    freeze, so its post-window capture is honestly prospective; a reviewer
-    noting it is older than the 2021-frozen model should note it was the
-    City's adopted screening product throughout the test window)
+  - the official HIN as ingested (the City's "High Injury Network 2022,"
+    built on 2018-2022 crash data per its service metadata). Its selection
+    window overlaps ONE year (2022) of the test window, an asymmetry in the
+    HIN's favor; the model saw none of the test window. The capture
+    comparison is therefore conservative for the model.
   - the no-design null (offset + context), pricing what design adds
 
 Also the forward test of the divergence finding (the site consistency test of
@@ -246,11 +246,13 @@ city, above 1.00 means it worsened relative to trend.
 - Every number in the capture table is prospective: the maps were built
   without any 2022-2026 information. This is the deployment question: with
   data through 2021, which map best anticipated the next {yrs_post:.1f} years?
-- The HIN row measures the City's actual product in its actual deployment
-  state (built on 2014-2018 crash data, published 2022). Regression to the
-  mean predicts count-selected screening loses capture out of window; the
-  raw Gi* map shows the full effect, while the HIN's corridor aggregation
-  and older selection window buffer it.
+- The HIN row measures the City's product as ingested ("High Injury Network
+  2022," 2018-2022 crash data). Its selection window overlaps one year of
+  the test window, an advantage the model does not have; the model's number
+  is fully prospective. Regression to the mean predicts count-selected
+  screening loses capture out of window; the raw Gi* map shows the full
+  effect, while the HIN's half-mile corridor aggregation and partial window
+  overlap buffer it.
 - The forward-test table adjudicates the divergence finding: `vs_city` above
   1.00 for the overlooked set means the streets the model flagged, and the
   HIN missed, worsened relative to the citywide trend after selection.

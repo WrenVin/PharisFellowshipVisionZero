@@ -46,11 +46,13 @@ city, above 1.00 means it worsened relative to trend.
 - Every number in the capture table is prospective: the maps were built
   without any 2022-2026 information. This is the deployment question: with
   data through 2021, which map best anticipated the next 4.4 years?
-- The HIN row measures the City's actual product in its actual deployment
-  state (built on 2014-2018 crash data, published 2022). Regression to the
-  mean predicts count-selected screening loses capture out of window; the
-  raw Gi* map shows the full effect, while the HIN's corridor aggregation
-  and older selection window buffer it.
+- The HIN row measures the City's product as ingested ("High Injury Network
+  2022," 2018-2022 crash data). Its selection window overlaps one year of
+  the test window, an advantage the model does not have; the model's number
+  is fully prospective. Regression to the mean predicts count-selected
+  screening loses capture out of window; the raw Gi* map shows the full
+  effect, while the HIN's half-mile corridor aggregation and partial window
+  overlap buffer it.
 - The forward-test table adjudicates the divergence finding: `vs_city` above
   1.00 for the overlooked set means the streets the model flagged, and the
   HIN missed, worsened relative to the citywide trend after selection.

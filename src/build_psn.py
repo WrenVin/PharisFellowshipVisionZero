@@ -261,10 +261,9 @@ implementation of that committed action.
    imagery features; spatially blocked and temporally validated).
 2. The top-ranked segments by predicted severe crashes per mile are selected
    at the HIN's own mileage ({hin_mi:.0f} mi as measured on this project's
-   network; the City publishes no HIN mileage or formula, defining the
-   network as the 6% of streets carrying nearly 60% of 2014 to 2018 traffic
-   deaths and serious injuries), so the two networks are the same size by
-   construction.
+   network; the ingested comparator is the City's "High Injury Network
+   2022," half-mile crash-density screening on 2018-2022 CRIS data per its
+   service metadata), so the two networks are the same size by construction.
 3. Segments are smoothed into corridors: runs of unselected same-street
    segments totaling 0.25 mi or less that connect selected segments are
    bridged in; isolated fragments under 0.5 mi are dropped.
