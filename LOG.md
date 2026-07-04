@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — The Houston Concept Proactive Safety Network: the divergence analysis becomes a product
+
+Vincent's realization of the day: "we can make our own proactive safety network, just like the City's HIN." Precedent researched (Alameda CTC 2024, the only agency PSN; theirs is a factor checklist, explicitly non-predictive), then built: `src/build_psn.py` selects the top 589 miles by validated v2 risk per mile (the HIN's own budget), smooths into corridors (bridges same-street gaps ≤0.25 mi: +1,417 segments; drops isolated fragments <0.5 mi: −895), and tiers every PSN/HIN segment. Outputs: `data/processed/houston_concept_psn.geojson`, `psn`/`psn_tier` on the modeling layer, `reports/concept_psn_report.md` (Alameda-structured: What/Why/Methodology/Findings/Limitations), `reports/psn_map.png`.
+
+- **Final network: 605 smoothed miles carrying 50% of all severe crashes and 51% of post-2022 severe crashes.**
+- Three tiers: **both networks** 304 mi (3,500 severe 2016-26; the act-first set) · **PSN-only** 301 mi (1,379 severe, 682 of them post-2022; the proactive additions) · **HIN-only** 285 mi.
+- The quiet finding in the tier table: **HIN-only miles carry just 7.1% of citywide predicted design risk vs the PSN-only tier's 23.7%** — nearly half the HIN's mileage is not especially dangerous by design (history there reads as exposure and reversion), while an equal mileage of high-design-risk streets sits off the list entirely. That contrast is the whole two-maps thesis in one row pair.
+- Smoothing thresholds (0.25/0.5 mi) are disclosed judgment calls following Alameda's corridor conventions; name-aggregated corridors noted as a delivery-version refinement.
+- Stays OFF the public dashboard until Vincent decides; "Concept" labeling per Alameda precedent.
+
 ## 2026-07-03 — Temporal holdout: the design model matches the HIN at predicting the FUTURE, and the overlooked streets' bill came due
 
 The paper's headline result. `src/model_temporal_holdout.py` freezes every screening map at end-2021 (v1/v2 refit on 2016-21 severe crashes only; Gi* recomputed on pre-2022 crashes; the HIN as published in 2022, its true deployment state) and grades them all on the 4.4 years of 2022-2026 crashes none of them saw. Design per Cheng & Washington (2008) two-period framework + TRIPOD temporal validation; reading rules pre-registered in DEFENSE.md Layer 8 before the run. Report: `reports/temporal_holdout_report.md`.
