@@ -418,23 +418,41 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 
 ---
 
-## Layer 8: Temporal holdout (planned)
+## Layer 8: Temporal holdout (run 2026-07-03)
 
 - **Design:** fit on 2016 to 2021 severe crashes, freeze all maps as of
   end-2021 (model, Gi* on pre-2022 crashes only, the HIN as published in
-  2022), grade everything on 2022 to 2026 crashes; forward-test the
-  overlooked set (site consistency applied to the disagreement set);
-  sensitivities for the COVID years (train 2016 to 2019) and the injury
-  definition (train 2018 to 2021).
+  2022), grade everything on the 4.4 years of 2022 to 2026 crashes; forward
+  test of the overlooked set (site consistency applied to the disagreement
+  set); sensitivities for the COVID years (train 2016 to 2019) and the injury
+  definition (train 2018 to 2021). Report:
+  `reports/temporal_holdout_report.md`.
 - **Anchors:** Cheng and Washington (2008) two-period evaluation framework;
   TRIPOD temporal-validation hierarchy (Collins et al. 2015); Roberts et al.
   (2017) blocking logic applied to time; Hauer and the Highway Safety Manual
   on regression to the mean.
-- **Pre-registered reading rules:** the model matches the HIN if capture
-  differences sit inside the bootstrap interval; the divergence forward test
-  succeeds only if the overlooked set's trend-adjusted post-window rate
-  exceeds its pre-window rate; a null is reported as evidence for the
-  quieter-streets reading.
+- **Results, against the pre-registered rules:** prospective capture of
+  2022 to 2026 severe crashes at 589 matched miles: design model v2 51
+  percent, v1 49, official HIN 49, no-design null 42, and the Gi* map built
+  on pre-2022 crashes 40 (a collapse from its 54 percent in-sample: the
+  regression-to-the-mean prediction, confirmed; the HIN's corridor
+  aggregation evidently buffers it, falling only 52 to 49). Bootstrap 95
+  percent interval for v2 minus HIN is -0 to +4 points, so by the
+  pre-registered rule the model MATCHES the HIN prospectively (point
+  estimate above it) and the claim of beating it is not made. The forward
+  test succeeds: the pre-fit overlooked set worsened from 0.41 to 0.52
+  severe crashes per mile per year (ratio 1.27 against a citywide 1.08;
+  trend-adjusted 1.17), recording 691 severe crashes in the post window,
+  while the HIN set improved relative to trend (0.90) as regression to the
+  mean and treatments predict. Training-window sensitivities: 48 percent
+  capture under both the pre-COVID and single-definition windows.
+- **Spoken answer:** "Frozen at the end of 2021, the design model
+  anticipated the next four and a half years of severe crashes as well as
+  the City's own High Injury Network, without using the judged streets'
+  crash history, and the streets it flagged that the HIN missed went on to
+  worsen 17 percent relative to the citywide trend. A raw crash-hotspot map
+  built the same way collapsed to 40 percent, which is what regression to
+  the mean does to screening that selects on observed counts."
 
 ---
 

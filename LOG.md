@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Temporal holdout: the design model matches the HIN at predicting the FUTURE, and the overlooked streets' bill came due
+
+The paper's headline result. `src/model_temporal_holdout.py` freezes every screening map at end-2021 (v1/v2 refit on 2016-21 severe crashes only; Gi* recomputed on pre-2022 crashes; the HIN as published in 2022, its true deployment state) and grades them all on the 4.4 years of 2022-2026 crashes none of them saw. Design per Cheng & Washington (2008) two-period framework + TRIPOD temporal validation; reading rules pre-registered in DEFENSE.md Layer 8 before the run. Report: `reports/temporal_holdout_report.md`.
+
+- **Prospective capture at 589 matched miles: v2 51%, HIN 49%, v1 49%, null 42%, Gi*-pre 40%.** Bootstrap 95% CI for v2−HIN: [−0, +4] points → by the pre-registered rule the model MATCHES the HIN (point estimate above); "beats" is not claimed.
+- **The RTM prediction confirmed spectacularly:** the raw Gi* crash-hotspot map collapsed from 54% in-sample to 40% prospective, below even the no-design null. Screening that selects on observed counts reverts. Notably the HIN itself only fell 52→49: corridor aggregation and its longer build window evidently buffer RTM. Both facts go in the paper.
+- **The forward test succeeds:** the overlooked set (selected by the pre-2022 fit, off-HIN, zero post-2021 data touched) worsened from 0.41 to 0.52 severe crashes/mi/yr — ratio 1.27 vs citywide 1.08, trend-adjusted 1.17 — recording **691 severe crashes in 2022-2026**. The HIN set meanwhile improved relative to trend (0.90), consistent with RTM plus treatments. The "quiet streets are just safe" reading loses on its own pre-registered test.
+- Sensitivities: capture 48% with training restricted to 2016-2019 (pre-COVID) and to 2018-2021 (single injury-definition regime) — the result is not the anomaly years or the CR-3 break.
+- Sanity: pre 5,400 + post 4,320 = 9,720, exactly the modeling layer's total.
+
+One-sentence version for the paper and the defense: frozen at end-2021, a model that never saw a crash on the streets it judges anticipated the next 4.4 years as well as the City's crash-built HIN, and the dangerous-by-design streets it flagged off the HIN got 17% worse relative to trend. DEFENSE.md Layer 8 updated from "planned" to results; paper skeleton abstract updated.
+
 ## 2026-07-03 — DEFENSE.md: the methodology audit becomes a permanent asset
 
 A three-panel adversarial audit (statistics, causal inference, data/CV, each checking the project against the published literature with web verification) found zero fatal flaws, graded most choices sound or defensible, and produced ~30 verified references plus a fix queue. All of it now lives in `DEFENSE.md`: one entry per methodological choice with its literature anchor, the strongest known attack in hostile-committee phrasing, the honest answer, and a status code. Also includes the gap statement (what makes this publishable: the quantified HIN divergence with equity profiling, the free crowdsourced-imagery pipeline with documented failure modes, the site consistency test applied to the disagreement set), the parameter judgment-call table, the honest limitations ledger, and the tiered fix queue.
