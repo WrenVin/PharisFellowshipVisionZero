@@ -46,13 +46,20 @@ application layer, in three parts:
    head against a city's adopted HIN, with the disagreement set itself as the
    object of study: sized at matched mileage, tested across thresholds,
    profiled for equity, and (planned) forward-tested on a later crash period.
-2. **Free, reproducible imagery.** The street-view crash literature runs on
-   commercial imagery (Baidu in Yue 2025, Google Street View elsewhere).
-   Mapillary appears in road-feature detection work but not in city-scale
-   crash-frequency modeling. Demonstrating the pipeline on free crowdsourced
-   imagery, open models, and one consumer GPU, with the failure modes
-   documented honestly (vintage heterogeneity, panorama handling, pedestrian
-   counting limits), is a methods-accessibility contribution any city can use.
+2. **Free, reproducible imagery (claim narrowed after the 2026-07-03
+   novelty sweep).** The sweep found a direct hit on the broad version of
+   this claim: Elayan, Karki and Hawkins (TRR 2680(7):261-274, 2025) used
+   Mapillary's PRECOMPUTED object detections as covariates in grid-based
+   pedestrian crash count and severity models for Lincoln, Nebraska, and
+   Costa et al. (AAP 205:107533, 2024) used Mapillary imagery at crash
+   sites for Berlin cycling severity. The surviving claim, verified narrow:
+   first custom computer-vision pipeline on RAW crowdsourced imagery for a
+   full-network, segment-level, all-mode crash-frequency model. The
+   distinction is substantive, not cosmetic: this project rejected the
+   precomputed detections precisely because their richness is
+   vintage-split, which is now a documented design decision in the paper.
+   Failure modes (vintage heterogeneity, panorama handling, pedestrian
+   counting limits) remain documented honestly.
 3. **The site consistency test applied to the disagreement set.** Two-period
    evaluation of screening methods is standard (Cheng and Washington 2008);
    applying it to the set where the two maps disagree, to ask whether the

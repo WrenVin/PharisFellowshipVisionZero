@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-03 — Novelty sweep: one claim confirmed, one direct hit found and fixed
+
+A 101-agent deep-research sweep of the 2023-2026 literature (multi-angle search, top sources fetched, every candidate hit adversarially verified 3-0 by reading abstracts/full texts) tested the paper's two priority claims before a TRB reviewer could.
+
+- **Claim 1 (validated design model vs adopted HIN, disagreement set forward-tested): CLEAR as the combination.** Components now exist separately: Bonera et al. 2024 (AAP 199:107502, proactive network-wide screening, non-urban Italian province), Andrasik et al. 2026 (ETRR 18:7, proactive+reactive vs the EU NWA directive, Czech national network, zero occurrences of "HIN" in full text), Khattak et al. 2024 (Sustainability 16(4):1537, two-period consistency tests on Antwerp screening, reactive-only). All three now cited defensively; the contribution is positioned as the combination.
+- **Claim 2 (Mapillary never used for city-scale crash-frequency modeling): DIRECT HIT, claim rewritten.** Elayan, Karki & Hawkins (TRR 2680(7):261-274, online Nov 2025) used Mapillary's PRECOMPUTED object detections as predictors in citywide 50m-grid pedestrian crash count (NB) and severity models for Lincoln, NE — in TRB's own journal, so reviewers would have known it. Costa et al. 2024 (AAP 205:107533) used Mapillary imagery at crash sites for Berlin cycling severity. The surviving, verified-narrow claim: first CUSTOM CV pipeline on RAW crowdsourced imagery for a full-network, segment-level, all-mode frequency model. The distinction is real: this project rejected the precomputed detections because the pilot showed they are vintage-split, a decision now stated in the paper's methods as novelty-relevant. Stiles et al. 2022 (GSV, Columbus) added as the SVI-frequency precedent.
+- Draft abstract, contribution paragraph, literature section, methods, and references updated; DEFENSE.md gap statement narrowed; compliance checklist marks the sweep complete. This is the audit pattern working a third time: the check was run before submission, the convenient version of the claim failed, and the honest version shipped the same day.
+
 ## 2026-07-03 — The convergence test: the City's own 2025 update chased the model's 2021 predictions
 
 `src/hin2025_passthrough.py` conflates the 2018 and 2025 HIN vintages onto the network (identical 50 ft / 50% rule as the 2022 ingest; mileage on our network: 399 / 589 / 485 mi) and answers the three new questions. Report: `reports/hin2025_report.md`; `on_hin_2018`/`on_hin_2025` saved to the modeling layer.
