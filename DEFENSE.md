@@ -254,17 +254,45 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 - **Status:** SOUND with the stated reading.
 
 ### Functional class: adjusted covariate, not a design effect
-- **Anchor:** Westreich and Greenland (2013), the Table 2 fallacy.
+- **Anchor:** Westreich and Greenland (2013), the Table 2 fallacy; Hernan,
+  Hsu and Healy (2019) on the describe/predict/intervene distinction.
 - **Attack:** "You adjusted class as a confounder and then headlined its
-  coefficient as your largest design effect."
-- **Answer:** The audit found this committed in early write-ups and it is
-  corrected: the IRR table is split into design features versus adjustment
-  covariates, and the class coefficient is presented as a stratification
-  pattern (arterials carry 2.4 to 2.9 times the rate of comparable locals),
-  never as a reclassification effect. By the DAG, class is the one coefficient
-  with no causal reading, and income inherits the same rule.
+  coefficient as your largest design effect." Sharper version (mock
+  committee, 2026-07-04): "Class sits in Panel B under no causal reading,
+  yet the 2.88 does central explanatory work in your narrative and your DAG
+  draws class as an adjustment covariate feeding road design."
+- **Answer:** Separate the three things a coefficient can do: describe,
+  predict, estimate an intervention. The 2.88 is licensed for the first two
+  and banned from the third, and the write-ups use only the first two.
+  Descriptively it is simply true (arterials carry about 2.9 times the rate
+  of comparable locals: a stratification fact, no counterfactual implied).
+  Predictively it serves the screening products, which are prediction tasks
+  and may use any covariate that predicts. What is never claimed is the
+  reclassification counterfactual, which is unestimable three ways by the
+  project's own graph: class sits upstream of the other design features
+  (its coefficient bundles everything class causes), class is confounded by
+  latent land use, and do(reclassify) is not a well-defined physical
+  intervention. Class stays in the model because adjusting for it is what
+  buys Panel A's within-class causal reading: it purchases the design
+  features' interpretability at the price of its own, and the two-panel
+  table keeps that price visible.
+- **Spoken answer:** "The 2.88 does descriptive and predictive work, never
+  causal work. It is a true stratification fact and a legitimate predictor;
+  what we never claim is that reclassifying a street would change its risk,
+  because that coefficient bundles class's confounding with everything
+  class causes downstream, and reclassification is not a well-defined
+  intervention. Class is in the model because adjusting for it gives the
+  design features their clean within-class reading; it buys their
+  interpretability at the price of its own, and the two-panel table exists
+  to keep that price visible."
+- **Trap to avoid:** do not retreat to "it's just a control, ignore it";
+  the questioner has noticed the narrative uses the number. Own the three
+  registers instead: the paper already implements the remedy (split table,
+  printed disclaimer, prediction-task framing), so the answer is "yes,
+  exactly, and here is where the paper says so."
 - **Status:** SOUND (report table partitioned into design and adjustment
-  panels with the Westreich-Greenland note, 2026-07-03; deck done).
+  panels with the Westreich-Greenland note, 2026-07-03; deck done; spoken
+  answer added 2026-07-04).
 
 ### The v2 estimand (imagery-adjusted coefficients)
 - **Anchor:** controlled direct effects require no unmeasured
