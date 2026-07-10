@@ -436,6 +436,70 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   modestly tuned benchmark run is queued to test whether the ceiling moves.
 - **Status:** FIX QUEUED (tuned benchmark sensitivity).
 
+### "Equal capture to the HIN, so what is the point?" (advisor, 2026-07-09)
+- **Attack:** "The feature-based model predicts at the same level as the
+  HIN. What is the point?"
+- **Answer:** Parity was never the finding; parity is the license. Matching
+  the HIN's capture without using the judged streets' crash history is what
+  gives the model's DIFFERENT picks equal standing, and the disagreement is
+  the finding: roughly 300 miles off the HIN that went on to record 691
+  severe crashes, worsening 17 percent against the citywide trend, which
+  the City's own 2025 update then absorbed at 2.1 times the base rate.
+  Beyond that, equal capture is not equal usefulness: (1) the model scores
+  streets with no crash history yet, including new construction, which the
+  HIN structurally cannot; (2) it is expressed in modifiable design
+  features, the only lever Texas cities hold under HB 1631, while the HIN
+  names no mechanism; (3) it is stable (79 percent between its own
+  versions) while the HIN churns (42 percent of miles survived 2022 to
+  2025); (4) "matched the HIN" is the buffered comparison; the honestly
+  frozen raw crash map collapsed to 40 percent, an 11 point gap.
+- **Spoken answer:** "Parity is the license, not the finding. Matching the
+  HIN without using the judged streets' crash history is what makes the
+  model's disagreements credible, and the disagreement is 300 miles that
+  produced 691 severe crashes and worsened 17 percent against trend. Same
+  capture, but only one of the two maps works on streets without a crash
+  history, names the design lever to pull, and stays stable between
+  editions."
+- **Status:** SOUND (all supporting numbers in the temporal holdout and
+  hin2025 reports).
+
+### "You are just inserting variables between crashes and dangerous streets" (advisor, 2026-07-09)
+- **Attack:** "If the feature-based model is determined by the crash data,
+  are you not just inserting extra variables between crashes and dangerous
+  streets?"
+- **Answer:** Concede the true part first: in v1, crashes are the only
+  ground truth, and the model is a re-representation of crash data in
+  feature space; they have to be, since crashes are the only measure of
+  danger that exists. Then three refutations. (1) The middle layer is a
+  forced compression, not bookkeeping: 9,720 crashes must be squeezed into
+  about 25 design coefficients, and the model deliberately excludes each
+  street's own crash count as a predictor (the firewall), so no street can
+  be scored by its own history. A ledger points backward; a compressed
+  theory generalizes. (2) Whether the compression learned danger or
+  laundered counts is empirical, and it was tested twice: 47 to 49 percent
+  capture on districts the model never saw, and 51 percent on future
+  crashes when frozen at 2021, while the map that IS the crash data (Gi*)
+  collapsed from 54 to 40. The 11 point prospective gap is the measured
+  value of the inserted variables, which pool each street's small-sample
+  noise across thousands of similar streets, exactly what defeats
+  regression to the mean. (3) This "insertion" is the field standard, not
+  an invention: crashes to covariates to expected crashes is the definition
+  of a safety performance function, the core object of the Highway Safety
+  Manual, and the empirical-Bayes literature exists because raw counts per
+  site are unreliable. v2 additionally brings in an information source that
+  is not crash data at all (street imagery), which improves the model
+  further.
+- **Spoken answer:** "Crashes are the only ground truth, so yes, the model
+  is trained on them. But it cannot memorize streets: ten thousand crashes
+  are compressed into two dozen design coefficients, and each street's own
+  history is excluded as a predictor. Whether that compression learned
+  danger or just laundered counts is testable, and we tested it: unseen
+  districts at 47 percent, the future at 51 percent, while the raw crash
+  map collapsed to 40. That gap is the value of the middle layer, and the
+  layer itself is what the Highway Safety Manual calls a safety performance
+  function; the field went through features for the same reason we do."
+- **Status:** SOUND.
+
 ---
 
 ## Layer 6: Divergence and equity
