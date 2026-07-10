@@ -638,6 +638,74 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 
 ---
 
+## Layer 9: External review response (run 2026-07-10)
+
+**"Your 'frozen at end-2021' table contains a map built on 2022 data."**
+- Fixed structurally, not verbally: the primary evaluation window is now 2023
+  through June 2026, which postdates every map including the HIN. On that
+  clean window the model captures 51% to the HIN's 46% (block-bootstrap CI
+  for the difference [-0, +10]; still claimed as a match per the
+  pre-registered rule). The 2022+ deployment window is retained as
+  secondary, labeled.
+- Spoken answer: "The reviewer was right that one grading year overlapped
+  the HIN's selection data, so the primary window now starts in 2023, after
+  every map. Removing the HIN's free year cost it three points; the model's
+  number did not move."
+
+**"Could a post-2021 photograph have leaked a redesign into the frozen model?"**
+- The corpus is overwhelmingly mid-2010s (median capture year 2015). 370 of
+  18,133 imagery segments (2.0%) have a median capture year after 2021;
+  masking their imagery features entirely (honest-fill) leaves temporal
+  capture unchanged, and a stricter 2019 mask moves it one point.
+- Spoken answer: "Two percent of covered segments could carry post-freeze
+  photos; withhold their imagery entirely and the result does not move."
+
+**"The imagery gain is just knowing where Mapillary coverage exists."**
+- Ablation: v1 plus ONLY the availability flags (missingness, panorama
+  share) stays at exactly v1's 47%; the extracted visual features carry the
+  full gain to 49; within the covered subset, where availability is
+  constant, v2 beats v1 61 to 64. The gain is content, not coverage.
+
+**"The overlooked streets just worsened because arterials worsened."**
+- TRUE, and now disclosed as the finding's honest shape. Set-by-period NB
+  interaction (SN-clustered): vs all other streets IRR 1.32 [1.16, 1.49]
+  (primary window), formal; vs matched off-HIN arterials/collectors, null
+  (1.02 [0.87, 1.21]). The flagged streets moved with their class.
+- Spoken answer: "Formally tested, the flagged streets worsened 32 percent
+  against the citywide trend, and moved with, not beyond, their functional
+  class. The model never claimed to forecast which arterial deviates from
+  class trend; it claims to find, from design alone and in advance, which
+  streets concentrate the deteriorating class's harm: those 302 miles carry
+  severe crashes at more than three times the average street's rate, and
+  the crash-based list missed all of them. Locating the harm is the job of
+  a screening map."
+- Note the complement: the HIN's streets improved relative to trend (0.84)
+  and Gi* streets reverted (0.61), so 'flag the whole class' is not a
+  substitute; the no-design null (context only) captures 43% to the
+  model's 51%.
+
+**"The 2.1x absorption lift has no uncertainty."**
+- Upgraded with the matched universe (other off-HIN arterials/collectors):
+  20.8% [17.1, 24.9] vs 6.6% [5.2, 8.3], lift 3.2x [2.5, 3.9], SN block
+  bootstrap, 2,000 resamples. Stronger than the old number and now formal.
+
+**"Your Texas-law claim misreads HB 1631."**
+- Verified online 2026-07-10: HB 1631 (2019) covers photographic
+  traffic-signal (red-light) enforcement only. The speed-camera prohibition
+  is separate and older: Transp. Code Sec. 542.2035 (2007, HB 922), which
+  bars municipal automated speed enforcement. Both cited; the broad claim
+  ("automated enforcement statutorily unavailable") survives with the
+  correct citations.
+
+**"Your coefficients read causal but identification is not established."**
+- Conceded and reworded throughout: Table 1 coefficients are conditional
+  associations used for prediction; the DAG governs variable roles (and the
+  operating-speed exclusion), but unmeasured pedestrian exposure and land
+  use preclude identification. The product claims (rankings, capture,
+  divergence) are prediction tasks that never required causal coefficients.
+
+---
+
 ## Parameter judgment calls (convention plus disclosed choice)
 
 | Parameter | Value | Basis |
