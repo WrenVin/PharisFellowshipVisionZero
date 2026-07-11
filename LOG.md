@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-11 — Review round 2: the strict bound and the burden-adjusted absorption both hold
+
+Second external review pass (five narrower issues). Items 1-3 executed same day on `trb-revisions`; EB run and template conversion deliberately held for later per Vincent.
+
+- **Imagery leakage, closed for good.** The reviewer correctly noted median-year masking cannot exclude a late photo inside an early-median segment. New strict bound: mask ALL 2,470 imagery segments (13.6%) with ANY post-2021 photo within the 25 m matching radius; by construction no post-freeze photograph can inform that row. Result: 49% vs HIN 46% primary (a floor, since the bound discards those segments' legitimate old imagery; 51% remains the point estimate). Paper sentence corrected from the overclaim to the bound.
+- **Predictor vintages disclosed.** New Data paragraph: OSM/HPW/TxDOT/ACS layers are June-2026 vintage; the holdout freezes crash information, not the design inventory; direction argued conservative (post-2021 projects treat known corridors); corridor change audit = future work. Also added to Limitations.
+- **Absorption survives prior-crash-burden adjustment, decisively.** Logistic within off-HIN arterials/collectors (flag + pre-2022 severe rate + length + class, SN-clustered): adjusted OR 2.50 [1.74, 3.59], p<0.0001, lift holds in every burden stratum; among ZERO-pre-2022-crash segments, flagged miles absorbed at 20% vs 6%. Upgraded from vulnerable descriptive ratio to one of the paper's strongest results.
+- **"Statistical match" language retired** (failure to reject is not equivalence; no margin was pre-specified): now "comparable performance, no evidence of underperformance" + descriptive noninferiority note. Abstract aligned with the matched-class result and trimmed to 298 words including headings. Consistency fixes: Table 2 header, "zero post-2021 information" reformulated, Gi* 54-to-39/40 aligned, "estimand"/"pure design model" rephrased predictively, references heading cleaned, internal notes stripped from the docx by the generator.
+- Solo authorship decided (2026-07-11): co-author placeholder removed, acknowledgments drafted, checklist rows 5/7 updated, advisor briefing reworded to a heads-up.
+- Draft now v1.3. Remaining: EB run (approved, queued), template conversion (queued), advisor read, PC-side image-level re-aggregation (optional refinement bounded by 49-51).
+
 ## 2026-07-10 — External review response: the clean holdout made the paper stronger, and one claim died honestly
 
 A detailed external review of the paper draft (advisor channel) flagged five substantive issues. All five were run to ground the same day on branch `trb-revisions` (new scripts `audit_imagery_ablation.py`, `audit_forward_inference.py`; `model_temporal_holdout.py` restructured). Every fix either strengthened the paper or replaced a claim with a more honest one.

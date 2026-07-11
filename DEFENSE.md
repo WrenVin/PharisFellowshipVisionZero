@@ -653,12 +653,21 @@ submission, the positioning must be checked against 2024 to 2026 literature.
   number did not move."
 
 **"Could a post-2021 photograph have leaked a redesign into the frozen model?"**
-- The corpus is overwhelmingly mid-2010s (median capture year 2015). 370 of
-  18,133 imagery segments (2.0%) have a median capture year after 2021;
-  masking their imagery features entirely (honest-fill) leaves temporal
-  capture unchanged, and a stricter 2019 mask moves it one point.
-- Spoken answer: "Two percent of covered segments could carry post-freeze
-  photos; withhold their imagery entirely and the result does not move."
+- CLOSED with a strict bound (round 2, 2026-07-11; median-year masking was
+  correctly attacked as insufficient): 2,470 imagery segments (13.6%) have
+  at least one post-2021 photo anywhere within the 25 m matching radius;
+  masking ALL of them means no post-freeze photo can inform the result by
+  construction. Capture under the bound: 49% vs HIN 46% (primary window).
+  The bound also discards those segments' legitimate old imagery, so 49 is
+  a floor and 51 the point estimate.
+- Spoken answer: "Mask every segment that has even one post-freeze photo
+  within matching range, throwing out their good old photos too, and the
+  model still beats the HIN 49 to 46. The bound is airtight by
+  construction; the exact image-level refit on the PC can only land
+  between 49 and 51."
+- Companion disclosure: design layers are current-vintage (June 2026);
+  vintages stated in Section 3, direction argued conservative (post-2021
+  projects treat known corridors), corridor change audit is future work.
 
 **"The imagery gain is just knowing where Mapillary coverage exists."**
 - Ablation: v1 plus ONLY the availability flags (missingness, panorama
@@ -688,6 +697,24 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 - Upgraded with the matched universe (other off-HIN arterials/collectors):
   20.8% [17.1, 24.9] vs 6.6% [5.2, 8.3], lift 3.2x [2.5, 3.9], SN block
   bootstrap, 2,000 resamples. Stronger than the old number and now formal.
+
+**"The 2025 HIN absorbed them because they had more crashes, not because
+of your model."**
+- Tested (round 2): logistic within off-HIN arterials/collectors,
+  absorbed ~ flag + pre-2022 severe rate + length + class, SN-clustered:
+  adjusted OR 2.50 [1.74, 3.59], p < 0.0001, and the lift holds within
+  every prior-burden stratum.
+- Spoken answer: "Among streets with ZERO pre-2022 severe crashes, the
+  City's crash-based update absorbed the model's picks at 20 percent
+  against 6 for everyone else. The update converged on design-flagged
+  streets beyond anything their crash history predicts."
+
+**"An interval spanning zero is not a statistical match."**
+- Conceded (round 2): equivalence needs a pre-specified margin; none was.
+  All "statistical match" language replaced with "comparable performance,
+  no evidence of underperformance," plus the descriptive note that the
+  lower bound would satisfy any noninferiority margin beyond one point.
+  The pre-registered win rule (interval must exclude zero) is unchanged.
 
 **"Your Texas-law claim misreads HB 1631."**
 - Verified online 2026-07-10: HB 1631 (2019) covers photographic
