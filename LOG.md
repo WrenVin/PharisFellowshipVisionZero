@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-11 (round 5) — Internal consistency pass; GBM added to the temporal table; EB formally skipped
+
+Round 5: "essentially ready for mentor review... stop revising the analysis." All items shipped; draft v1.5.
+
+- **GBM temporal row added** (reviewer: the best spatial comparator should not vanish from Table 2): untuned gradient-boosted reference, fit pre-2022, captures 53% primary / 54% deployment, above v2's 51. Reported honestly: interpretability costs about two points out of window, and even the nonlinear reference's 7-point edge over the HIN confirms the design signal. The interpretable model remains the product; coefficients are the deliverable.
+- **"Postdates every map" retired** (the roadway inventory is 2026-vintage, so only crash information postdates): now "outside every model-training and HIN-selection window" / "common held-out window" across abstract, methods, 5.4, Table 2, Figure 3 (regenerated with new title "Temporally held-out screening performance").
+- **Methods imagery-freeze sentence aligned with the actual strict bound** (was still describing median-year masking).
+- **"No-design null" renamed "context-and-exposure baseline"** with exact composition stated (offset + ADT + SES; no design, no functional class).
+- **PSN mileage description fixed** (605 = 304 shared + 301 PSN-only; 890-mile three-tier framework); **crash-density label fixed** (64/mile is all crashes, not severe); **DAG terminology settled** ("prespecified conceptual causal model", figure = "Conceptual covariate-role diagram").
+- **EB decision: formally skipped for TRB** (two reviewers say stop expanding; nobody asked for EB; the future-work paragraph with the HSM anchor is the complete defensible position; revisit only if TRR asks).
+
 ## 2026-07-11 (latest) — Review round 4: claim calibration; the paper is declared near-submission-ready
 
 Round 4 verdict: "close to submission-ready... I would not begin another large round of methodological expansion." All requested changes shipped same day; draft now v1.4.

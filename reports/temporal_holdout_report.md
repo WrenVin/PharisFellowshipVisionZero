@@ -17,8 +17,9 @@ any of these 3,328 severe crashes.
 | v2, imagery masked where median capture year >2021 | 48% | 51% |
 | v2, imagery masked where median capture year >2019 | 48% | 50% |
 | Design model v1 (fit pre-2022) | 46% | 48% |
+| Gradient-boosted reference (untuned, fit pre-2022) | 51% | 53% |
 | Gi* hotspots (pre-2022 crashes) | 37% | 39% |
-| No-design null (fit pre-2022) | 40% | 43% |
+| Context-and-exposure baseline (no design or class; fit pre-2022) | 40% | 43% |
 | Official HIN (as published; 589 mi) | | 46% |
 
 Block-bootstrap 95% interval for (model - HIN) capture at 589 mi,
@@ -38,8 +39,9 @@ the HIN's favor.
 | v2, imagery masked where median capture year >2021 | 48% | 51% |
 | v2, imagery masked where median capture year >2019 | 48% | 50% |
 | Design model v1 (fit pre-2022) | 46% | 49% |
+| Gradient-boosted reference (untuned, fit pre-2022) | 51% | 54% |
 | Gi* hotspots (pre-2022 crashes) | 38% | 40% |
-| No-design null (fit pre-2022) | 40% | 42% |
+| Context-and-exposure baseline (no design or class; fit pre-2022) | 40% | 42% |
 | Official HIN (selection overlaps 2022; 589 mi) | | 49% |
 
 Block-bootstrap 95% interval, 589 mi: v2 [-3.9,

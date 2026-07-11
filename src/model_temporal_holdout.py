@@ -224,6 +224,26 @@ def main():
                for c, X in X2m.items()}
     scoren, _ = score_from_fit(counts.n_pre, Xn, d, seg)
 
+    print("gradient-boosted temporal reference (untuned, pre-2022 fit)...")
+    from sklearn.ensemble import HistGradientBoostingRegressor
+    from model_nb import CATEGORICAL
+    feats = pd.DataFrame({
+        "lanes": d.lanes_final, "speed": d.posted_speed_mph,
+        "signals": d.n_signals, "deg": d.deg_sum, "oneway": d.oneway,
+        "log_adt": d.log_adt, "adt_missing": d.adt_missing,
+        "income": d.median_hh_income, "poverty": d.pct_poverty,
+        "zerocar": d.pct_zero_car_hh, "density": d.pop_density_sqmi,
+        "length_ft": seg.length_ft.to_numpy(),
+    })
+    for c in CATEGORICAL:
+        feats[c] = pd.Categorical(seg[c].fillna("Unknown").astype(str)).codes
+    cat_idx = [feats.columns.get_loc(c) for c in CATEGORICAL]
+    gbm = HistGradientBoostingRegressor(loss="poisson",
+                                        categorical_features=cat_idx,
+                                        random_state=42)
+    gbm.fit(feats, counts.n_pre)
+    score_gbm = np.clip(gbm.predict(feats), 1e-9, None) / (length / 5280)
+
     print("Gi* on pre-2022 crashes (ranking by z)...")
     w = w_shared_endpoint(seg)
     w.transform = "r"
@@ -242,8 +262,11 @@ def main():
             "v2, imagery masked where median capture year >2019":
                 capture(base, score2m[2019], [GI_MILES, HIN_MILES]),
             "Design model v1 (fit pre-2022)": capture(base, score1, [GI_MILES, HIN_MILES]),
+            "Gradient-boosted reference (untuned, fit pre-2022)":
+                capture(base, score_gbm, [GI_MILES, HIN_MILES]),
             "Gi* hotspots (pre-2022 crashes)": capture(base, score_gi, [GI_MILES, HIN_MILES]),
-            "No-design null (fit pre-2022)": capture(base, scoren, [GI_MILES, HIN_MILES]),
+            "Context-and-exposure baseline (no design or class; fit pre-2022)":
+                capture(base, scoren, [GI_MILES, HIN_MILES]),
         }
         cap_hin = float(n_post[on_hin].sum() / n_post.sum())
         return rows, cap_hin
