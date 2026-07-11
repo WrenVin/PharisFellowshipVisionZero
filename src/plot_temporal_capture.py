@@ -27,7 +27,8 @@ ROWS = [
     ("Design model with imagery (v2)\nfit on 2016 to 2021 only", 51, "#13385E", None),
     ("Official HIN as adopted\n(2018 to 2022 data)",             46, "#7B6FB8", 52),
     ("Design model (v1)\nfit on 2016 to 2021 only",              48, "#5B84AE", None),
-    ("No-design null\n(traffic and context only)",               43, "#9C9C9C", None),
+    ("Gradient-boosted reference (untuned)\nfit on 2016 to 2021 only", 53, "#4D4D4D", None),
+    ("Context-and-exposure baseline\n(no design or class)",      43, "#9C9C9C", None),
     ("Crash-hotspot map (Gi*)\non pre-2022 crashes",             39, "#C0392B", 54),
 ]
 
@@ -37,7 +38,7 @@ CAL_OBS = [34, 96, 119, 180, 296, 316, 489, 1070, 2028, 5092]
 
 
 def capture_fig():
-    fig, ax = plt.subplots(figsize=(9.2, 5.4))
+    fig, ax = plt.subplots(figsize=(9.2, 6.1))
     fig.patch.set_facecolor("white")
     labels = [r[0] for r in ROWS][::-1]
     vals = [r[1] for r in ROWS][::-1]
