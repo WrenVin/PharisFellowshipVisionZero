@@ -92,6 +92,50 @@ def absorption_boot(length, absorbed, in_set, universe, sn, B=BOOT, seed=42):
             "lift": obs_ps / obs_pb, "ci_lift": (q[0, 2], q[1, 2])}
 
 
+def absorption_adjusted(seg, length, n_pre, yrs_pre, absorbed, in_set,
+                        universe, sn):
+    """Does the model flag predict 2025-HIN absorption BEYOND prior crash
+    burden? The 2025 HIN is crash-based, so overlooked streets could be
+    absorbed merely for having been closer to the count-density threshold
+    (external review, 2026-07-11). Logistic within off-HIN arterials and
+    collectors: absorbed ~ flag + pre-2022 severe rate + log length +
+    class, cluster-robust by Super Neighborhood; plus a stratified table
+    by pre-2022 severe-crash count."""
+    u = universe
+    pre_rate = n_pre[u] / (length[u] / 5280) / yrs_pre
+    X = pd.DataFrame({
+        "const": 1.0,
+        "overlooked": in_set[u].astype(float),
+        "pre_rate": pre_rate,
+        "log_len": np.log(length[u]),
+        "arterial": (seg.road_class[u] == "Arterial").astype(float).to_numpy(),
+    })
+    m = sm.GLM(absorbed[u].astype(float), X,
+               family=sm.families.Binomial()).fit(
+        cov_type="cluster", cov_kwds={"groups": sn[u]})
+    b, se = m.params["overlooked"], m.bse["overlooked"]
+    res = {"or": float(np.exp(b)), "lo": float(np.exp(b - 1.96 * se)),
+           "hi": float(np.exp(b + 1.96 * se)),
+           "p": float(m.pvalues["overlooked"])}
+    print(f"[absorption-adjusted] OR {res['or']:.2f} [{res['lo']:.2f}, "
+          f"{res['hi']:.2f}], p={res['p']:.4f}")
+
+    bins = pd.cut(n_pre[u], [-0.5, 0.5, 1.5, 3.5, np.inf],
+                  labels=["0", "1", "2-3", "4+"])
+    rows = []
+    for b_ in ["0", "1", "2-3", "4+"]:
+        for grp, name in [(in_set[u], "Overlooked"), (~in_set[u], "Other")]:
+            sel = (bins == b_) & grp
+            mi = length[u][sel].sum() / 5280
+            ab = (length[u][sel] * absorbed[u][sel]).sum() / 5280
+            rows.append({"pre-2022 severe crashes": b_, "set": name,
+                         "miles": round(mi, 1),
+                         "absorbed share": round(ab / mi, 3) if mi > 0 else np.nan})
+    return res, pd.DataFrame(rows).pivot(
+        index="pre-2022 severe crashes", columns="set",
+        values=["miles", "absorbed share"])
+
+
 def main():
     seg = gpd.read_file(cfg.processed("segments_model.gpkg"), layer="segments")
     seg = seg.reset_index(drop=True)
@@ -127,6 +171,8 @@ def main():
     print("absorption bootstrap (HIN 2025)...")
     absorbed = seg.on_hin_2025.astype(bool).to_numpy()
     ab = absorption_boot(length, absorbed, off_pre, artcoll & ~on_hin, sn)
+    adj, strat = absorption_adjusted(seg, length, n_pre, yrs["pre"], absorbed,
+                                     off_pre, artcoll & ~on_hin, sn)
 
     def pctpt(x):
         return f"{100 * x:.1f}%"
@@ -166,6 +212,28 @@ miles absorbed into the 2025 HIN:
 - Overlooked set: {pctpt(ab['share_set'])} [{pctpt(ab['ci_set'][0])}, {pctpt(ab['ci_set'][1])}]
 - Other off-HIN arterials/collectors: {pctpt(ab['share_base'])} [{pctpt(ab['ci_base'][0])}, {pctpt(ab['ci_base'][1])}]
 - Lift: {ab['lift']:.2f}x [{ab['ci_lift'][0]:.2f}, {ab['ci_lift'][1]:.2f}]
+
+## Absorption conditional on prior crash burden
+
+The 2025 HIN is itself crash-based, so the raw lift could reflect the
+overlooked streets' higher pre-2022 crash burden (closer to the
+count-density threshold) rather than the model flag. Logistic model within
+off-HIN arterials and collectors, absorbed ~ overlooked flag + pre-2022
+severe rate + log length + arterial class, cluster-robust by Super
+Neighborhood:
+
+- Adjusted odds ratio for the model flag: {adj['or']:.2f}
+  [{adj['lo']:.2f}, {adj['hi']:.2f}], p = {adj['p']:.4f}
+
+Length-weighted absorption shares stratified by pre-2022 severe-crash
+count:
+
+{strat.to_markdown()}
+
+Reading: if the adjusted OR stays above 1 with the interval excluding 1,
+the City's update tracked the model flag beyond what prior crash burden
+predicts; if it attenuates toward 1, the convergence is reported as
+descriptive, not as independent validation of the design score.
 
 ## Reading
 

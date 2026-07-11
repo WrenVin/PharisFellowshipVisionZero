@@ -120,19 +120,40 @@ def score_from_fit(y, X, d, seg):
     return mu / (seg.length_ft.to_numpy() / 5280), m
 
 
-def mask_sv(sv, year_med, cutoff):
-    """Imagery-vintage sensitivity: honest-fill masking of segments whose
-    median capture year exceeds the cutoff (features zeroed = observed-subset
-    mean; sv_missing flag set), so nothing that could postdate the freeze
-    informs their scores."""
+def mask_sv(sv, late, label):
+    """Imagery-vintage sensitivity: honest-fill masking of the flagged
+    segments (features zeroed = observed-subset mean; sv_missing flag set),
+    so nothing that could postdate the freeze informs their scores."""
     out = sv.copy()
-    late = (year_med > cutoff).fillna(False).to_numpy()
+    late = np.asarray(late, dtype=bool)
     cols = [c for c in out.columns if c != "sv_missing"]
     out.loc[late, cols] = 0.0
     out.loc[late, "sv_missing"] = 1.0
-    print(f"[sv-mask] cutoff {cutoff}: masked {int(late.sum()):,} segments "
-          f"with median capture year > {cutoff}")
+    print(f"[sv-mask] {label}: masked {int(late.sum()):,} segments")
     return out
+
+
+def late_radius_flags(seg):
+    """Segments with ANY photograph captured after the freeze within the
+    25 m (82 ft) matching radius. This is a strict superset of the images
+    that could have entered a segment's aggregated features (the extraction
+    matched sample points to the nearest image within 25 m), so masking
+    these segments guarantees no post-freeze photograph informs the score.
+    External review 2026-07-11: median-year masking alone does not rule out
+    a late photo inside a pre-2021-median segment; this bound does."""
+    pts = pd.read_parquet(cfg.EXTERNAL / f"{cfg.AREA}_mapillary_points.parquet")
+    ts = pd.to_numeric(pts["captured_at"], errors="coerce")
+    cut_ms = PRE_END.tz_localize("UTC").timestamp() * 1000
+    late = pts[ts >= cut_ms]
+    g = gpd.GeoSeries(gpd.points_from_xy(late.lon, late.lat), crs=4326).to_crs(seg.crs)
+    from shapely import STRtree
+    tree = STRtree(g.values)
+    hits = tree.query(seg.geometry.buffer(82.0).values, predicate="intersects")
+    mask = np.zeros(len(seg), bool)
+    mask[np.unique(hits[0])] = True
+    print(f"[sv-radius] {len(late):,} post-freeze photos; {int(mask.sum()):,} "
+          f"segments have one within the 25 m matching radius")
+    return mask
 
 
 def topmiles(score, length_ft, miles):
@@ -181,8 +202,13 @@ def main():
     svp = pd.read_parquet(SV)
     year_med = seg[["seg_id"]].merge(
         svp[["seg_id", "sv_year_med"]], on="seg_id", how="left")["sv_year_med"]
-    X2m = {c: pd.concat([X1, mask_sv(sv, year_med, c)], axis=1)
+    radius_late = late_radius_flags(seg)
+    n_radius = int((radius_late & (sv["sv_missing"].to_numpy() == 0.0)).sum())
+    X2m = {c: pd.concat([X1, mask_sv(sv, (year_med > c).fillna(False).to_numpy(),
+                                     f"median year > {c}")], axis=1)
            for c in SV_YEAR_CUTS}
+    X2m["radius"] = pd.concat(
+        [X1, mask_sv(sv, radius_late, "any post-freeze photo within 25 m")], axis=1)
     Xn = X1[[c for c in CTX_COLS if c in X1.columns]]
 
     length = seg.length_ft.to_numpy()
@@ -209,6 +235,8 @@ def main():
         base = pd.DataFrame({"length_ft": length, "n_severe": n_post})
         rows = {
             "Design model v2 (fit pre-2022)": capture(base, score2, [GI_MILES, HIN_MILES]),
+            "v2, imagery masked: any post-freeze photo within 25 m (strict bound)":
+                capture(base, score2m["radius"], [GI_MILES, HIN_MILES]),
             "v2, imagery masked where median capture year >2021":
                 capture(base, score2m[2021], [GI_MILES, HIN_MILES]),
             "v2, imagery masked where median capture year >2019":
@@ -327,14 +355,18 @@ Block-bootstrap 95% interval, {HIN_MILES:.0f} mi: v2 [{pct(ci[('v2', 22)][0])},
 
 ## Imagery vintage (freeze integrity)
 
-The Mapillary corpus is overwhelmingly mid-2010s: median capture year 2015
-across the {n_img_seg:,} imagery segments. {late21:,} segments ({100*late21/n_img_seg:.1f}%)
-have a median capture year after 2021 and {late19:,} ({100*late19/n_img_seg:.1f}%)
-after 2019; the masked rows above withhold imagery features from those
-segments (honest-fill: features zeroed, missing flag set), so no imagery
-that could postdate the freeze informs their scores. Per-image capture
-dates for the matched-photo subset live in the extraction manifest (PC);
-segment-median masking is the conservative Mac-side bound.
+The Mapillary corpus is overwhelmingly mid-2010s (median capture year 2015
+across the {n_img_seg:,} imagery segments), but median-year masking alone
+cannot rule out a late photograph inside an early-median segment (external
+review, 2026-07-11). The strict bound: {n_radius:,} imagery segments
+({100*n_radius/n_img_seg:.1f}%) have at least one post-freeze photograph
+anywhere within the 25 m matching radius; the "strict bound" row above
+withholds imagery features from ALL of them (honest-fill). Because the
+extraction only ever matched images within 25 m, no post-freeze photograph
+can inform that row's scores, by construction. Secondary rows mask on
+median capture year ({late21:,} segments > 2021; {late19:,} > 2019).
+Image-level re-aggregation from the extraction manifest (PC) remains
+available as a refinement but cannot change the bound's conclusion.
 
 ## Forward test of the disagreement set (site consistency)
 
