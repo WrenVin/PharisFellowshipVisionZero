@@ -46,6 +46,8 @@ capture whatever the reason, and the HIN reference loses nothing.
 - Full selection: 51%
 - Value-to-value segments ineligible (12% of selection miles
   removed): 49%
+- Value-to-value segments excluded from TRAINING and selection (refit on
+  unchanged segments only): 49%
 - Value-to-value plus id-churn ineligible (35% removed): 43%
 - Adopted HIN (reference): 46%
 

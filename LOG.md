@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-11 (latest) — Review round 4: claim calibration; the paper is declared near-submission-ready
+
+Round 4 verdict: "close to submission-ready... I would not begin another large round of methodological expansion." All requested changes shipped same day; draft now v1.4.
+
+- **Train-exclusion refit (the reviewer's "best sensitivity"):** value-changed segments excluded from TRAINING as well as selection: capture still 49% vs HIN 46. The vintage attack is now closed at every level available without historical city archives.
+- **Burden-as-categories robustness:** absorption OR 2.48 [1.72, 3.57] vs 2.50 linear; spec-invariant.
+- **OSM-audit conclusion softened** ("robust to this deliberately restrictive exclusion" instead of "cannot explain"), with the unaudited layers named.
+- **DAG kept as composite with the round-4 caption fix:** retitled "Conceptual causal diagram," membership-not-causation sentence added, "not entered as a fitted variable" stated. This path (vs the round-3 restructure) keeps the pre-registration claim clean: the July 2 dag.txt predates estimation. Restructure remains a post-submission option.
+- **Limitations contradiction fixed** (coefficients = conditional predictive associations, consistently); Figure 3/4 captions and Discussion aligned with comparative language ("performed comparably", "consistent with regression to the mean"); "traffic signal" wording de-confused ("proxy for traffic activity"); "the actionable one" -> "an especially actionable complement"; abstract Methods compressed (~290 words with headings).
+- Remaining before circulation: EB run + template conversion (gated), advisor read, placeholders (ORCID, page count, advisor name).
+
 ## 2026-07-11 (later) — Review round 3: DAG rebuilt, vintage attack bounded, comparative language finalized
 
 Third review pass ("close to submission quality"; one major vulnerability: current-vintage predictors). All items executed same day; EB and template conversion still queued per Vincent.

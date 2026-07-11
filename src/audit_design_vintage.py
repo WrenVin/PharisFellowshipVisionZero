@@ -43,7 +43,7 @@ from model_nb import design_matrix, prepare
 from model_temporal_holdout import (HIN_MILES, split_counts, score_from_fit,
                                     topmiles)
 from model_v2_imagery import sv_design
-from model_validate import capture
+from model_validate import capture, fit_nb
 
 REPORTS = cfg.REPORTS
 np.random.seed(42)
@@ -178,6 +178,20 @@ def main():
     score_vc = score2.copy()
     score_vc[seg_value | seg_churn] = -np.inf
     cap_excl_vc = capture(base, score_vc, [HIN_MILES])[HIN_MILES]
+
+    # round 4's "best sensitivity": exclude value-changed segments from
+    # TRAINING as well as selection, so their post-change design cannot
+    # influence the fitted coefficients either
+    u_train = ~seg_value
+    keep = (X2.std() > 0) | (X2.columns == "const")
+    m_t = fit_nb(counts.n_pre[u_train], X2.loc[u_train, keep],
+                 d.offset[u_train])
+    params_t = m_t.params.drop("alpha", errors="ignore")
+    mu_t = np.exp(np.asarray(X2[params_t.index] @ params_t)
+                  + d.offset.to_numpy())
+    score_t = mu_t / (length / 5280)
+    score_t[seg_value] = -np.inf
+    cap_trainexcl = capture(base, score_t, [HIN_MILES])[HIN_MILES]
     hin23 = float(n_p23[on_hin].sum() / n_p23.sum())
 
     report = f"""# Design-Vintage Audit (OSM attic comparison)
@@ -228,6 +242,8 @@ capture whatever the reason, and the HIN reference loses nothing.
 - Full selection: {100*cap_full:.0f}%
 - Value-to-value segments ineligible ({100*shV_top:.0f}% of selection miles
   removed): {100*cap_excl_value:.0f}%
+- Value-to-value segments excluded from TRAINING and selection (refit on
+  unchanged segments only): {100*cap_trainexcl:.0f}%
 - Value-to-value plus id-churn ineligible ({100*(length[top & (seg_value | seg_churn)].sum()/5280/mi_top):.0f}% removed): {100*cap_excl_vc:.0f}%
 - Adopted HIN (reference): {100*hin23:.0f}%
 

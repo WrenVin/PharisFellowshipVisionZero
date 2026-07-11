@@ -120,6 +120,26 @@ def absorption_adjusted(seg, length, n_pre, yrs_pre, absorbed, in_set,
     print(f"[absorption-adjusted] OR {res['or']:.2f} [{res['lo']:.2f}, "
           f"{res['hi']:.2f}], p={res['p']:.4f}")
 
+    # robustness (review round 4): burden as categories, since threshold
+    # crossing may be nonlinear in the prior rate
+    cats = pd.cut(n_pre[u], [-0.5, 0.5, 1.5, 3.5, np.inf],
+                  labels=["0", "1", "2-3", "4+"])
+    Xc = pd.DataFrame({"const": 1.0, "overlooked": in_set[u].astype(float),
+                       "log_len": np.log(length[u]),
+                       "arterial": (seg.road_class[u] == "Arterial")
+                       .astype(float).to_numpy()})
+    for lab in ["1", "2-3", "4+"]:
+        Xc[f"pre_{lab}"] = (cats == lab).astype(float)
+    mc = sm.GLM(absorbed[u].astype(float), Xc,
+                family=sm.families.Binomial()).fit(
+        cov_type="cluster", cov_kwds={"groups": sn[u]})
+    bc, sec = mc.params["overlooked"], mc.bse["overlooked"]
+    res["or_cat"] = float(np.exp(bc))
+    res["lo_cat"] = float(np.exp(bc - 1.96 * sec))
+    res["hi_cat"] = float(np.exp(bc + 1.96 * sec))
+    print(f"[absorption-adjusted, categorical burden] OR {res['or_cat']:.2f} "
+          f"[{res['lo_cat']:.2f}, {res['hi_cat']:.2f}]")
+
     bins = pd.cut(n_pre[u], [-0.5, 0.5, 1.5, 3.5, np.inf],
                   labels=["0", "1", "2-3", "4+"])
     rows = []
@@ -224,6 +244,8 @@ Neighborhood:
 
 - Adjusted odds ratio for the model flag: {adj['or']:.2f}
   [{adj['lo']:.2f}, {adj['hi']:.2f}], p = {adj['p']:.4f}
+- Robustness, burden entered as categories (0 / 1 / 2-3 / 4+) instead of
+  a linear rate: OR {adj['or_cat']:.2f} [{adj['lo_cat']:.2f}, {adj['hi_cat']:.2f}]
 
 Length-weighted absorption shares stratified by pre-2022 severe-crash
 count:

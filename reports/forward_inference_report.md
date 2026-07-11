@@ -44,6 +44,8 @@ Neighborhood:
 
 - Adjusted odds ratio for the model flag: 2.50
   [1.74, 3.59], p = 0.0000
+- Robustness, burden entered as categories (0 / 1 / 2-3 / 4+) instead of
+  a linear rate: OR 2.48 [1.72, 3.57]
 
 Length-weighted absorption shares stratified by pre-2022 severe-crash
 count:
