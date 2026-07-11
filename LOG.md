@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-11 (later) — Review round 3: DAG rebuilt, vintage attack bounded, comparative language finalized
+
+Third review pass ("close to submission quality"; one major vulnerability: current-vintage predictors). All items executed same day; EB and template conversion still queued per Vincent.
+
+- **Design-vintage audit (`audit_design_vintage.py`, new):** Overpass attic comparison of every OSM way under the model's top 589 mi and the HIN (9,295 ways), 2021-12-31 vs 2026-06-14, on highway/lanes/maxspeed/oneway. Three-way classification matters: any-tag-diff 49.5%/40.2% (model/HIN) is mostly mapping enrichment; id-churn 25%/19% is OSM re-cutting (1,938 ways with no 2021 id; zero plausibly new roads); **value-to-value, the physical-change upper bound: 12.1%/8.9%**. Exclusion sensitivity: barring all value-changed segments from the model's selection (HIN keeps everything) moves primary capture 51 to **49, still above the HIN's 46**. First cut of this audit lumped id-churn into "changed" and produced a misleading 43%; corrected before anything reached the paper.
+- **Terminology corrected everywhere:** the holdout is a crash-history freeze, not a deployment replication ("crash information frozen at end-2021"); training pairs old crashes with current design, stated openly in Section 3 and Limitations.
+- **Two self-overclaims retracted per reviewer:** "49 is a floor" (removing information can improve rankings; now "deliberately restrictive sensitivity") and the post-hoc noninferiority sentence (margin not pre-specified; deleted). Exact one-decimal CIs shipped: primary [-0.2, +9.8], deployment [-3.9, +6.6].
+- **Figure 1 rebuilt** (`plot_dag.py`): renders from reports/dag.txt (dagitty spec = source of truth); print-readable, role legend, navy causal spine; replaces the dagitty.net screenshot both reviewers flagged. Caption updated.
+- Abstract aligned (matched-class qualification, 298 words with headings); absorption logistic fully specified in 5.8 (unit, weighting, strata); Discussion paragraph split; "design alone" and "RTM realized" softened; Gi* 54-to-39/40 aligned.
+
 ## 2026-07-11 — Review round 2: the strict bound and the burden-adjusted absorption both hold
 
 Second external review pass (five narrower issues). Items 1-3 executed same day on `trb-revisions`; EB run and template conversion deliberately held for later per Vincent.

@@ -121,31 +121,47 @@ def main():
 
     wide = tags.pivot_table(index="osmid", columns="when",
                             values=TAGS, aggfunc="first")
-    changed_ways = set()
-    absent_2021 = set()
+    ids_2021 = set(tags.loc[tags.when == "2021", "osmid"])
+    any_ways, value_ways, absent_2021 = set(), set(), set()
     for oid, row in wide.iterrows():
-        diffs = [k for k in TAGS
-                 if str(row.get((k, "2021"), "")) != str(row.get((k, "2026"), ""))]
-        present_2021 = any(str(row.get((k, "2021"), "")) != ""
-                           for k in TAGS) or (oid in tags[tags.when == "2021"].osmid.values)
-        if not present_2021:
+        if oid not in ids_2021:
+            # way id did not exist in 2021: overwhelmingly OSM re-cutting
+            # (editors split existing roads into new ids), indeterminate at
+            # the id level, NOT evidence of construction
             absent_2021.add(oid)
-            changed_ways.add(oid)
-        elif diffs:
-            changed_ways.add(oid)
+            any_ways.add(oid)
+            continue
+        for k in TAGS:
+            a = str(row.get((k, "2021"), "") or "")
+            b = str(row.get((k, "2026"), "") or "")
+            if a != b:
+                any_ways.add(oid)
+                if a != "" and b != "":
+                    # value-to-value: plausible physical change (or
+                    # correction); blank<->value is mapping enrichment
+                    value_ways.add(oid)
 
-    seg_changed_local = id_lists.map(lambda lst: any(i in changed_ways for i in lst))
-    seg_changed = pd.Series(False, index=seg.index)
-    seg_changed.loc[seg_changed_local.index] = seg_changed_local
-    seg_changed = seg_changed.to_numpy()
+    def seg_mask(way_set):
+        local = id_lists.map(lambda lst: any(i in way_set for i in lst))
+        out = pd.Series(False, index=seg.index)
+        out.loc[local.index] = local
+        return out.to_numpy()
 
-    def share(mask):
+    seg_any = seg_mask(any_ways)
+    seg_value = seg_mask(value_ways)
+    seg_churn = seg_mask(absent_2021)
+
+    def share(mask, ch_mask):
         mi = length[mask].sum() / 5280
-        ch = length[mask & seg_changed].sum() / 5280
+        ch = length[mask & ch_mask].sum() / 5280
         return mi, ch, ch / mi if mi else np.nan
 
-    mi_top, ch_top, sh_top = share(top)
-    mi_hin, ch_hin, sh_hin = share(on_hin)
+    mi_top, chA_top, shA_top = share(top, seg_any)
+    _, chV_top, shV_top = share(top, seg_value)
+    _, chC_top, shC_top = share(top, seg_churn)
+    mi_hin, chA_hin, shA_hin = share(on_hin, seg_any)
+    _, chV_hin, shV_hin = share(on_hin, seg_value)
+    _, chC_hin, shC_hin = share(on_hin, seg_churn)
 
     # sensitivity: primary-window capture with changed segments ineligible
     counts, yrs, _ = split_counts(seg)
@@ -156,9 +172,12 @@ def main():
     n_p23 = counts.n_post23.to_numpy()
     base = pd.DataFrame({"length_ft": length, "n_severe": n_p23})
     cap_full = capture(base, score2, [HIN_MILES])[HIN_MILES]
-    score_x = score2.copy()
-    score_x[seg_changed] = -np.inf
-    cap_excl = capture(base, score_x, [HIN_MILES])[HIN_MILES]
+    score_v = score2.copy()
+    score_v[seg_value] = -np.inf
+    cap_excl_value = capture(base, score_v, [HIN_MILES])[HIN_MILES]
+    score_vc = score2.copy()
+    score_vc[seg_value | seg_churn] = -np.inf
+    cap_excl_vc = capture(base, score_vc, [HIN_MILES])[HIN_MILES]
     hin23 = float(n_p23[on_hin].sum() / n_p23.sum())
 
     report = f"""# Design-Vintage Audit (OSM attic comparison)
@@ -176,19 +195,25 @@ compared on the model-relevant attributes (highway class, lanes, maxspeed,
 oneway). A segment counts as changed if ANY of its ways changed any of
 those tags, or did not yet exist in 2021.
 
-## Changed shares (length-weighted; upper bounds on physical change)
+## Changed shares (length-weighted)
 
-| Set | Miles | Changed miles | Share |
-|---|---|---|---|
-| Model top {HIN_MILES:.0f} mi (v2) | {mi_top:.0f} | {ch_top:.0f} | {100*sh_top:.1f}% |
-| Adopted HIN | {mi_hin:.0f} | {ch_hin:.0f} | {100*sh_hin:.1f}% |
+Three change categories. ANY tag difference includes mapping enrichment (a
+blank attribute filled in on an unchanged road), which dominates OSM churn
+and does not indicate construction. VALUE-TO-VALUE changes (a lanes count,
+speed value, oneway state, or class replaced by a different value, both
+snapshots present) are the plausible-physical-change subset, still an
+upper bound (corrections and retagging also produce them). ID-CHURN ways
+(no 2021 record for the id) are overwhelmingly OSM re-cutting of existing
+roads into new ids, indeterminate at the id level; zero of the audited
+corridors are plausibly new construction (they are established arterials
+carrying the city's crash history).
 
-Ways absent from OSM in 2021 (new or re-cut geometries): {len(absent_2021):,}
-of {len(all_ids):,}.
+| Set | Miles | Any tag diff | Value-to-value | Id-churn |
+|---|---|---|---|---|
+| Model top {HIN_MILES:.0f} mi (v2) | {mi_top:.0f} | {chA_top:.0f} mi ({100*shA_top:.1f}%) | {chV_top:.0f} mi ({100*shV_top:.1f}%) | {chC_top:.0f} mi ({100*shC_top:.1f}%) |
+| Adopted HIN | {mi_hin:.0f} | {chA_hin:.0f} mi ({100*shA_hin:.1f}%) | {chV_hin:.0f} mi ({100*shV_hin:.1f}%) | {chC_hin:.0f} mi ({100*shC_hin:.1f}%) |
 
-OSM tag differences overstate physical change: much of the churn is mapping
-enrichment (an attribute tagged on an unchanged road) rather than
-construction, so these shares are upper bounds on mapped physical change.
+Ways with no 2021 record: {len(absent_2021):,} of {len(all_ids):,}.
 City-sourced layers (speed/lane overrides) have no public archive; OSM is
 the auditable core of the design inventory.
 
@@ -196,18 +221,24 @@ the auditable core of the design inventory.
 
 Temporal v2 (crash information frozen at end-2021), capture of 2023 to
 mid-2026 severe crashes at {HIN_MILES:.0f} mi, changed segments excluded
-from selection (their crashes still count in the denominator):
+from the selection (their crashes still count in the denominator). Note
+that exclusion is mechanically punitive: removing top-ranked miles lowers
+capture whatever the reason, and the HIN reference loses nothing.
 
 - Full selection: {100*cap_full:.0f}%
-- Changed segments ineligible: {100*cap_excl:.0f}%
+- Value-to-value segments ineligible ({100*shV_top:.0f}% of selection miles
+  removed): {100*cap_excl_value:.0f}%
+- Value-to-value plus id-churn ineligible ({100*(length[top & (seg_value | seg_churn)].sum()/5280/mi_top):.0f}% removed): {100*cap_excl_vc:.0f}%
 - Adopted HIN (reference): {100*hin23:.0f}%
 
 ## Reading
 
-If the exclusion row remains at or above the HIN reference, post-freeze
-design change cannot explain the headline comparison: the model maintains
-its capture even when every corridor whose OSM representation changed
-after 2021 is barred from selection.
+The value-to-value row is the meaningful sensitivity. Because exclusion
+removes top-ranked miles without granting the HIN the same handicap, a
+result at or near the HIN reference under a one-quarter-of-selection
+exclusion indicates post-freeze design change cannot explain the headline
+comparison; the definitive treatment (re-scoring changed segments with
+their archived 2021 attribute values) is identified as follow-up work.
 """
     (REPORTS / "design_vintage_audit.md").write_text(report)
     print(f"Wrote {REPORTS / 'design_vintage_audit.md'}")

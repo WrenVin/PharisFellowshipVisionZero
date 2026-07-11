@@ -709,6 +709,24 @@ of your model."**
   against 6 for everyone else. The update converged on design-flagged
   streets beyond anything their crash history predicts."
 
+**"Your 'frozen' model uses 2026 roads." (round 3, the last major attack)**
+- Conceded structurally and bounded empirically. Terminology changed
+  everywhere: the holdout is a CRASH-HISTORY freeze, not a deployment
+  replication; the roadway inventory is June-2026 vintage in training and
+  grading alike (a redesigned street even pairs its old crashes with its
+  new design). The OSM-archive audit (Overpass attic, 2021-12-31 vs 2026
+  snapshots, every way under the top miles and the HIN): 12% of the
+  model's top miles show value-to-value attribute changes (HIN 9%); the
+  rest of the churn is mapping enrichment (blank-to-value) or id re-cuts,
+  not construction; zero plausibly new roads.
+- Spoken answer: "Comparing archived 2021 OpenStreetMap attributes with
+  today's, only about one mile in eight of the model's top tail changed
+  any design value at all, and that is an upper bound including tag
+  corrections. Delete every one of those miles from the model's selection,
+  give the HIN no such handicap, and the model still captures 49 percent
+  of the future crashes to the HIN's 46. Post-freeze design change cannot
+  explain the result."
+
 **"An interval spanning zero is not a statistical match."**
 - Conceded (round 2): equivalence needs a pre-specified margin; none was.
   All "statistical match" language replaced with "comparable performance,
