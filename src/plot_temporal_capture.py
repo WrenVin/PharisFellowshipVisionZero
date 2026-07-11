@@ -51,11 +51,11 @@ def capture_fig():
     for yi, dv in zip(y, dots):
         if dv is not None:
             ax.plot(dv, yi, "o", color=GOLD, markersize=9)
-            ax.annotate(f"same map graded in-sample: {dv}%",
-                        (dv, yi), textcoords="offset points", xytext=(-10, 14),
-                        ha="right", fontsize=9, color="#8a7433")
+            ax.annotate(f"in-sample: {dv}%",
+                        (dv, yi), textcoords="offset points", xytext=(9, -3.5),
+                        ha="left", fontsize=9.5, color="#8a7433")
     ax.set_yticks(y, labels, fontsize=10)
-    ax.set_xlim(0, 62)
+    ax.set_xlim(0, 68)
     ax.set_xlabel("Share of 2023 to mid-2026 severe crashes captured by each "
                   "map's top 589 miles", fontsize=10)
     ax.set_title("Temporally held-out screening performance:\n"

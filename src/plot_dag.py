@@ -34,27 +34,34 @@ for line in src.splitlines():
     if m:
         edges.append((m.group(1), m.group(3), m.group(2)))
 
-# --- deliberate layout (x, y in 0..10) --------------------------------------
+# --- layered layout (published-DAG convention: causes left, mediators
+# center, outcomes right; long edges ride dedicated top/bottom lanes).
+# Segment length (the model offset) is stated in the caption, not drawn.
 POS = {
-    "Sidewalk presence":                            (0.95, 7.0),
-    "Lanes":                                        (0.95, 5.9),
-    "Posted speed limit":                           (0.95, 4.8),
-    "Median type":                                  (0.95, 3.7),
-    "One-way operation":                            (0.95, 2.6),
-    "Signals & intersection density":               (0.95, 1.5),
-    "Road design":                                  (3.35, 4.3),
-    "Functional class (arterial / collector / local)": (1.55, 8.9),
-    "Traffic volume (ADT)":                         (4.05, 8.9),
-    "Land use":                                     (5.05, 9.6),
-    "Neighborhood income & poverty":                (6.55, 8.35),
-    "Population density":                           (8.15, 9.55),
-    "Zero-car households":                          (9.25, 8.5),
-    "Pedestrian exposure":                          (6.45, 6.2),
-    "Operating speed (85th pct)":                   (5.25, 2.7),
-    "Segment length":                               (4.65, 0.9),
-    "Severe crashes (true)":                        (7.75, 4.3),
-    "Severe crashes (recorded)":                    (9.5, 4.3),
-    "Police reporting":                             (9.3, 6.5),
+    # rank 0: exogenous context
+    "Land use":                                     (1.0, 9.3),
+    "Zero-car households":                          (1.0, 7.9),
+    "Population density":                           (1.0, 6.5),
+    "Neighborhood income & poverty":                (1.0, 5.0),
+    # rank 1: planning and exposure
+    "Functional class (arterial / collector / local)": (3.45, 8.0),
+    "Traffic volume (ADT)":                         (3.45, 5.4),
+    # rank 2: measured design features
+    "Sidewalk presence":                            (5.85, 9.0),
+    "Lanes":                                        (5.85, 8.15),
+    "Posted speed limit":                           (5.85, 7.3),
+    "Median type":                                  (5.85, 6.45),
+    "One-way operation":                            (5.85, 5.6),
+    "Signals & intersection density":               (5.85, 4.6),
+    # rank 3: composite exposure
+    "Road design":                                  (7.9, 6.4),
+    # rank 4: mediators
+    "Pedestrian exposure":                          (9.55, 9.0),
+    "Operating speed (85th pct)":                   (9.55, 3.7),
+    # rank 5: outcomes and measurement
+    "Severe crashes (true)":                        (10.85, 6.4),
+    "Police reporting":                             (12.6, 8.8),
+    "Severe crashes (recorded)":                    (13.0, 6.4),
 }
 SHORT = {"Functional class (arterial / collector / local)": "Functional class\n(arterial / collector / local)",
          "Signals & intersection density": "Signals &\nintersection density",
@@ -63,18 +70,21 @@ SHORT = {"Functional class (arterial / collector / local)": "Functional class\n(
          "Severe crashes (true)": "Severe crashes\n(true)",
          "Severe crashes (recorded)": "Severe crashes\n(recorded)"}
 
-CURVE = {  # gentle arcs for long or crossing edges
-    ("Land use", "Functional class (arterial / collector / local)"): 0.25,
-    ("Neighborhood income & poverty", "Functional class (arterial / collector / local)"): 0.35,
-    ("Land use", "Pedestrian exposure"): 0.0,
-    ("Neighborhood income & poverty", "Sidewalk presence"): 0.22,
-    ("Population density", "Traffic volume (ADT)"): -0.15,
-    ("Neighborhood income & poverty", "Severe crashes (true)"): -0.12,
-    ("Traffic volume (ADT)", "Severe crashes (true)"): -0.15,
-    ("Neighborhood income & poverty", "Police reporting"): -0.15,
-    ("Functional class (arterial / collector / local)", "Segment length"): 0.30,
-    ("Segment length", "Severe crashes (true)"): -0.15,
+CURVE = {  # long edges ride the top or bottom lane
+    ("Land use", "Pedestrian exposure"): -0.13,          # top lane
+    ("Zero-car households", "Pedestrian exposure"): -0.30,
+    ("Population density", "Pedestrian exposure"): -0.44,
+    ("Neighborhood income & poverty", "Sidewalk presence"): -0.04,
+    ("Neighborhood income & poverty", "Police reporting"): 0.34,   # bottom lane
+    ("Neighborhood income & poverty", "Severe crashes (true)"): 0.30,
+    ("Traffic volume (ADT)", "Severe crashes (true)"): 0.28,
+    ("Functional class (arterial / collector / local)", "Road design"): 0.35,
+    ("Population density", "Traffic volume (ADT)"): 0.0,
+    ("Land use", "Traffic volume (ADT)"): 0.10,
+    ("Land use", "Functional class (arterial / collector / local)"): 0.0,
+    ("Land use", "Neighborhood income & poverty"): 0.35,  # bow around the context column
 }
+SKIP = {"Segment length"}  # model offset; stated in the caption
 SPINE = {("Road design", "Severe crashes (true)"),
          ("Road design", "Operating speed (85th pct)"),
          ("Road design", "Pedestrian exposure"),
@@ -97,10 +107,10 @@ def style(name):
     return dict(fc="white", ec=NAVY, tc="#222222", ls="-", lw=1.1, bold=False)
 
 
-fig, ax = plt.subplots(figsize=(12.2, 7.4))
+fig, ax = plt.subplots(figsize=(13.6, 7.2))
 fig.patch.set_facecolor("white")
-ax.set_xlim(0, 10.4)
-ax.set_ylim(0, 10.3)
+ax.set_xlim(0, 14.1)
+ax.set_ylim(1.2, 10.2)
 ax.axis("off")
 
 anns = {}
@@ -115,6 +125,8 @@ for name, (x, y) in POS.items():
 fig.canvas.draw()
 
 for a, b, kind in edges:
+    if a in SKIP or b in SKIP:
+        continue
     spine = (a, b) in SPINE
     rad = CURVE.get((a, b), 0.0)
     arrow = FancyArrowPatch(
@@ -137,11 +149,11 @@ legend_items = [
     ("Measured design feature", "#222222", dict(fc="white", ec=NAVY)),
     ("Mediator, deliberately excluded", "#222222", dict(fc="white", ec=RED, ls="--")),
 ]
-x0, y0 = 6.55, 1.55
+x0, y0 = 7.9, 2.5
 for i, (label, tc, box) in enumerate(legend_items):
     col = i // 3
     row = i % 3
-    ax.annotate(label, (x0 + col * 2.0, y0 - row * 0.52), fontsize=9,
+    ax.annotate(label, (x0 + col * 2.6, y0 - row * 0.5), fontsize=9,
                 ha="left", va="center", color=tc, zorder=4,
                 bbox=dict(boxstyle="round,pad=0.28", lw=1.1, **box))
 
