@@ -22,8 +22,8 @@ any of these 3,328 severe crashes.
 | Official HIN (as published; 589 mi) | | 46% |
 
 Block-bootstrap 95% interval for (model - HIN) capture at 589 mi,
-500 Super Neighborhood resamples: v2 [-0%, 10%];
-v1 [-3%, 7%].
+500 Super Neighborhood resamples: v2 [-0.2, 9.8] points;
+v1 [-3.1, 7.1].
 
 ## Secondary: deployment window, 2022 through June 2026 (4.4 yrs)
 
@@ -42,8 +42,8 @@ the HIN's favor.
 | No-design null (fit pre-2022) | 40% | 42% |
 | Official HIN (selection overlaps 2022; 589 mi) | | 49% |
 
-Block-bootstrap 95% interval, 589 mi: v2 [-4%,
-7%]; v1 [-6%, 4%].
+Block-bootstrap 95% interval, 589 mi: v2 [-3.9,
+6.6] points; v1 [-6.2, 4.4].
 
 ## Imagery vintage (freeze integrity)
 

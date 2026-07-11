@@ -301,6 +301,9 @@ def main():
     def pct(x):
         return f"{100 * x:.0f}%"
 
+    def pct1(x):
+        return f"{100 * x:.1f}"
+
     def cap_rows(caps):
         return "\n".join(f"| {k} | {pct(v[GI_MILES])} | {pct(v[HIN_MILES])} |"
                          for k, v in caps.items())
@@ -336,8 +339,8 @@ any of these {int(n_p23.sum()):,} severe crashes.
 | Official HIN (as published; {hin_mi:.0f} mi) | | {pct(hin23)} |
 
 Block-bootstrap 95% interval for (model - HIN) capture at {HIN_MILES:.0f} mi,
-{BOOT} Super Neighborhood resamples: v2 [{pct(ci[('v2', 23)][0])}, {pct(ci[('v2', 23)][1])}];
-v1 [{pct(ci[('v1', 23)][0])}, {pct(ci[('v1', 23)][1])}].
+{BOOT} Super Neighborhood resamples: v2 [{pct1(ci[('v2', 23)][0])}, {pct1(ci[('v2', 23)][1])}] points;
+v1 [{pct1(ci[('v1', 23)][0])}, {pct1(ci[('v1', 23)][1])}].
 
 ## Secondary: deployment window, 2022 through {max_date:%B %Y} ({yrs['post22']:.1f} yrs)
 
@@ -350,8 +353,8 @@ the HIN's favor.
 {cap_rows(caps22)}
 | Official HIN (selection overlaps 2022; {hin_mi:.0f} mi) | | {pct(hin22)} |
 
-Block-bootstrap 95% interval, {HIN_MILES:.0f} mi: v2 [{pct(ci[('v2', 22)][0])},
-{pct(ci[('v2', 22)][1])}]; v1 [{pct(ci[('v1', 22)][0])}, {pct(ci[('v1', 22)][1])}].
+Block-bootstrap 95% interval, {HIN_MILES:.0f} mi: v2 [{pct1(ci[('v2', 22)][0])},
+{pct1(ci[('v2', 22)][1])}] points; v1 [{pct1(ci[('v1', 22)][0])}, {pct1(ci[('v1', 22)][1])}].
 
 ## Imagery vintage (freeze integrity)
 
