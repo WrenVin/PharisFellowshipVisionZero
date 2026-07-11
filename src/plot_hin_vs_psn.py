@@ -27,19 +27,22 @@ def main():
     cr = cr[(cr.severe == 1) & cr.seg_id.notna()].copy()
     cr["date"] = pd.to_datetime(cr["date"])
     post = cr[cr.date >= "2022-01-01"].groupby("seg_id").size().rename("n_post")
-    seg = seg.merge(post, on="seg_id", how="left")
+    post23 = cr[cr.date >= "2023-01-01"].groupby("seg_id").size().rename("n_post23")
+    seg = seg.merge(post, on="seg_id", how="left").merge(post23, on="seg_id", how="left")
     seg["n_post"] = seg.n_post.fillna(0)
+    seg["n_post23"] = seg.n_post23.fillna(0)
 
     hin = seg[seg.on_hin.astype(bool)]
     psn = seg[seg.psn.astype(bool)]
     tot_all, tot_post = seg.n_severe.sum(), seg.n_post.sum()
+    tot_p23 = seg.n_post23.sum()
 
     panels = [
         ("City of Houston High Injury Network",
          "Built from crash history (the 2022 network, 2018 to 2022 data)",
          hin, "#7a6fb0"),
         ("Houston Concept Proactive Safety Network",
-         "Built from street design: the validated model, no crash history used",
+         "Built from street design: the validated model, no site crash history used",
          psn, "#C0392B"),
     ]
 
@@ -51,14 +54,14 @@ def main():
         net.plot(ax=ax, color=color, linewidth=1.1, zorder=2)
         mi = net.length_ft.sum() / 5280
         cap = 100 * net.n_severe.sum() / tot_all
-        cap_p = 100 * net.n_post.sum() / tot_post
+        cap_p23 = 100 * net.n_post23.sum() / tot_p23
         ax.set_axis_off()
         ax.set_title(f"{title}\n{sub}", fontsize=15, color="#16395B",
                      fontfamily="Georgia", pad=10)
         ax.text(0.02, 0.02,
                 f"{mi:,.0f} miles\n"
-                f"{cap:.0f}% of severe crashes 2016 to 2026\n"
-                f"{cap_p:.0f}% of severe crashes 2022 to 2026",
+                f"{cap:.0f}% of severe crashes, 2016 to mid-2026\n"
+                f"{cap_p23:.0f}% of the common held-out window, 2023 to mid-2026",
                 transform=ax.transAxes, fontsize=13, va="bottom",
                 bbox=dict(facecolor="#FBF6E9", edgecolor="#C8A24B",
                           boxstyle="round,pad=0.5"))
