@@ -108,6 +108,8 @@ def absorption_adjusted(seg, length, n_pre, yrs_pre, absorbed, in_set,
         "overlooked": in_set[u].astype(float),
         "pre_rate": pre_rate,
         "log_len": np.log(length[u]),
+        "major_arterial": (seg.road_class[u] == "Major arterial")
+        .astype(float).to_numpy(),
         "arterial": (seg.road_class[u] == "Arterial").astype(float).to_numpy(),
     })
     m = sm.GLM(absorbed[u].astype(float), X,
@@ -126,6 +128,8 @@ def absorption_adjusted(seg, length, n_pre, yrs_pre, absorbed, in_set,
                   labels=["0", "1", "2-3", "4+"])
     Xc = pd.DataFrame({"const": 1.0, "overlooked": in_set[u].astype(float),
                        "log_len": np.log(length[u]),
+                       "major_arterial": (seg.road_class[u] == "Major arterial")
+                       .astype(float).to_numpy(),
                        "arterial": (seg.road_class[u] == "Arterial")
                        .astype(float).to_numpy()})
     for lab in ["1", "2-3", "4+"]:
@@ -168,7 +172,8 @@ def main():
     on_hin = seg.on_hin.astype(bool).to_numpy()
     hin_mi = length[on_hin].sum() / 5280
     sn = seg["sn"].fillna(-1).to_numpy()
-    artcoll = seg.road_class.isin(["Arterial", "Collector"]).to_numpy()
+    artcoll = seg.road_class.isin(
+        ["Major arterial", "Arterial", "Collector"]).to_numpy()
 
     print("rebuilding pre-2022 v2 score and overlooked set...")
     score2, _ = score_from_fit(counts.n_pre, X2, d, seg)

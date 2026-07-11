@@ -4,6 +4,26 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-11 (later) — Full code audit: every published number verified against the code
+
+Vincent asked for a top-to-bottom code audit of the research pipeline (dashboard excluded): "verify it actually does what we say it does." Five parallel audit agents each took a slice — statistical core, data pipeline, conflation, temporal/PSN analyses, and the one-off audit scripts — and checked every number the paper publishes against what the code actually computes.
+
+**Overall verdict: it does.** Every published number regenerates from code plus data, and the temporal holdout is crash-leakage-free (no post-2021 crash data touches fitting, Gi* construction, or selection). But the audit caught two real defects and one framing error, all fixed and rerun the same day:
+
+- **Matched-universe bug (the one that mattered):** `audit_forward_inference.py` built the "matched off-HIN arterials and collectors" comparison from road classes Arterial and Collector only — "Major arterial" fell out silently, and the logistic model carried a single arterial dummy. Restored the class and added both dummies (collector reference). Every downstream number shifted a hair, no conclusion moved: matched interaction IRR 1.02 → 0.99 [0.84, 1.16] (still null), absorption 20.8% → 19.8% vs 6.6% → 6.8%, lift 3.2 → 2.9 [2.4, 3.5], adjusted OR 2.50 → 2.4 [1.7, 3.3], zero-prior-crash stratum 20-vs-6 → 19-vs-7.
+- **Broken script:** `hin2025_passthrough.py` had rotted against the current `split_counts` API and could not run at all. Repaired and rerun; Westpark 80.6% absorbed, unchanged.
+- **Apples-to-oranges in-sample figure:** the Gi* "54 percent in-sample" was its capture at its own 546-mile FDR footprint, but every other map is graded at 589 miles. Computed the like-for-like figure: at the same 589-mile footing the pre-2022 Gi* map captures **64 percent of its own past crashes and 39 of the future** — a bigger, more honest collapse. Paper, Figure 3, poster, briefing, and explainer all now say 64-to-39 "at the same footing."
+
+**Four disclosures added to the paper** (code was fine, prose was underspecified): the FDR convention (BH on folded two-tail permutation p-values, GeoDa-style; stricter variants shrink the hotspot set to 362–434 mi but fixed-mileage comparisons are insensitive); fold preprocessing (standardization and medians computed once network-wide — a reparameterization plus negligible covariate-distribution leakage, no crash info crosses folds); crash assignment (98% snap inside the 200-ft cap, rest left unassigned; freeway filter = CRIS codes plus named-freeway check); ADT provenance ("observed 26%" = 4% direct stations plus same-named-corridor propagation; the counts-only refit carries this).
+
+**Propagation:** draft_v1.md (v1.6) edited throughout; Figure 3 regenerated (Gi* in-sample dot now 64); PAPER_EXPLAINED.md re-synced (116 quote blocks, 0 mismatches, two new blocks for the new Methods sentences); advisor briefing and URD poster rebuilt with corrected numbers; DEFENSE.md got corrected Layer 9 numbers plus a new Layer 10 recording the audit.
+
+**Fix queue (post-submission, none blocks anything):** 0.92 mi silently lost in sliver absorption (stale-snapshot bug in `clean_slivers.py`); land-use condo double-count (District C pilot only, not in the paper); stale lanes docstring; `audit_sensitivities.py` hardcoded conclusions / non-reproducible report; stale crash-report label line; ADT null-date sort hazard; seven lanes=0 segments; SES imputation flags; the "13 to 20 percent high" range not pinned to a script; masked-score forward-test row; topmiles boundary convention mismatch between two scripts. All recorded in DEFENSE.md.
+
+Also today, before the audit: review round 6 (final polish; verdict "strongest version"), the dagitty-based Figure 1 finished from Vincent's export, the tiered PSN map recolored for contrast, all seven figures wording-audited, the URD poster built from the template, and PAPER_EXPLAINED.md written (sentence-by-sentence plain-English companion to the paper's key sections).
+
+---
+
 ## 2026-07-11 (round 5) — Internal consistency pass; GBM added to the temporal table; EB formally skipped
 
 Round 5: "essentially ready for mentor review... stop revising the analysis." All items shipped; draft v1.5.

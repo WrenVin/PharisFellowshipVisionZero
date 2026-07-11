@@ -91,7 +91,8 @@ def main():
 
     # --- rebuild the pre-2022 overlooked set (exactly as the temporal test) ----
     print("refitting the pre-2022 model for the convergence test...")
-    counts, yrs_pre, yrs_post = split_counts(seg)
+    counts, yrs, _ = split_counts(seg)
+    yrs_pre, yrs_post = yrs["pre"], yrs["post22"]
     d = prepare(seg).reset_index(drop=True)
     X2 = pd.concat([design_matrix(d).reset_index(drop=True),
                     sv_design(seg, d)], axis=1)
@@ -99,7 +100,7 @@ def main():
     hin22_mi = mi["2022"]
     hi_pre = topmiles(score2, length, hin22_mi)
     off_pre = hi_pre & ~on22
-    n_post = counts.n_post.to_numpy()
+    n_post = counts.n_post22.to_numpy()
 
     # --- convergence: did the City's 2025 update absorb the overlooked set? ----
     arterial = seg.road_class.isin(["Major arterial", "Arterial", "Collector"]).to_numpy()

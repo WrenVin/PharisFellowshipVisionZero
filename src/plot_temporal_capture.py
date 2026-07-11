@@ -29,7 +29,7 @@ ROWS = [
     ("Design model (v1)\nfit on 2016 to 2021 only",              48, "#5B84AE", None),
     ("Gradient-boosted reference (untuned)\nfit on 2016 to 2021 only", 53, "#4D4D4D", None),
     ("Context-and-exposure baseline\n(no design or class)",      43, "#9C9C9C", None),
-    ("Crash-hotspot map (Gi*)\non pre-2022 crashes",             39, "#C0392B", 54),
+    ("Crash-hotspot map (Gi*)\non pre-2022 crashes",             39, "#C0392B", 64),
 ]
 
 # Pooled OOF decile calibration (validation report)
@@ -56,7 +56,7 @@ def capture_fig():
                         (dv, yi), textcoords="offset points", xytext=(9, -3.5),
                         ha="left", fontsize=9.5, color="#8a7433")
     ax.set_yticks(y, labels, fontsize=10)
-    ax.set_xlim(0, 68)
+    ax.set_xlim(0, 78)
     ax.set_xlabel("Share of 2023 to mid-2026 severe crashes captured by each "
                   "map's top 589 miles", fontsize=10)
     ax.set_title("Temporally held-out screening performance:\n"

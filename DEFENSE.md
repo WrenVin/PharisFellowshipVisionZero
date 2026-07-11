@@ -679,7 +679,9 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 - TRUE, and now disclosed as the finding's honest shape. Set-by-period NB
   interaction (SN-clustered): vs all other streets IRR 1.32 [1.16, 1.49]
   (primary window), formal; vs matched off-HIN arterials/collectors, null
-  (1.02 [0.87, 1.21]). The flagged streets moved with their class.
+  (0.99 [0.84, 1.16] primary; 0.97 [0.84, 1.14] deployment window; corrected
+  2026-07-11 after the code audit restored Major arterial to the matched
+  universe). The flagged streets moved with their class.
 - Spoken answer: "Formally tested, the flagged streets worsened 32 percent
   against the citywide trend, and moved with, not beyond, their functional
   class. The model never claimed to forecast which arterial deviates from
@@ -695,18 +697,23 @@ submission, the positioning must be checked against 2024 to 2026 literature.
 
 **"The 2.1x absorption lift has no uncertainty."**
 - Upgraded with the matched universe (other off-HIN arterials/collectors):
-  20.8% [17.1, 24.9] vs 6.6% [5.2, 8.3], lift 3.2x [2.5, 3.9], SN block
+  19.8% [16.5, 23.3] vs 6.8% [5.3, 8.5], lift 2.9x [2.4, 3.5], SN block
   bootstrap, 2,000 resamples. Stronger than the old number and now formal.
+  (Values corrected 2026-07-11: the code audit found the matched universe
+  had silently dropped Major arterial; restoring it moved the lift from
+  3.2 to 2.9 and left every conclusion intact.)
 
 **"The 2025 HIN absorbed them because they had more crashes, not because
 of your model."**
 - Tested (round 2): logistic within off-HIN arterials/collectors,
   absorbed ~ flag + pre-2022 severe rate + length + class, SN-clustered:
-  adjusted OR 2.50 [1.74, 3.59], p < 0.0001, and the lift holds within
-  every prior-burden stratum.
+  adjusted OR 2.4 [1.7, 3.3], p < 0.001 (categorical burden: 2.3
+  [1.7, 3.3]), and the lift holds within every prior-burden stratum.
+  (Corrected 2026-07-11 with the restored matched universe and both
+  functional-class dummies, collector as reference.)
 - Spoken answer: "Among streets with ZERO pre-2022 severe crashes, the
-  City's crash-based update absorbed the model's picks at 20 percent
-  against 6 for everyone else. The update converged on design-flagged
+  City's crash-based update absorbed the model's picks at 19 percent
+  against 7 for everyone else. The update converged on design-flagged
   streets beyond anything their crash history predicts."
 
 **"Your 'frozen' model uses 2026 roads." (round 3, the last major attack)**
@@ -748,6 +755,60 @@ of your model."**
   operating-speed exclusion), but unmeasured pedestrian exposure and land
   use preclude identification. The product claims (rankings, capture,
   divergence) are prediction tasks that never required causal coefficients.
+
+---
+
+## Layer 10: Full code audit (run 2026-07-11)
+
+Five parallel audit agents read every analysis script in the research
+pipeline (dashboard excluded) against every number the paper publishes.
+Overall verdict: every published number regenerates from code plus data,
+and the temporal analysis is crash-leakage-free. Two defects worth fixing
+were found and fixed the same day; both moved third-decimal-place numbers
+and neither moved a conclusion.
+
+**Fixed, with reruns:**
+- `audit_forward_inference.py` built the matched off-HIN universe from
+  road classes ["Arterial", "Collector"] and omitted "Major arterial";
+  the logistic model also carried a single arterial dummy. Restored both.
+  Downstream shifts: matched interaction IRR 1.02 to 0.99 (still null),
+  absorption 20.8 to 19.8 vs 6.6 to 6.8, lift 3.2 to 2.9, adjusted OR
+  2.50 to 2.4, zero-prior-crash stratum 20-vs-6 to 19-vs-7. Paper,
+  briefing, poster, and explainer all updated.
+- `hin2025_passthrough.py` had rotted against the current `split_counts`
+  API and could not run; repaired and rerun (Westpark 80.6 percent,
+  unchanged).
+- The Gi* in-sample reference was quoted at its 546-mile FDR footprint
+  (54 percent) but compared against maps graded at 589 miles; the
+  like-for-like in-sample figure at the same 589-mile footing is 64
+  percent. The paper now says 64-to-39 "at the same footing" everywhere.
+
+**Disclosed in the paper (no code change needed):**
+- FDR convention: BH runs on folded two-tail permutation p-values, then
+  takes the positive tail (the GeoDa convention). Stricter directional
+  variants shrink the hotspot set to 362 to 434 miles; every cross-map
+  comparison grades at fixed mileage, so comparisons are insensitive.
+  Spoken answer: "That is the standard convention, the paper discloses
+  it, and every race in the paper is run at a fixed mileage budget, so
+  the variant cannot touch a comparison."
+- Fold preprocessing: standardization constants and imputation medians
+  are computed once on the full network, not within folds. The former is
+  a reparameterization with no effect on fitted means; the latter leaks
+  only covariate distributions, negligible for medians over 66,922
+  segments. No crash information crosses folds.
+- Crash assignment: 98 percent of crashes snap inside the 200-foot cap;
+  the rest stay unassigned rather than forced. Freeway filtering uses
+  CRIS road-class and road-part codes plus a named-freeway check.
+- ADT provenance: "observed 26 percent" is 4 percent direct station
+  coverage plus same-named-corridor propagation of station values; the
+  counts-only refit is the sensitivity that carries this.
+
+**Confirmed clean (highlights):**
+- Temporal holdout: no post-2021 crash data touches model fitting, Gi*
+  construction, or selection; grading windows are exact.
+- PSN assembly, tier logic, and mileage arithmetic reproduce exactly.
+- Block bootstrap, permutation inference, and NB2 specifications match
+  the paper's descriptions.
 
 ---
 
@@ -804,6 +865,26 @@ score-mechanical; all language revised). Remaining: off-street image filter
 Tier 3, upgrades: temporal holdout COMPLETE (Layer 8). Remaining: 2048-pixel
 pano re-run plus roughly 200 labeled images (PC); citywide parcel land-use
 conflation; DAG redraw with the land-use arrow; modestly tuned benchmark.
+
+## Fix queue (from the 2026-07-11 code audit; none blocks submission)
+
+1. `clean_slivers.py` silently drops 0.92 mi during sliver absorption
+   (stale row snapshot; fix is re-reading `net.loc[sid]` before merge).
+2. Land-use conflation double-counts condo parcels (District C pilot
+   only; not used in the paper) and its report overclaims coverage.
+3. Stale lanes docstring says OSM-primary; conflation is city-primary.
+4. `audit_sensitivities.py` hardcodes conclusion sentences; committed
+   report is not template-reproducible.
+5. `crash_build_report.md` carries a stale filter-label line.
+6. ADT null-date sort hazard in station-year dedup.
+7. Seven segments carry lanes = 0; add a lanes > 0 filter or impute.
+8. SES median-imputation lacks missingness flags (~3.5 percent of rows).
+9. The "13 to 20 percent high" top-tail calibration range is not exactly
+   reproducible from any committed script; regenerate and pin it.
+10. Add the masked-score row to the forward-test table (strict imagery
+    bound applied to the overlooked-set definition).
+11. Topmiles include/exclude conventions differ between two scripts
+    (trivial, off-by-one segment at the boundary).
 
 ## Sources
 

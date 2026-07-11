@@ -26,6 +26,12 @@ Block-bootstrap 95% interval for (model - HIN) capture at 589 mi,
 500 Super Neighborhood resamples: v2 [-0.2, 9.8] points;
 v1 [-3.1, 7.1].
 
+In-sample reference at the same 589-mile footing: the pre-2022
+Gi* ranking graded on its own pre-2022 crashes captures 64%
+(the 546-mile FDR hotspot set of step 1 is a different object: 54 percent
+at 546 miles on 2016-2026 crashes); the adopted HIN graded on 2016-2026
+crashes captures 52 percent.
+
 ## Secondary: deployment window, 2022 through June 2026 (4.4 yrs)
 
 The HIN's actual deployment period. The HIN's 2018-2022 selection window
@@ -65,7 +71,8 @@ available as a refinement but cannot change the bound's conclusion.
 ## Forward test of the disagreement set (site consistency)
 
 Overlooked set = top 589 predicted-risk miles from the PRE-2022 fit,
-excluding HIN segments (no post-2021 data touched the selection). Rates are
+excluding HIN segments (no post-2021 crash data touched the selection;
+imagery vintages audited above). Rates are
 severe crashes per mile per year; `vs_city` divides each set's post/pre ratio
 by the citywide ratio, so 1.00 means the set moved with the city, above 1.00
 means it worsened relative to trend.

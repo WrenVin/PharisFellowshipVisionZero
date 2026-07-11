@@ -15,9 +15,9 @@ the comparator, and the CI/p-value test that formally.
 
 | Window and comparator | Interaction IRR | 95% CI | p |
 |---|---|---|---|
-| 2022+, vs matched off-HIN arterials/collectors | 1.00 | [0.85, 1.17] | 0.9694 |
+| 2022+, vs matched off-HIN arterials/collectors | 0.97 | [0.84, 1.14] | 0.7399 |
 | 2022+, vs all other streets | 1.19 | [1.06, 1.34] | 0.0037 |
-| 2023+, vs matched off-HIN arterials/collectors | 1.02 | [0.87, 1.21] | 0.7932 |
+| 2023+, vs matched off-HIN arterials/collectors | 0.99 | [0.84, 1.16] | 0.8580 |
 | 2023+, vs all other streets | 1.32 | [1.16, 1.49] | 0.0000 |
 
 The matched comparator (off-HIN arterials and collectors) is the honest
@@ -29,9 +29,9 @@ streets of the same functional classes that the model did NOT flag.
 Universe: off-HIN-2022 arterials and collectors. Length-weighted share of
 miles absorbed into the 2025 HIN:
 
-- Overlooked set: 20.8% [17.1%, 24.9%]
-- Other off-HIN arterials/collectors: 6.6% [5.2%, 8.3%]
-- Lift: 3.18x [2.53, 3.90]
+- Overlooked set: 19.8% [16.5%, 23.3%]
+- Other off-HIN arterials/collectors: 6.8% [5.3%, 8.5%]
+- Lift: 2.92x [2.38, 3.51]
 
 ## Absorption conditional on prior crash burden
 
@@ -42,20 +42,20 @@ off-HIN arterials and collectors, absorbed ~ overlooked flag + pre-2022
 severe rate + log length + arterial class, cluster-robust by Super
 Neighborhood:
 
-- Adjusted odds ratio for the model flag: 2.50
-  [1.74, 3.59], p = 0.0000
+- Adjusted odds ratio for the model flag: 2.37
+  [1.70, 3.32], p = 0.0000
 - Robustness, burden entered as categories (0 / 1 / 2-3 / 4+) instead of
-  a linear rate: OR 2.48 [1.72, 3.57]
+  a linear rate: OR 2.34 [1.67, 3.28]
 
 Length-weighted absorption shares stratified by pre-2022 severe-crash
 count:
 
 | pre-2022 severe crashes   |   ('miles', 'Other') |   ('miles', 'Overlooked') |   ('absorbed share', 'Other') |   ('absorbed share', 'Overlooked') |
 |:--------------------------|---------------------:|--------------------------:|------------------------------:|-----------------------------------:|
-| 0                         |                946.1 |                     185.3 |                         0.063 |                              0.203 |
-| 1                         |                 84.6 |                      39.6 |                         0.091 |                              0.217 |
-| 2-3                       |                 22.1 |                      10.6 |                         0.06  |                              0.222 |
-| 4+                        |                  1.6 |                       1.1 |                         0.17  |                              0.796 |
+| 0                         |                986.1 |                     227.4 |                         0.065 |                              0.191 |
+| 1                         |                 96.7 |                      50.1 |                         0.093 |                              0.219 |
+| 2-3                       |                 25.8 |                      15.4 |                         0.063 |                              0.242 |
+| 4+                        |                  3.1 |                       4.6 |                         0.087 |                              0.182 |
 
 Reading: if the adjusted OR stays above 1 with the interval excluding 1,
 the City's update tracked the model flag beyond what prior crash burden

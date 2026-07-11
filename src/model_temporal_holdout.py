@@ -249,6 +249,10 @@ def main():
     w.transform = "r"
     gi = G_Local(n_pre, w, star=True, permutations=99)
     score_gi = np.asarray(gi.Zs, dtype=float)
+    # like-for-like in-sample reference: the pre-2022 Gi* ranking graded on
+    # the same pre-2022 crashes that built it, at the same mileage footing
+    base_pre = pd.DataFrame({"length_ft": length, "n_severe": n_pre})
+    gi_insample = capture(base_pre, score_gi, [HIN_MILES])[HIN_MILES]
 
     # --- capture at matched mileage, both windows ------------------------------
     def cap_table(n_post):
@@ -365,6 +369,12 @@ Block-bootstrap 95% interval for (model - HIN) capture at {HIN_MILES:.0f} mi,
 {BOOT} Super Neighborhood resamples: v2 [{pct1(ci[('v2', 23)][0])}, {pct1(ci[('v2', 23)][1])}] points;
 v1 [{pct1(ci[('v1', 23)][0])}, {pct1(ci[('v1', 23)][1])}].
 
+In-sample reference at the same {HIN_MILES:.0f}-mile footing: the pre-2022
+Gi* ranking graded on its own pre-2022 crashes captures {pct(gi_insample)}
+(the 546-mile FDR hotspot set of step 1 is a different object: 54 percent
+at 546 miles on 2016-2026 crashes); the adopted HIN graded on 2016-2026
+crashes captures 52 percent.
+
 ## Secondary: deployment window, 2022 through {max_date:%B %Y} ({yrs['post22']:.1f} yrs)
 
 The HIN's actual deployment period. The HIN's 2018-2022 selection window
@@ -397,7 +407,8 @@ available as a refinement but cannot change the bound's conclusion.
 ## Forward test of the disagreement set (site consistency)
 
 Overlooked set = top {hin_mi:.0f} predicted-risk miles from the PRE-2022 fit,
-excluding HIN segments (no post-2021 data touched the selection). Rates are
+excluding HIN segments (no post-2021 crash data touched the selection;
+imagery vintages audited above). Rates are
 severe crashes per mile per year; `vs_city` divides each set's post/pre ratio
 by the citywide ratio, so 1.00 means the set moved with the city, above 1.00
 means it worsened relative to trend.
