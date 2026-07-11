@@ -53,12 +53,12 @@ def main():
 
 def tiered(seg, boundary):
     """Paper Figure 5: the PSN tiered against the adopted HIN."""
-    tiers = [
-        ("psn_and_hin", "#6e1f2e",
+    tiers = [  # maximum-separation trio (review: maroon/red/lilac too close)
+        ("psn_and_hin", "#1A1A1A",
          "On both networks: high design risk and high crash history"),
-        ("psn_only", "#C0392B",
+        ("psn_only", "#D7301F",
          "PSN only: high design risk, absent from the adopted HIN"),
-        ("hin_only", "#7a6fb0",
+        ("hin_only", "#2B6CB0",
          "HIN only: high historical harm, lower modeled design risk"),
     ]
     fig, ax = plt.subplots(figsize=(15, 13), dpi=200)
@@ -68,7 +68,8 @@ def tiered(seg, boundary):
     for key, color, label in tiers:
         sub = seg[seg.psn_tier == key]
         mi = sub.length_ft.sum() / 5280
-        sub.plot(ax=ax, color=color, linewidth=1.2, zorder=2)
+        sub.plot(ax=ax, color=color,
+                 linewidth=1.5 if key == "psn_and_hin" else 1.3, zorder=2)
         handles.append(Line2D([], [], color=color, linewidth=3,
                               label=f"{label} ({mi:,.0f} mi)"))
     handles.append(Line2D([], [], color="#e2ddce", linewidth=2,
