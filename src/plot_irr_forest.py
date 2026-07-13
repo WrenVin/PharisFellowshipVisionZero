@@ -1,8 +1,13 @@
 """Paper Figure 2: forest plot of Table 1 incidence-rate ratios.
 
-Values are Table 1 of the TRB draft (NB2, cluster-robust CIs; continuous
-effects per +1 SD). Footnote language is paper-appropriate (review round:
-the old render referenced 'the caveat slide', deck language).
+Values are Table 1 of the TRB draft (NB2, cluster-robust CIs). Design and
+exposure rows are converted from the model's per-SD scale to natural units
+(per lane, per signalized endpoint, per 5 mph, per doubling of traffic,
+per connecting leg): the linear fit is unchanged, the per-unit IRR is the
+per-SD IRR raised to unit/SD, and CI bounds convert with the same
+exponent. SDs are post-imputation on the modeled network (segments_model
+.gpkg, matching model_nb.prepare): lanes 1.0148, speed 3.7211, signals
+0.2806, deg_sum 1.1703, log_adt 0.7663. SES adjustment rows stay per +1 SD.
 
 Outputs: reports/irr_forest.png
 """
@@ -16,20 +21,20 @@ import config as cfg
 NAVY, GOLD, RED, GREY, GREEN = "#13385E", "#C9A227", "#B03A2E", "#8A8A8A", "#1E8449"
 
 ROWS = [  # label, irr, lo, hi, color
-    ("Major arterial (vs local street)", 2.88, 2.19, 3.79, RED),
-    ("Arterial (vs local street)",       2.56, 1.99, 3.29, RED),
-    ("Collector (vs local street)",      2.37, 1.90, 2.97, RED),
-    ("Sidewalk both sides *",            1.71, 1.47, 1.99, GOLD),
-    ("Sidewalk partial *",               1.54, 1.40, 1.70, GOLD),
-    ("Sidewalk one side *",              1.37, 1.24, 1.53, GOLD),
-    ("Intersection connectivity (+1 SD)", 1.22, 1.16, 1.29, NAVY),
-    ("Lanes (+1 SD)",                    1.21, 1.16, 1.27, NAVY),
-    ("Signals (+1 SD)",                  1.16, 1.13, 1.19, NAVY),
-    ("Traffic volume (+1 SD)",           1.16, 1.09, 1.23, GREY),
-    ("Neighborhood poverty (+1 SD)",     1.11, 1.05, 1.16, GREY),
-    ("Posted speed (+1 SD)",             1.10, 1.05, 1.16, NAVY),
-    ("Median income (+1 SD)",            0.81, 0.75, 0.88, GREY),
-    ("One-way street",                   0.74, 0.60, 0.92, GREEN),
+    ("Major arterial (vs local street)",   2.88, 2.19, 3.79, RED),
+    ("Arterial (vs local street)",         2.56, 1.99, 3.29, RED),
+    ("Collector (vs local street)",        2.37, 1.90, 2.97, RED),
+    ("Sidewalk both sides *",              1.71, 1.47, 1.99, GOLD),
+    ("Sidewalk partial *",                 1.54, 1.40, 1.70, GOLD),
+    ("Sidewalk one side *",                1.37, 1.24, 1.53, GOLD),
+    ("Signal (per signalized endpoint)",   1.70, 1.55, 1.86, NAVY),
+    ("Lanes (per added lane)",             1.21, 1.16, 1.27, NAVY),
+    ("Connectivity (per connecting leg)",  1.19, 1.14, 1.24, NAVY),
+    ("Posted speed (per +5 mph)",          1.14, 1.07, 1.22, NAVY),
+    ("Traffic volume (per doubling)",      1.14, 1.08, 1.21, GREY),
+    ("Neighborhood poverty (+1 SD)",       1.11, 1.05, 1.16, GREY),
+    ("Median income (+1 SD)",              0.81, 0.75, 0.88, GREY),
+    ("One-way street",                     0.74, 0.60, 0.92, GREEN),
 ]
 
 fig, ax = plt.subplots(figsize=(9.6, 6.4))
@@ -53,7 +58,9 @@ fig.text(0.13, 0.015,
          "* pedestrian-exposure proxy (sidewalks mark where people walk), "
          "not a design harm (Section 5.6). Grey and red rows are adjustment\n"
          "covariates (Table 1, Panel B) with no causal reading; all rows are "
-         "conditional associations used for prediction.",
+         "conditional associations used for prediction. Continuous effects\n"
+         "are converted from the fitted per-SD coefficients (Table 1) to the "
+         "natural units shown; the model itself is unchanged.",
          fontsize=8.5, style="italic", color="#444444")
 fig.tight_layout(rect=(0, 0.05, 1, 1))
 out = cfg.REPORTS / "irr_forest.png"

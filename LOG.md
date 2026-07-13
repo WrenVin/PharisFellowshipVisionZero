@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-13 — Figure 2 forest plot converted to natural units
+
+Vincent caught that "+1 SD of signals" describes no real street: n_signals only takes 0, 1, or 2, and with SD 0.28 a single signalized end is a +3.6 SD move. Fix: the forest plot now shows continuous design effects in engineer-readable units — per signalized endpoint (x1.70), per added lane (x1.21), per connecting leg (x1.19), per +5 mph (x1.14), per doubling of traffic (x1.14) — converted by raising each per-SD IRR (and its CI bounds) to the power unit/SD, using post-imputation SDs from the modeled network. Pure relabeling: no refit, no pipeline re-run, Table 1 keeps the per-SD scale (header already declares it), SES adjustment rows stay per-SD. Figure 2 caption in the paper documents the conversion. A truly categorical signals coding (dummies for 1 and 2 ends, testing the equal-step assumption) is queued as a post-submission sensitivity.
+
+---
+
 ## 2026-07-11 (later) — Full code audit: every published number verified against the code
 
 Vincent asked for a top-to-bottom code audit of the research pipeline (dashboard excluded): "verify it actually does what we say it does." Five parallel audit agents each took a slice — statistical core, data pipeline, conflation, temporal/PSN analyses, and the one-off audit scripts — and checked every number the paper publishes against what the code actually computes.
