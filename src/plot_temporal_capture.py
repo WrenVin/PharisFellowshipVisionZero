@@ -2,7 +2,8 @@
 
 fig_temporal_capture.png: prospective capture bars on the PRIMARY common
 holdout (2023 through June 2026, postdating every map including the HIN),
-with gold dots marking the same crash-based maps graded in-sample, showing
+with gold dots marking each crash-based map graded on its own selection-
+window crashes (HIN: 2018-2022; Gi*: pre-2022), showing
 the regression-to-the-mean fall the design model does not experience.
 
 fig_calibration.png: pooled out-of-fold decile calibration (district-blocked
@@ -25,7 +26,7 @@ NAVY, GOLD, CREAM = "#13385E", "#C5A55A", "#FDF9EE"
 # Primary common holdout (2023 through June 2026), top 589 mi
 ROWS = [
     ("Design model with imagery (v2)\nfit on 2016 to 2021 only", 51, "#13385E", None),
-    ("Official HIN as adopted\n(2018 to 2022 data)",             46, "#7B6FB8", 52),
+    ("Official HIN as adopted\n(2018 to 2022 data)",             46, "#7B6FB8", 59),
     ("Design model (v1)\nfit on 2016 to 2021 only",              48, "#5B84AE", None),
     ("Gradient-boosted reference (untuned)\nfit on 2016 to 2021 only", 53, "#4D4D4D", None),
     ("Context-and-exposure baseline\n(no design or class)",      43, "#9C9C9C", None),

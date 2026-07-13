@@ -94,6 +94,8 @@ def split_counts(seg):
         "n_post23":   (cr.date >= PRIMARY_START),
         "n_pre_1619": (cr.date < "2020-01-01"),
         "n_pre_1821": (cr.date >= "2018-01-01") & (cr.date < PRE_END),
+        # the adopted HIN's own selection window (2018-2022 crash data)
+        "n_hin_sel":  (cr.date >= "2018-01-01") & (cr.date < "2023-01-01"),
     }
     out = seg[["seg_id"]].copy()
     for col, mask in windows.items():
@@ -253,6 +255,10 @@ def main():
     # the same pre-2022 crashes that built it, at the same mileage footing
     base_pre = pd.DataFrame({"length_ft": length, "n_severe": n_pre})
     gi_insample = capture(base_pre, score_gi, [HIN_MILES])[HIN_MILES]
+    # the HIN's own in-sample reference: graded on its 2018-2022 selection
+    # window, not the full 2016-2026 period (external review round 7)
+    n_hin_sel = counts.n_hin_sel.to_numpy()
+    hin_insample = float(n_hin_sel[on_hin].sum() / n_hin_sel.sum())
 
     # --- capture at matched mileage, both windows ------------------------------
     def cap_table(n_post):
@@ -369,11 +375,11 @@ Block-bootstrap 95% interval for (model - HIN) capture at {HIN_MILES:.0f} mi,
 {BOOT} Super Neighborhood resamples: v2 [{pct1(ci[('v2', 23)][0])}, {pct1(ci[('v2', 23)][1])}] points;
 v1 [{pct1(ci[('v1', 23)][0])}, {pct1(ci[('v1', 23)][1])}].
 
-In-sample reference at the same {HIN_MILES:.0f}-mile footing: the pre-2022
-Gi* ranking graded on its own pre-2022 crashes captures {pct(gi_insample)}
-(the 546-mile FDR hotspot set of step 1 is a different object: 54 percent
-at 546 miles on 2016-2026 crashes); the adopted HIN graded on 2016-2026
-crashes captures 52 percent.
+In-sample references, each map graded on the crashes that built it: the
+pre-2022 Gi* ranking on its own pre-2022 crashes captures {pct(gi_insample)}
+at the {HIN_MILES:.0f}-mile footing (the 546-mile FDR hotspot set of step 1
+is a different object: 54 percent at 546 miles on 2016-2026 crashes); the
+adopted HIN on its own 2018-2022 selection window captures {pct(hin_insample)}.
 
 ## Secondary: deployment window, 2022 through {max_date:%B %Y} ({yrs['post22']:.1f} yrs)
 

@@ -812,6 +812,49 @@ and neither moved a conclusion.
 
 ---
 
+## Layer 11: External review round 7 (run 2026-07-13)
+
+**"Two sets of numbers for the same analysis" (Table 4 note).**
+- The audit propagation missed the note under Table 4, which still carried
+  the pre-audit values (6.6 / 20.8 / 3.2x). Fixed to 6.8 (5.3 to 8.5) /
+  19.8 (16.5 to 23.3) / 2.9x (2.4 to 3.5). This was the round's only
+  submission-blocking item.
+
+**"The HIN gold dot is not an in-sample number."**
+- Conceded and upgraded: the dot had been the HIN's capture on 2016-2026
+  crashes (52 percent), which is neither in-sample nor held-out. Computed
+  the true in-sample figure on the HIN's own 2018-2022 selection window:
+  59 percent. Figure 3, Table 2 note, and the report now grade each
+  crash-based map on the crashes that built it (HIN 59 to 46; Gi* 64 to
+  39). The HIN's own 13-point fade strengthens the regression-to-the-mean
+  argument, with corridor aggregation still visibly buffering it relative
+  to raw Gi*.
+- Spoken answer: "Graded on the window that built it, the City's HIN
+  captures 59 percent; on crashes after every map was locked, 46. The
+  crash-pile map falls 64 to 39 on the same footing. Selection on
+  observed counts fades; the design model, which never saw the judged
+  streets' crash history, has no in-sample number to fall from."
+
+**"Why didn't the best-performing model generate the network?"**
+- Added the missing sentence after the GBM result: the NB specification
+  remains primary for interpretable feature associations and a
+  transparent, auditable scoring rule; gradient boosting is retained as a
+  nonlinear performance benchmark.
+
+**"'Leaks' invites an easy attack" (fold preprocessing).**
+- Language neutralized per reviewer text: medians are computed on the
+  fixed deployment network without using crash outcomes; a fully
+  inductive implementation would estimate them within each training fold.
+  Fold-wise imputation is a queued sensitivity, not a rerun.
+
+**Minor:** abstract now says "automated speed and red-light enforcement"
+(297 words, under the cap); Figure 4 caption says "temporally held-out
+crashes"; Figure 3 caption names "the principal Table 2 comparators"
+(the strict imagery bound is a sensitivity row, not a separate approach);
+Total pages set to 17 on the title page.
+
+---
+
 ## Parameter judgment calls (convention plus disclosed choice)
 
 | Parameter | Value | Basis |
@@ -888,6 +931,9 @@ conflation; DAG redraw with the land-use arrow; modestly tuned benchmark.
 12. Signals as categorical dummies (1 end, 2 ends) instead of linear
     count: tests the equal-step assumption behind the per-endpoint
     conversion in Figure 2 (added 2026-07-13).
+13. Fold-wise imputation medians in the spatial cross-validation, the
+    fully inductive implementation the paper now names (added
+    2026-07-13, review round 7).
 
 ## Sources
 

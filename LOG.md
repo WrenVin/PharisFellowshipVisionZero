@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-13 (later) — Review round 7: the HIN gets an honest in-sample number
+
+Round 7 verdict: "stronger and more technically careful"; one submission-blocking error. That error was mine: the code-audit propagation updated Section 5.8 but missed the note under Table 4, which still showed the pre-audit absorption numbers. Fixed (6.8 / 19.8 / 2.9x with CIs).
+
+The substantive upgrade: the reviewer caught that Figure 3's HIN gold dot ("in-sample: 52%") was the HIN graded on 2016-2026 crashes — neither in-sample nor held-out, just the full period. Computed the real thing: on its own 2018-2022 selection window the HIN captures **59 percent**. So the honest in-sample story is now symmetrical — each crash-based map graded on the crashes that built it: HIN 59 falling to 46, Gi* 64 falling to 39. The HIN's own 13-point fade is new evidence for the regression-to-the-mean argument (and corridor aggregation still visibly buffers it: 13 points vs Gi*'s 25). Added `n_hin_sel` window to model_temporal_holdout.py; report and figure regenerated; poster re-embedded.
+
+Also this round: the "why isn't the GBM the product" sentence (NB stays primary for interpretability and auditability; GBM retained as benchmark); fold-imputation language neutralized ("computed on the fixed deployment network without using crash outcomes" — the word "leaks" was a free target); abstract specifies "automated speed and red-light enforcement" (297 words); Figure 3 caption scoped to "principal Table 2 comparators"; Figure 4 caption "temporally held-out crashes"; Total pages: 17. Fold-wise medians queued as sensitivity #13. Remaining placeholders are Vincent's: adviser name/title, acknowledgment approval.
+
+---
+
 ## 2026-07-13 — Figure 2 forest plot converted to natural units
 
 Vincent caught that "+1 SD of signals" describes no real street: n_signals only takes 0, 1, or 2, and with SD 0.28 a single signalized end is a +3.6 SD move. Fix: the forest plot now shows continuous design effects in engineer-readable units — per signalized endpoint (x1.70), per added lane (x1.21), per connecting leg (x1.19), per +5 mph (x1.14), per doubling of traffic (x1.14) — converted by raising each per-SD IRR (and its CI bounds) to the power unit/SD, using post-imputation SDs from the modeled network. Pure relabeling: no refit, no pipeline re-run, Table 1 keeps the per-SD scale (header already declares it), SES adjustment rows stay per-SD. Figure 2 caption in the paper documents the conversion. A truly categorical signals coding (dummies for 1 and 2 ends, testing the equal-step assumption) is queued as a post-submission sensitivity.
