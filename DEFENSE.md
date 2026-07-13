@@ -885,6 +885,9 @@ conflation; DAG redraw with the land-use arrow; modestly tuned benchmark.
     bound applied to the overlooked-set definition).
 11. Topmiles include/exclude conventions differ between two scripts
     (trivial, off-by-one segment at the boundary).
+12. Signals as categorical dummies (1 end, 2 ends) instead of linear
+    count: tests the equal-step assumption behind the per-endpoint
+    conversion in Figure 2 (added 2026-07-13).
 
 ## Sources
 
