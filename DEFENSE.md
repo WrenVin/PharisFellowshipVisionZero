@@ -853,6 +853,14 @@ crashes"; Figure 3 caption names "the principal Table 2 comparators"
 (the strict imagery bound is a sensitivity row, not a separate approach);
 Total pages set to 17 on the title page.
 
+**Round 8 (2026-07-13): cleared.** Verdict "ready for adviser
+circulation; stop revising the manuscript." Final alignments: abstract
+PSN sentence matched to 5.7's framework distinction, "39 percent"
+repeated unit, selection-window sentence rephrased, "prespecified"
+standardized. Abstract at exactly 300 words. Manuscript revision closed;
+remaining placeholders are the adviser name/title and acknowledgment
+approval.
+
 ---
 
 ## Parameter judgment calls (convention plus disclosed choice)

@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-13 (evening) — Round 8: cleared for adviser circulation
+
+Round 8 verdict: "V10 is ready for adviser circulation... After those changes, I would stop revising the manuscript itself." Four tiny edits, all applied: the abstract now says the PSN is delivered "within a three-tier combined screening framework" (aligning with 5.7's careful 605-mile-PSN vs 890-mile-combined distinction); "to 39 percent at the same footing" (repeated unit); "the HIN's 2018 to 2022 selection window closes before the grading window opens" (was "selection data closes before it opens"); and "prespecified" standardized throughout (two "pre-specified" stragglers).
+
+The abstract now sits at exactly 300 words - at the cap, zero margin. Any future abstract edit has to be word-neutral or trade something out.
+
+Manuscript revision is now formally closed per reviewer advice. Remaining before circulation, both Vincent's: adviser name and title, and the acknowledgment approval note. After his adviser reads it: TRB template conversion (Task #10 checklist: line numbers, sentence-case references with diacritics, larger DAG/map labels, verify the page count).
+
+---
+
 ## 2026-07-13 (later) — Review round 7: the HIN gets an honest in-sample number
 
 Round 7 verdict: "stronger and more technically careful"; one submission-blocking error. That error was mine: the code-audit propagation updated Section 5.8 but missed the note under Table 4, which still showed the pre-audit absorption numbers. Fixed (6.8 / 19.8 / 2.9x with CIs).
