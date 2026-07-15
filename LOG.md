@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-13 (night) — Semicolon pass: the paper learns to breathe
+
+Vincent flagged the draft's semicolon density: "a human needs to be able to read this and follow along. A lot of semicolons at once sounds like ai." He was right. Measured: 133 semicolons in 7,075 body words, 18.8 per 1,000 — two to three times typical academic prose. Causes, honestly: the no-em-dash voice rule silently rerouted every dash into a semicolon; review rounds kept bolting qualifications onto sentences with semicolons; and the results prose legitimately needs some for stat enumerations.
+
+The pass: 63 clause-joining semicolons split into plain sentences across every section (abstract, intro, background, data, methods, results, discussion, conclusion, captions, back matter). Kept, per Vincent's instruction, the legitimate uses: serial lists with internal commas (predictor vintages, IRR enumeration, diagnostics, the Table 2 capture list, acknowledgments), parallel stat pairs (interaction contrasts, in-sample references), citation groups, compact parenthetical stats, and two deliberate rhetorical balances. Final density: 57 semicolons, 8.0 per 1,000 — top of the normal academic range, and nearly all enumeration.
+
+No numbers, claims, or citations changed. Abstract still exactly 300 words (all abstract splits were word-neutral). PAPER_EXPLAINED.md re-synced: 50 quote blocks re-healed (42 auto-matched by anchor, 8 by hand), 118 quotes verify with 0 mismatches. Docx rebuilt.
+
+---
+
 ## 2026-07-13 (evening) — Round 8: cleared for adviser circulation
 
 Round 8 verdict: "V10 is ready for adviser circulation... After those changes, I would stop revising the manuscript itself." Four tiny edits, all applied: the abstract now says the PSN is delivered "within a three-tier combined screening framework" (aligning with 5.7's careful 605-mile-PSN vs 890-mile-combined distinction); "to 39 percent at the same footing" (repeated unit); "the HIN's 2018 to 2022 selection window closes before the grading window opens" (was "selection data closes before it opens"); and "prespecified" standardized throughout (two "pre-specified" stragglers).
