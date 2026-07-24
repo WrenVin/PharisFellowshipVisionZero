@@ -4,6 +4,19 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-24 — Community presentation figures
+
+Switched gears to the community presentation. New script (Presentations/build_community_figs.py, kept out of the repo with the other presentation assets) generates four community-audience figures in Presentations/community/, all following the plain-English-labels rule:
+
+- **community_capture.png** — the headline result reduced from six bars to three ("The design-based map / The City's current map / A simple crash-hotspot map"), each with a plain parenthetical, and the regression-to-the-mean fade told with one gold arrow (64% on the past, 39% on the future).
+- **community_effects.png** — the forest plot rebuilt for residents: six design features in natural units with no jargon ("Being a big multi-lane main road, like Westheimer"; "Each traffic light"; "26% lower" for one-way streets), bars growing from the 1x line, uncertainty and SES rows deferred to the paper.
+- **community_timeline.png** — the temporal validation as a LEARN / FREEZE / TEST timeline ("time-machine test"), with the set-aside year shown and scores in the footer.
+- **community_districts.png** — leave-one-district-out as a tile diagram: eleven lettered district tiles, one lifted out in red over a dashed "?", four numbered steps, and the near-twins rationale in the footer.
+
+Also this session: intro and abstract rewritten per advisor round (funnel structure, network screening defined, crash-data framing honest, no 2025 HIN anywhere), Background trimmed to match, title chosen without a colon, and the signals coding question closed with the categorical refit (AIC within the equivalence band, BIC favors linear, prespecified coding stands).
+
+---
+
 ## 2026-07-13 (night) — Semicolon pass: the paper learns to breathe
 
 Vincent flagged the draft's semicolon density: "a human needs to be able to read this and follow along. A lot of semicolons at once sounds like ai." He was right. Measured: 133 semicolons in 7,075 body words, 18.8 per 1,000 — two to three times typical academic prose. Causes, honestly: the no-em-dash voice rule silently rerouted every dash into a semicolon; review rounds kept bolting qualifications onto sentences with semicolons; and the results prose legitimately needs some for stat enumerations.
