@@ -853,6 +853,29 @@ crashes"; Figure 3 caption names "the principal Table 2 comparators"
 (the strict imagery bound is a sensitivity row, not a separate approach);
 Total pages set to 17 on the title page.
 
+
+**"If 2022 is excluded from the primary test, why not include it in training?"**
+- The exclusion is conservative against the model: the adopted HIN was
+  built on 2018-2022 data and saw 2022's crashes; the models freeze at
+  end-2021. The HIN keeps a one-year information advantage and the model
+  performs comparably anyway. Extending training through 2022 would erase
+  the HIN's advantage on the model's behalf and invite the charge that
+  the freeze was tuned to the result.
+- The end-2021 freeze was prespecified before results; the later change
+  of grading window (2022+ to 2023+) repaired a validity flaw a reviewer
+  identified, which is a correction, not an optimization. Moving the
+  training window is the reverse.
+- The secondary deployment window (2022-2026) requires the freeze: models
+  trained on 2022 would be contaminated for it. One freeze also keeps the
+  Gi* comparator and the regression-to-the-mean demonstration on the same
+  footing.
+- Training-window sensitivities (2016-2019; 2018-2021) both hold at 48
+  percent, so one more year would almost certainly not move the result.
+- Spoken answer: "The City's map saw 2022; ours did not. We kept the
+  handicap and matched them anyway. Extending our training to erase their
+  advantage would have made the comparison easier for us and less
+  credible for everyone."
+
 **Round 8 (2026-07-13): cleared.** Verdict "ready for adviser
 circulation; stop revising the manuscript." Final alignments: abstract
 PSN sentence matched to 5.7's framework distinction, "39 percent"
