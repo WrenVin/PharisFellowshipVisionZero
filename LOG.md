@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-26 (night) — The DAG is cut: draft v2.1, 20 pages
+
+Vincent asked for my honest opinion on the DAG, page count aside. The answer had changed shape since the advisor first said cut: the figure argues against the paper's own position. A DAG is causal-identification machinery inside a paper that three times disclaims causal identification, and its seventeen nodes were an audit surface defending zero claims the paper makes. After the blended rewrite, its three real jobs (speed as mediator, covariate roles, unmeasured exposure) were already plain prose. He said cut it.
+
+Former Figure 1 is out; Pearl and Textor left the references with it; Figures 2 through 5 renumbered 1 through 4; the covariate-role sentence now points at the repository, where the dagitty specification stays for anyone who asks. The DAG survives where it belongs: the repo, the talks, the community materials.
+
+Draft v2.1 stands at 20 pages at 12 point, exactly at the TRB cap. Remaining before circulation: adviser name and acknowledgment approval (Vincent's), the title decision, and the PAPER_EXPLAINED rebuild.
+
+---
+
 ## 2026-07-26 (late) — Consolidation: draft v2.0, one voice, no 2025 HIN
 
 Everything merged into the main document. The blended plain-register rewrite now runs from Methods through the Conclusion (facts dense, meaning plain: hides entire council districts, freezes the clock, the win-rule paragraph a person can read aloud). Section 5.8 is gone at Vincent's direction, with Table 4, Figure 6, the vintage-churn leg, and the Conclusion's absorption clause; RQ2 now rests on the forward test alone, closing with the human number (574 killed or seriously injured on the overlooked miles in the held-out window). The judged-streets framing is retired everywhere, replaced by scoring-on-design phrasing. Figure 4's false outward-redistribution claim died today too, killed by a one-line distance check (PSN-only additions: median 9.1 miles from downtown, identical to the shared miles) after Vincent caught it by simply looking at the figure. Paper is 21 pages at 12pt, one under the cap. PAPER_EXPLAINED.md is now deeply stale and needs a full rebuild against v2.0.
