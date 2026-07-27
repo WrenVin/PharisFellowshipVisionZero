@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-26 (late) — Consolidation: draft v2.0, one voice, no 2025 HIN
+
+Everything merged into the main document. The blended plain-register rewrite now runs from Methods through the Conclusion (facts dense, meaning plain: hides entire council districts, freezes the clock, the win-rule paragraph a person can read aloud). Section 5.8 is gone at Vincent's direction, with Table 4, Figure 6, the vintage-churn leg, and the Conclusion's absorption clause; RQ2 now rests on the forward test alone, closing with the human number (574 killed or seriously injured on the overlooked miles in the held-out window). The judged-streets framing is retired everywhere, replaced by scoring-on-design phrasing. Figure 4's false outward-redistribution claim died today too, killed by a one-line distance check (PSN-only additions: median 9.1 miles from downtown, identical to the shared miles) after Vincent caught it by simply looking at the figure. Paper is 21 pages at 12pt, one under the cap. PAPER_EXPLAINED.md is now deeply stale and needs a full rebuild against v2.0.
+
+---
+
 ## 2026-07-26 — Deployment window excised; Vincent's condensation absorbed
 
 Working from Vincent's docx as canon now (the generator writes draft_v1_generated.docx and can never touch his file again, after I clobbered his working copy once — lesson recorded). Today: absorbed his twelve condensation edits (KSI spelled out, coverage-assessment phrase cut, Caldas/Pearl/Textor cites trimmed, project-log sentence out, Figure 1 caption leaned, the five-imagery-features sentence adopted, PSN expanded at first use, compressed 5.2 with "rise at every step" replacing "monotonically", prespecified language removed, (v2) clarified in 5.4).

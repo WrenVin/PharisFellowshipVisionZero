@@ -812,6 +812,15 @@ and neither moved a conclusion.
 
 ---
 
+**PAPER STATE NOTE (2026-07-26, draft v2.0):** Section 5.8, Table 4, and
+Figure 6 are REMOVED from the manuscript at Vincent's direction, along
+with the vintage-churn instability leg and every 2025-HIN mention. The
+absorption results in Layers 9 through 11 remain valid analysis and are
+retained here for Q&A, but they are no longer paper claims. If asked
+about the 2025 update at a podium, the honest answer is that the
+analysis exists, was reviewed, and was excluded from the paper by
+choice; do not present it as a finding of the paper.
+
 ## Layer 11: External review round 7 (run 2026-07-13)
 
 **"Two sets of numbers for the same analysis" (Table 4 note).**
