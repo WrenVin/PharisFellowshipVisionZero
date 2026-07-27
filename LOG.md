@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-26 (v2.1) — Full citation audit: every source verified against the real world
+
+Vincent asked for the check he was most worried about: is every source real, and does it say what the paper says it says. Four parallel verification agents worked all 33 references — existence, bibliographic details, DOI resolution, and claim support against abstracts and full texts. Verdict: zero fabricated sources, and the paper's load-bearing attributions held (Cheng and Washington really coined the site consistency test; Houston's Action 2.3 matches our quote verbatim from the City's own PDF; HB 922 confirmed as the source of Transportation Code 542.2035 in the enrolled bill text).
+
+Eight fixes from the audit, all applied: Khattak's second author is Hans (not Bram) De Backer and the title gains its subtitle; the Taylor 2024 citation loses the "documented inequities" clause, which its abstract contradicts (the study found under-ascertainment consistent ACROSS subpopulations); Costa et al. 2024 is REMOVED entirely, since it uses accident records plus volunteered geographic information and no imagery at all, making our "crash-site imagery in a Berlin cycling severity model" description a conflation (verified twice, agent and lead); the Houston GIS citation is retitled as the two real layers; Vision Zero Network dated 2018 with the San Francisco origin corrected to the 2013 WalkFirst analysis before 2014 Vision Zero adoption; the Yue "strongest finding" superlative softened to "central vehicle-count finding"; Hernán regains its accent; the Ren entry gains its volume and pages. References now 33.
+
+---
+
 ## 2026-07-26 (night) — The DAG is cut: draft v2.1, 20 pages
 
 Vincent asked for my honest opinion on the DAG, page count aside. The answer had changed shape since the advisor first said cut: the figure argues against the paper's own position. A DAG is causal-identification machinery inside a paper that three times disclaims causal identification, and its seventeen nodes were an audit surface defending zero claims the paper makes. After the blended rewrite, its three real jobs (speed as mediator, covariate roles, unmeasured exposure) were already plain prose. He said cut it.
