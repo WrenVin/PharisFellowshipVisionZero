@@ -65,7 +65,7 @@ def main():
                 transform=ax.transAxes, fontsize=13, va="bottom",
                 bbox=dict(facecolor="#FBF6E9", edgecolor="#C8A24B",
                           boxstyle="round,pad=0.5"))
-    fig.suptitle("Two maps of dangerous streets at matched size",
+    fig.suptitle("Two maps of dangerous streets of comparable size",
                  fontsize=19, color="#16395B", fontfamily="Georgia", y=0.99)
     plt.tight_layout()
     out = cfg.REPORTS / "hin_vs_psn.png"
