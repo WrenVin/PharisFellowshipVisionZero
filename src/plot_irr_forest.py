@@ -54,15 +54,7 @@ ax.set_xlim(0.55, 5.2)
 ax.set_xlabel("Effect on expected severe crashes, holding all other features equal",
               fontsize=11)
 ax.spines[["top", "right"]].set_visible(False)
-fig.text(0.13, 0.015,
-         "* pedestrian-exposure proxy (sidewalks mark where people walk), "
-         "not a design harm (Section 5.6). Grey and red rows are adjustment\n"
-         "covariates (Table 1, Panel B) with no causal reading; all rows are "
-         "conditional associations used for prediction. Continuous effects\n"
-         "are converted from the fitted per-SD coefficients (Table 1) to the "
-         "natural units shown; the model itself is unchanged.",
-         fontsize=8.5, style="italic", color="#444444")
-fig.tight_layout(rect=(0, 0.05, 1, 1))
+fig.tight_layout()
 out = cfg.REPORTS / "irr_forest.png"
 fig.savefig(out, dpi=250, bbox_inches="tight")
 print(f"wrote {out}")
