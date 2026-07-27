@@ -42,7 +42,7 @@ def main():
          "Built from crash history (the 2022 network, 2018 to 2022 data)",
          hin, "#7a6fb0"),
         ("Houston Concept Proactive Safety Network",
-         "Built from street design: the validated model, no site crash history used",
+         "Built from street design: streets scored on how they are built, not their own crash records",
          psn, "#C0392B"),
     ]
 
