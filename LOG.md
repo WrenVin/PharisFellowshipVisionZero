@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-26 — Deployment window excised; Vincent's condensation absorbed
+
+Working from Vincent's docx as canon now (the generator writes draft_v1_generated.docx and can never touch his file again, after I clobbered his working copy once — lesson recorded). Today: absorbed his twelve condensation edits (KSI spelled out, coverage-assessment phrase cut, Caldas/Pearl/Textor cites trimmed, project-log sentence out, Figure 1 caption leaned, the five-imagery-features sentence adopted, PSN expanded at first use, compressed 5.2 with "rise at every step" replacing "monotonically", prespecified language removed, (v2) clarified in 5.4).
+
+Then, at his call: the secondary 2022-2026 deployment window is gone entirely. Methods now says simply that 2022 is excluded from grading because it overlaps the HIN selection window. Eleven coordinated deletions across abstract-adjacent text, Methods, 5.4, Table 2 note, site consistency, interaction, and Discussion; "primary window" renamed "grading window" throughout since there is no longer a secondary. His reasoning beat mine: the clean single-window design needs no robustness twin, and TRB reviewers never saw the old draft. Edits applied directly to his docx (validated, tracked-change-free, backup in Paper folder backups/) and mirrored to the md.
+
+Also this session: audit vocabulary swept from the paper (one legitimate "auditable" survives), the FDR-variant pair queued for cutting, ZINB/cluster-robust kept-but-compressed guidance, the pedestrian-instrument sentence flagged as Results-in-Methods, Section 5.2 compressed. Paper at 12pt runs about 21 pages; the condensation continues.
+
+---
+
 ## 2026-07-24 — Community presentation figures
 
 Switched gears to the community presentation. New script (Presentations/build_community_figs.py, kept out of the repo with the other presentation assets) generates four community-audience figures in Presentations/community/, all following the plain-English-labels rule:
