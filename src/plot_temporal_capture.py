@@ -60,9 +60,8 @@ def capture_fig():
     ax.set_xlim(0, 78)
     ax.set_xlabel("Share of 2023 to mid-2026 severe crashes captured by each "
                   "map's top 589 miles", fontsize=10)
-    ax.set_title("Temporally held-out screening performance:\n"
-                 "crashes outside every model-training and HIN-selection window",
-                 fontsize=12, color=NAVY)
+    ax.set_title("Temporally held-out screening performance",
+                 fontsize=13, color=NAVY)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     out = cfg.REPORTS / "fig_temporal_capture.png"

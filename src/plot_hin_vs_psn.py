@@ -39,10 +39,10 @@ def main():
 
     panels = [
         ("City of Houston High Injury Network",
-         "Built from crash history (the 2022 network, 2018 to 2022 data)",
+         "Built from crash history, 2018 to 2022",
          hin, "#7a6fb0"),
         ("Houston Concept Proactive Safety Network",
-         "Built from street design: streets scored on how they are built, not their own crash records",
+         "Built from street design",
          psn, "#C0392B"),
     ]
 
@@ -65,7 +65,7 @@ def main():
                 transform=ax.transAxes, fontsize=13, va="bottom",
                 bbox=dict(facecolor="#FBF6E9", edgecolor="#C8A24B",
                           boxstyle="round,pad=0.5"))
-    fig.suptitle("Two maps of dangerous streets, same size, different evidence",
+    fig.suptitle("Two maps of dangerous streets at matched size",
                  fontsize=19, color="#16395B", fontfamily="Georgia", y=0.99)
     plt.tight_layout()
     out = cfg.REPORTS / "hin_vs_psn.png"

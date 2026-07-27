@@ -76,7 +76,7 @@ def tiered(seg, boundary):
                           label="All other streets"))
     ax.set_axis_off()
     ax.set_title("Houston Concept Proactive Safety Network, tiered against "
-                 "the adopted HIN (2022 network, 2018 to 2022 data)",
+                 "the adopted HIN",
                  fontsize=19, color="#16395B", fontfamily="Georgia", pad=14)
     ax.legend(handles=handles, loc="lower left", fontsize=12.5, frameon=True,
               facecolor="#FBF6E9", edgecolor="#C8A24B")
