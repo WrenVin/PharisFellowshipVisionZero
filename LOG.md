@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-07-28 — Dashboard: concept Proactive Safety Network overlay
+
+The concept PSN (605 mi, 7,332 segments; built by `src/build_psn.py` on `trb-revisions`) is now a second overlay on the Vision Zero dashboard, next to the City's official HIN. One toggle in the sidebar's Overlays group.
+
+- **Data:** new `src/export_psn.py` slims `data/processed/houston_concept_psn.geojson` (now committed on main, 3.7 MB) to geometry-only `docs/psn.geojson` (1.38 MB, 5-decimal coords) — same convention as `docs/hin.geojson`.
+- **Rendering:** same casing+core pattern as the HIN, but a **dashed blue core** (`#0072B2`, Okabe-Ito blue) vs the HIN's solid purple. Dashed = concept/proposed (the cartographic convention), and the dash keeps the two overlays distinguishable without relying on color alone. Vermillion (the paper's PSN color) was rejected here: it would vanish against the dashboard's orange-red crash ramp.
+- **Wiring:** the overlay participates in everything the HIN does — district/SN clipping (midpoint point-in-polygon tags via the same `tagHIN`), the map legend (dashed swatch), Reset, the report dialog (`rc-psn` checkbox) and its map capture, and the printed report's About text (which states the PSN is a research product, not an official City designation — same disclaimer in the sidebar tip and Data sources modal).
+- **Contract:** `psn.geojson` added to the required files in `tests/validate_exports.py` (the dashboard's `Promise.all` has no fallback for it). Validator green: 421,679 crashes, all checks pass.
+- **Verified live** (local server): layer builds (7,332 features), both overlays toggle, clip to District C, legend keys appear, Reset clears both, no console errors.
+
 ## 2026-07-02 — Mapillary coverage audit: the imagery/CV phase is viable (arterial-first)
 
 Gate check before committing to the street-view feature-extraction idea (Yue 2025, AAP 210:107851: semantic segmentation + object detection on street imagery → features for the crash model). New `src/audit_mapillary_coverage.py` (needs a free client token: env `MAPILLARY_TOKEN` or gitignored `data/external/.mapillary_token`); fetched all Mapillary image locations over the study area (585 z14 vector tiles → **4,785,527 image points**, cached to a gitignored parquet) and scored every published segment by the paper's rule (sample every 50 m; point covered when an image lies within 25 m; segment covered at ≥50% of points).

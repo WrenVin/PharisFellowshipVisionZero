@@ -210,7 +210,7 @@ Added by `src/assign_crashes.py`: each crash credited to its single nearest segm
 | `n_ped`, `n_bike` | int | Crashes involving a pedestrian / cyclist. |
 | `n_ped_severe`, `n_bike_severe` | int | Severe ped / bike crashes (the policy-relevant vulnerable-user outcome). |
 
-> 98.2% of surface-street crashes assigned (median 4 ft to segment) now that freeways are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 1,261 segments citywide — distinct from these CRIS-derived counts.
+> 98.2% of surface-street crashes assigned (median 4 ft to segment) now that freeways are filtered out upstream. Intersection crashes go to the nearest leg (count-preserving simplification). The Vision Zero dashboard also overlays the City of Houston's official Vision Zero HIN (2022) — `docs/hin.geojson`, 1,261 segments citywide — distinct from these CRIS-derived counts. A second optional overlay, `docs/psn.geojson` (7,332 segments, 605 mi), is the concept Proactive Safety Network: the project's design-based risk model's counterpart to the HIN (built by `src/build_psn.py` on the `trb-revisions` branch from `data/processed/houston_concept_psn.geojson`; geometry-only, a research product rather than an official City designation).
 
 ## Dashboard export fields (derived in `src/export_webmap_data.py` / `src/assign_crashes.py`)
 

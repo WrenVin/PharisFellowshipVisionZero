@@ -274,7 +274,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
+  <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, this project's concept Proactive Safety Network, and per-street design.</h2>
 
   <div class="top">
     <div>
@@ -346,9 +346,10 @@
         <div class="tip">Three levels of detail. <b>Streets</b> colors each whole street by its total; <b>Segments</b> colors each block on its own; <b>Points</b> plots every crash as a dot.</div>
       </div>
       <div class="grp">
-        <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
+        <h3>Overlays <button class="info" onclick="toggleTip(this)" aria-label="About the overlay networks">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <div class="tip">The City's official map of the streets with the most severe crashes (its 2022 "High Injury Network"). Turn it on to compare the official list with where crashes actually fall.</div>
+        <label class="toggle"><input type="checkbox" id="psn"> Concept Proactive Safety Network</label>
+        <div class="tip">Two street networks of comparable size. The <b>High Injury Network</b> (solid purple) is the City's official 2022 map of the streets with the most severe crashes. The <b>Proactive Safety Network</b> (dashed blue) is this project's concept network, flagged by a research model for how the streets are built (lanes, speed, signals, traffic) rather than for their crash history. The PSN is a research product, not an official City designation. Turn either on to compare it with where crashes actually fall.</div>
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
@@ -484,6 +485,7 @@
         <p><span class="lbl">Road ownership (city vs TxDOT)</span> &middot; TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
         <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
+        <p><span class="lbl">Proactive Safety Network overlay</span> &middot; this project's research model (a concept network scored on street design, not crash history; not an official City designation). <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">github.com/WrenVin/PharisFellowshipVisionZero</a></p>
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
         <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
         <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
@@ -589,6 +591,7 @@
           </label>
         </div>
         <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City High Injury Network overlay</span></label>
+        <label class="rc-check rc-overlay"><input type="checkbox" id="rc-psn"> <span>Include the concept Proactive Safety Network overlay</span></label>
         <div class="rc-note">Choosing a district clears the super neighborhood, and the reverse: you can use one or the other, not both.</div>
       </section>
 
@@ -622,10 +625,10 @@
 // warm sequential ramp (low -> high). The low end is a clear orange, not a pale
 // cream, so a 1-crash block is still easy to spot against the light basemap.
 const REDS=['#fdae61','#f98e52','#f16d43','#e0451f','#c0151a','#8a0b12'];
-const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
+const ZERO='#c9ccd1', HINCOLOR='#6a3d9a', PSNCOLOR='#0072B2';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, hinCasing=null, hinCore=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, hinCasing=null, hinCore=null, psnLayer=null, psnCasing=null, psnCore=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
@@ -714,6 +717,12 @@ function _hinShow(f){ const p=f.properties||{}; return inDist(p._dist) && snOk(p
 const _hinCasingStyle=f=> _hinShow(f) ? {color:'#ffffff',weight:6,opacity:.7,lineCap:'round'} : {opacity:0,weight:0};
 const _hinCoreStyle  =f=> _hinShow(f) ? {color:HINCOLOR,weight:2.6,opacity:.95,lineCap:'round'} : {opacity:0,weight:0};
 function refreshHinClip(){ if(hinCasing) hinCasing.setStyle(_hinCasingStyle); if(hinCore) hinCore.setStyle(_hinCoreStyle); }
+// PSN overlay: same casing+core+clip pattern as the HIN. The dashed core marks it
+// as a concept network (proposed, not official), and keeps the two overlays
+// distinguishable without relying on color alone.
+const _psnCasingStyle=f=> _hinShow(f) ? {color:'#ffffff',weight:6,opacity:.7,lineCap:'round'} : {opacity:0,weight:0};
+const _psnCoreStyle  =f=> _hinShow(f) ? {color:PSNCOLOR,weight:2.6,opacity:.95,lineCap:'butt',dashArray:'7 5'} : {opacity:0,weight:0};
+function refreshPsnClip(){ if(psnCasing) psnCasing.setStyle(_psnCasingStyle); if(psnCore) psnCore.setStyle(_psnCoreStyle); }
 const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
@@ -915,10 +924,11 @@ Promise.all([
   fetch('boundary.geojson').then(r=>r.json()),
   fetch('segments_vz.geojson').then(r=>r.json()),
   fetch('hin.geojson').then(r=>r.json()),
+  fetch('psn.geojson').then(r=>r.json()),
   fetch('crash_points.json').then(r=>r.json()),
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
-]).then(([summary,bnd,seg,hin,points,dists,sns])=>{
+]).then(([summary,bnd,seg,hin,psn,points,dists,sns])=>{
   vz=summary; pts=points;
   dowArr=new Uint8Array(pts.length);   // precompute each crash's weekday once (Mon=0..Sun=6; 7=no date)
   for(let i=0;i<pts.length;i++){ const ds=pts[i][7]; dowArr[i]= ds ? (new Date(ds+'T00:00:00').getDay()+6)%7 : 7; }
@@ -943,6 +953,11 @@ Promise.all([
   hinCasing=L.geoJSON(hin,{interactive:false,style:_hinCasingStyle});
   hinCore  =L.geoJSON(hin,{interactive:false,style:_hinCoreStyle});
   hinLayer=L.layerGroup([hinCasing, hinCore]);
+  // same treatment for the concept PSN overlay (tagged for area clipping, dashed core)
+  tagHIN(psn.features);
+  psnCasing=L.geoJSON(psn,{interactive:false,style:_psnCasingStyle});
+  psnCore  =L.geoJSON(psn,{interactive:false,style:_psnCoreStyle});
+  psnLayer=L.layerGroup([psnCasing, psnCore]);
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
       const p=f.properties;
@@ -1180,6 +1195,7 @@ function render(){
   } else selIds=new Set();
   restyle();
   if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // keep the HIN overlay trimmed to the active area
+  if(psnLayer && map.hasLayer(psnLayer)) refreshPsnClip();   // and the PSN overlay
   if(view==='points') buildPoints();
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
   const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawMonth(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawConcentration(); drawViewing(); updateBlinkBtn();
@@ -1278,6 +1294,7 @@ function resetAll(){
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
   setR('sev','ksi'); setR('view','streets'); setR('owner','all');
   const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
+  const psn=document.getElementById('psn'); if(psn && psn.checked){ psn.checked=false; if(map.hasLayer(psnLayer)) map.removeLayer(psnLayer); }
   const ds=document.getElementById('district'); if(ds) ds.value='';
   _clearSN();   // also clear any super-neighborhood filter
   document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
@@ -1287,9 +1304,10 @@ function resetAll(){
 function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked;
+  const psnOn=!!(document.getElementById('psn')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
     && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow()
-    && district===null && sn===null && selIds.size===0 && !hinOn;
+    && district===null && sn===null && selIds.size===0 && !hinOn && !psnOn;
   rb.style.display = def ? 'none' : '';
 }
 
@@ -1373,6 +1391,7 @@ function drawLegend(){
       +'<div class="ends"><span>0</span><span>'+right+'</span></div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
+  if(psnLayer && map.hasLayer(psnLayer)) h+='<div class="key"><span class="dot" style="background:repeating-linear-gradient(90deg,'+PSNCOLOR+' 0 5px,#fff 5px 8px);width:18px;height:4px"></span>Concept Proactive Safety Network</div>';
   el.innerHTML=h;
 }
 
@@ -1836,6 +1855,10 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ refreshHinClip(); hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
+document.getElementById('psn').onchange=e=>{
+  if(e.target.checked){ refreshPsnClip(); psnLayer.addTo(map); } else if(map.hasLayer(psnLayer)){ map.removeLayer(psnLayer); }
+  drawLegend(); updateResetBtn();   // PSN counts toward "off-default" too
+};
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
 // range-reset links (used by the chart sub text)
@@ -1870,6 +1893,7 @@ document.getElementById('share').onclick=async()=>{
 // CORS we fall back to the overlay alone (shape without the basemap).
 function captureMap(){
   if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // ensure the HIN is trimmed to the active area before capture
+  if(psnLayer && map.hasLayer(psnLayer)) refreshPsnClip();   // and the PSN
   if(renderer && renderer._redraw) renderer._redraw();   // flush any pending (rAF-deferred) restyle so the canvas pixels are current
   const size=map.getSize(), mc=map.getContainer(), mr=mc.getBoundingClientRect(), oc=renderer._container;
   const draw=withTiles=>{ const c=document.createElement('canvas'); c.width=size.x; c.height=size.y;
@@ -1993,7 +2017,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS). Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network and the dashed blue overlay is the concept Proactive Safety Network, a research product of this project (streets flagged by a design-based statistical model, not an official City designation). Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }
@@ -2049,6 +2073,7 @@ function openReportModal(){
     _rcEl('rc-to-yr').value=String(ty); _rcEl('rc-to-mo').value=String(tm);
   }
   const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
+  const psnOn=!!(_rcEl('psn')||{}).checked; const rcPsn=_rcEl('rc-psn'); if(rcPsn) rcPsn.checked=psnOn;
   // sections: all checked by default each time the modal opens
   ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
@@ -2093,6 +2118,11 @@ async function _rcGenerate(){
   if(hinBox){ hinBox.checked=wantHin;
     if(wantHin){ if(!map.hasLayer(hinLayer)) hinLayer.addTo(map); }
     else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); } }
+  // concept PSN overlay: same sync between the report checkbox and the sidebar/layer
+  const wantPsn=!!(_rcEl('rc-psn')||{}).checked, psnBox=_rcEl('psn');
+  if(psnBox){ psnBox.checked=wantPsn;
+    if(wantPsn){ refreshPsnClip(); if(!map.hasLayer(psnLayer)) psnLayer.addTo(map); }
+    else if(map.hasLayer(psnLayer)){ map.removeLayer(psnLayer); } }
   // area: district / super neighborhood are mutually exclusive. selectDistrict / selectSN
   // each clear the other global, sync their own sidebar select, and call render() themselves.
   const dVal=_rcEl('rc-district').value, snVal=_rcEl('rc-sn').value;

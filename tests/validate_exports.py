@@ -281,7 +281,7 @@ def check_equity(pts):
 
 def check_aux_geojson():
     # Required by the dashboard's initial Promise.all (no .catch fallback).
-    for name in ("boundary.geojson", "hin.geojson"):
+    for name in ("boundary.geojson", "hin.geojson", "psn.geojson"):
         g = load(name)
         if g is not None and not (g.get("features") or g.get("type") == "Feature"):
             err(f"{name}: GeoJSON has no features")

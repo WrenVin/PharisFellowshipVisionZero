@@ -278,8 +278,11 @@ actually sees and can do:
 - **Filters down the left:** search for a street by name, pick a council
   district, choose who to look at (everyone / driving / walking / biking),
   filter by who owns the road (city vs. TxDOT/state), switch between
-  deaths-and-serious-injuries vs. all crashes, and toggle the City's official
-  **High Injury Network** on top for comparison.
+  deaths-and-serious-injuries vs. all crashes, and toggle two overlay maps on
+  top for comparison: the City's official **High Injury Network** (solid
+  purple, built from past crashes) and this project's **concept Proactive
+  Safety Network** (dashed blue, built by the research model from street
+  design; a concept, not an official City map).
 - **Click any street** (or one block) and the *whole* dashboard updates to just
   that street; a popup shows the road's design (lanes, width, speed, sidewalks,
   traffic, owner), and you can expand a single block to the whole street.
