@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-15 — Dashboard: basemap swapped from CARTO to Esri (CARTO now requires an API key)
+
+The live dashboard's background map disappeared, replaced by tiles reading "API KEY REQUIRED · carto.com/basemaps/apikey". CARTO's previously free `light_all` basemap now serves a watermark tile to keyless requests (verified directly: the tile URL returns HTTP 200 with the watermark image). The crash data, overlays, and charts were unaffected; only the background was lost.
+
+- **Fix:** the "Light" basemap is now Esri's World Light Gray Canvas, base layer plus its street-label reference layer, which needs no key and looks close to the old CARTO style. Tiles exist natively to zoom 16 and are upscaled beyond that (`maxNativeZoom: 16`). The Satellite option (Esri World Imagery) was already keyless and is unchanged.
+- **Why Esri over plain OpenStreetMap tiles:** Esri's tile server sends `Access-Control-Allow-Origin: *`, which the printable report needs (it composites the basemap tiles onto a canvas; tiles without CORS would taint the canvas and drop the basemap from the PDF). Its muted gray styling also keeps the red crash shading readable.
+- **Verified locally:** basemap and labels render citywide and at street level (zoom 17, downtown), the report's map capture still produces an image, and there are no console errors.
+
 ## 2026-07-28 — Dashboard: concept Proactive Safety Network overlay
 
 The concept PSN (605 mi, 7,332 segments; built by `src/build_psn.py` on `trb-revisions`) is now a second overlay on the Vision Zero dashboard, next to the City's official HIN. One toggle in the sidebar's Overlays group.

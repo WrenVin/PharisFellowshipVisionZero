@@ -914,7 +914,12 @@ const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([2
 L.control.zoom({position:'bottomright'}).addTo(map);
 // citywide framing: fit the whole network, then zoom one level tighter so the city fills the map
 function fitCity(){ try{ map.invalidateSize(false); const b=geo.getBounds(); map.setView(b.getCenter(), map.getBoundsZoom(b)+1, {animate:false}); }catch(e){} }
-const bases={Light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:20,crossOrigin:true}),
+// Esri Light Gray Canvas (base + street-label reference layer): keyless and CORS-enabled,
+// so the printable report can still capture it. CARTO's free tiles now require an API key.
+const ESRI_GRAY='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_';
+const bases={Light:L.layerGroup([
+    L.tileLayer(ESRI_GRAY+'Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri, HERE, Garmin, © OpenStreetMap contributors',maxNativeZoom:16,maxZoom:20,crossOrigin:true}),
+    L.tileLayer(ESRI_GRAY+'Reference/MapServer/tile/{z}/{y}/{x}',{maxNativeZoom:16,maxZoom:20,crossOrigin:true})]),
   Satellite:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19,crossOrigin:true})};
 bases.Light.addTo(map);
 L.control.layers(bases,null,{position:'topleft',collapsed:true}).addTo(map);
