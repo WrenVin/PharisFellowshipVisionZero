@@ -4,6 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Plainer page copy; Source data link removed from header
+
+Vincent said parts of the page read as machine-written (the header tagline "Traffic deaths and serious injuries, mapped" was the example). Checked against Wikipedia's "Signs of AI writing" guide: fragment taglines, "not X but Y" and "rather than" contrasts, long parenthetical asides, over-explaining, and "in support of"-style phrasing. Rewrote the visible copy in short, plain sentences: header tagline removed; intro line now states what is shown and the date range ("January 2016 to September 2026", hard-coded, so update it on the next data refresh); every info tip, chart subtitle, KPI tip, footer text, the Data & methods window, the feedback window, the report dialog and the printed report footer shortened. Data & methods "Which roads" now gives the default before the toggle. The "Source data" header link is removed (the footer still links the source code and data). No numbers or logic changed; killed total still 1,729; no console errors.
+
 ## 2026-10-30 — Site name, sticky header, no center dots
 
 Vincent's follow-ups to the redesign.

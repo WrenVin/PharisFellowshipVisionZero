@@ -358,23 +358,22 @@
 <body>
 <header class="sitehead">
   <div class="sh-in">
-    <a class="sh-name" href="vision-zero.html">Houston Street Safety Dashboard<span>Traffic deaths and serious injuries, mapped</span></a>
+    <a class="sh-name" href="vision-zero.html">Houston Street Safety Dashboard</a>
     <nav class="sh-nav" aria-label="Site">
       <a href="vision-zero.html" aria-current="page">Dashboard</a>
       <a href="#" onclick="document.getElementById('about').click();return false">Data &amp; methods</a>
       <a href="#" onclick="document.getElementById('feedback-link').click();return false">Feedback</a>
-      <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">Source data</a>
     </nav>
   </div>
 </header>
 <div class="provenance"><div class="sh-in">Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation.</div></div>
 <div class="wrap">
-  <h2 class="sr-only">Houston Street Safety Dashboard: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
+  <h2 class="sr-only">Houston Street Safety Dashboard</h2>
 
   <div class="top">
     <div>
       <h1>Traffic deaths and serious injuries on Houston streets</h1>
-      <div class="tag">Where people are killed and seriously injured in crashes, from state crash records. Use the filters to focus on an area, a way of traveling, or a time period.</div>
+      <div class="tag">Crashes on Houston city streets that killed or seriously injured someone, January 2016 to September 2026.</div>
     </div>
     <div class="topbtns">
       <button id="reset" class="topbtn" style="display:none" aria-label="Reset all filters to the default view">Reset</button>
@@ -411,7 +410,7 @@
         </select>
         <select id="areasel" aria-label="Area" class="area-sub" disabled><option value="">Pick a kind above</option></select>
         <div class="note" id="area-note" aria-live="polite"></div>
-        <div class="tip">Focus the whole dashboard on one part of Houston: a <b>council district</b> (A to K), a <b>Super Neighborhood</b> (88 named City planning areas), a <b>management district</b>, a <b>TIRZ</b> (the City's Tax Increment Reinvestment Zones, by number), an <b>HPD patrol division</b>, a <b>ZIP code</b>, or a <b>Census tract</b>. Only areas that lie within the city limits are offered (at least 95% inside); areas that cross the city line, such as school districts, county precincts, and many ZIP codes and tracts, are left out rather than shown as a partial piece. One area at a time.</div>
+        <div class="tip">Narrow the dashboard to one council district, super neighborhood, management district, TIRZ, HPD patrol division, ZIP code, or Census tract. Only areas at least 95% inside the city limits are listed. School districts and county precincts cross the city line, so they are not included.</div>
         <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
         <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
@@ -431,7 +430,7 @@
           <label title="City-owned only"><input type="radio" name="owner" value="city"> City</label>
           <label title="TxDOT (state) only"><input type="radio" name="owner" value="txdot"> TxDOT</label>
         </span>
-        <div class="tip">Whether the City or TxDOT owns each road (from TxDOT's roadway inventory). The City can only redesign its own streets; it must partner with the state on TxDOT-owned arterials. Freeways are left out unless the Freeways toggle below is on; toll roads are run by the county toll authority, so they count only under All.</div>
+        <div class="tip">Road ownership comes from TxDOT's roadway inventory. The City needs TxDOT's approval to change a state-owned road. Toll roads appear only under All, and only when Freeways is set to Included.</div>
       </div>
       <div class="grp">
         <h3>Freeways <button class="info" onclick="toggleTip(this)" aria-label="About including freeways">i</button></h3>
@@ -440,7 +439,7 @@
           <label title="Add crashes on freeways, toll roads, ramps and frontage roads"><input type="radio" name="fwy" value="1"> Included</label>
         </span>
         <div class="note" id="fwy-note" aria-live="polite"></div>
-        <div class="tip">Off by default: this dashboard focuses on city streets, the roads the City can redesign. Turn this on to add crashes on freeways, toll roads, ramps and frontage roads, about a third of Houston's traffic deaths, to every total, chart and filter. They show on the map as dots, because freeways are not part of the street network the map shades. Street rankings and the "harm is concentrated" measure still cover city streets only. Toll roads count under Road owner: All only.</div>
+        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the concentration chart still count city streets only.</div>
       </div>
       <div class="grp">
         <h3>Show</h3>
@@ -456,7 +455,7 @@
           <label><input type="radio" name="view" value="streets" checked> Segments</label>
           <label><input type="radio" name="view" value="points"> Points</label>
         </span>
-        <div class="tip">Three levels of detail. <b>Streets</b> colors each whole street by its total; <b>Segments</b> colors each block on its own; <b>Points</b> plots every crash as a dot.</div>
+        <div class="tip"><b>Streets</b> shades each street by its total. <b>Segments</b> shades each block. <b>Points</b> shows each crash.</div>
       </div>
       <div class="grp">
         <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
@@ -464,11 +463,11 @@
         <label class="toggle"><input type="checkbox" id="schools"> Schools</label>
         <label class="toggle"><input type="checkbox" id="parks"> Parks</label>
         <div class="note" id="sp-note" aria-live="polite"></div>
-        <div class="tip">The <b>High Injury Network</b> (solid purple) is the City's official 2022 map of the streets with the most severe crashes. <b>Schools</b> (blue dots; click one for its name and grades) are the public district and charter campuses in the Texas Education Agency directory. <b>Parks</b> (green) are City of Houston parks. Federal Safe Routes to School infrastructure funding generally covers the public right of way within about 2 miles of a school.</div>
+        <div class="tip">The <b>High Injury Network</b> is the City's 2022 list of streets with the most severe crashes. <b>Schools</b> are public and charter campuses from the Texas Education Agency. <b>Parks</b> are City of Houston parks. Federal Safe Routes to School funds can generally be used within about 2 miles of a school.</div>
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
-        <div class="note" id="blink-note">Filter down, then flash the crashes.</div>
+        <div class="note" id="blink-note">Briefly highlights each crash in the current view.</div>
       </div>
     </div>
 
@@ -477,7 +476,7 @@
       <div id="viewing"></div>
       <div id="legend"></div>
       <div id="info"></div>
-      <div id="loading"><div class="spinner"></div><div>Loading citywide crash data…</div></div>
+      <div id="loading"><div class="spinner"></div><div>Loading…</div></div>
     </div>
   </div>
 
@@ -496,7 +495,7 @@
       <div id="month"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="mo-fill"></div><div class="fill" id="mo-fill2" style="display:none"></div><input type="range" id="mo-from" min="0" step="1" aria-label="From month"><input type="range" id="mo-to" min="0" step="1" aria-label="To month"></div></div>
       <div class="bleg" id="month-leg"></div>
-      <div class="tip">Each bar totals the people killed or seriously injured in that calendar month across every year shown (seasonality), not a single year. Click a month, or drag across a range, to filter.</div>
+      <div class="tip">Each bar adds up every year shown for that month.</div>
     </div>
     <div class="card" data-card="tod">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span id="tod-title">By time of day</span> <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
@@ -504,7 +503,7 @@
       <div id="tod"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div><div class="fill" id="hr-fill2" style="display:none"></div><input type="range" id="hr-from" min="0" step="1" aria-label="From hour"><input type="range" id="hr-to" min="0" step="1" aria-label="To hour"></div></div>
       <div class="bleg" id="tod-leg"></div>
-      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows the hours of day when severe crashes are most frequent.</div>
+      <div class="tip">Each bar adds up every year shown for that hour. The 5 PM bar covers 5:00 to 5:59 PM.</div>
     </div>
     <div class="card" data-card="dow">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="dow-title">By day of week</span> <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
@@ -512,7 +511,7 @@
       <div id="dow"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="dw-fill"></div><div class="fill" id="dw-fill2" style="display:none"></div><input type="range" id="dw-from" min="0" step="1" aria-label="From day"><input type="range" id="dw-to" min="0" step="1" aria-label="To day"></div></div>
       <div class="bleg" id="dow-leg"></div>
-      <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows the days of week when severe crashes are most frequent.</div>
+      <div class="tip">Each bar adds up every year shown for that day of the week.</div>
     </div>
     <div class="card" data-card="mode">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
@@ -527,14 +526,14 @@
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
-      <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
+      <div class="tip">Median household income of the Census block group where each crash happened. It describes the area, not the people involved.</div>
     </div>
     <div class="card" data-card="own">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
       <div class="sub" id="own-sub">Killed or seriously injured</div>
       <div class="stack" id="ownbar"></div>
       <div class="legrow" id="ownleg"></div>
-      <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
+      <div class="tip">Road ownership comes from TxDOT's roadway inventory. The City needs TxDOT's approval to change a state-owned road.</div>
     </div>
     <div class="card" data-card="worst">
       <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
@@ -542,19 +541,19 @@
       <div id="worst-list"></div>
     </div>
     <div class="card" data-card="conc">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">(Lorenz curve)</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
       <div class="sub" id="conc-sub"></div>
       <div id="conc"></div>
-      <div class="tip">This is a <b>Lorenz curve</b> (a concentration curve, also used to measure income inequality). Streets are ranked from most to least dangerous, left to right; the curve shows what cumulative share of the harm (vertical) sits on what cumulative share of street-miles (horizontal). The dashed line marks a perfectly even spread. The <b>Gini coefficient</b> (0 = even, 1 = all harm on one street) summarizes the full curve in a single value, independent of any cutoff. The purple <b>6%</b> marker is the size of the City's High Injury Network, shown for comparison. The metric counts where harm occurs, not crashes per mile driven, so part of the concentration reflects that traffic is also concentrated. On the streets with traffic counts, the harm remains about as concentrated after adjusting for vehicle-miles traveled, which indicates specific dangerous roads rather than traffic volume alone.</div>
+      <div class="tip">Streets are sorted from most to least harm. The curve shows the share of people killed or seriously injured on each share of street miles. The dashed line is an even spread. The Gini coefficient runs from 0 (even) to 1 (all on one street). The purple 6% line marks the size of the City's High Injury Network. These are counts, not rates per mile driven. On streets with traffic counts, the pattern is about the same after adjusting for traffic.</div>
     </div>
   </div>
 
 </div>
 <footer class="sitefoot">
   <div class="sf-cols">
-    <div><h2>About this dashboard</h2><p>Maps where people are killed and seriously injured in traffic crashes on Houston's city streets, in support of Vision Zero, the goal of ending traffic deaths and serious injuries. <a href="#" id="about">Data &amp; methods</a></p></div>
+    <div><h2>About this dashboard</h2><p>A public map of traffic crashes on Houston city streets that killed or seriously injured someone, for anyone working on traffic safety in Houston. <a href="#" id="about">Data &amp; methods</a></p></div>
     <div><h2>Data</h2><p>Crash records from the Texas Department of Transportation (CRIS). Street network from OpenStreetMap; street design, boundaries and the High Injury Network from City of Houston GIS. <span id="data-asof"></span></p></div>
-    <div><h2>Feedback and source</h2><p><a href="#" id="feedback-link">Send feedback</a> to report a problem or suggest an improvement. The <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">source code and data</a> are open, with full methods.</p></div>
+    <div><h2>Feedback and source</h2><p><a href="#" id="feedback-link">Send feedback</a> to report a problem or suggest a change. The <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">source code and data</a> are public.</p></div>
   </div>
   <div class="sf-bottom"><div class="sh-in">Not an official City of Houston website. Figures are estimates from public crash reports and may differ from official City counts.</div></div>
 </footer>
@@ -565,16 +564,16 @@
     <div class="sbody">
       <section>
         <h3>What's shown</h3>
-        <p>Traffic deaths and serious injuries on <span class="lbl">surface streets across the City of Houston</span>, 2016–2025 plus a partial 2026. Source: TxDOT CRIS public crash extracts. The boundary is the City's <span class="lbl">full-purpose (full-service) service area</span>; limited-purpose annexation areas are not shown.</p>
+        <p>Traffic deaths and serious injuries on <span class="lbl">surface streets in the City of Houston</span>, 2016 to 2025 and part of 2026, from TxDOT's public crash records (CRIS). The map covers the City's <span class="lbl">full-purpose area</span>. Limited-purpose annexation areas are not included.</p>
       </section>
       <section>
         <h3>Which roads</h3>
-        <p>The <span class="lbl">Freeways</span> toggle adds them back: crashes on freeways, toll roads, ramps and frontage roads (TxDOT road classes for interstates, tollways and toll bridges, US and state highway main lanes, and freeway road parts) join every total and chart and appear on the map as dots. Toll-road main lanes and ramps are run by the county toll authority, so they count only under Road owner: All. Parking-lot and private-property crashes stay out either way.</p>
-        <p>By default this dashboard <span class="lbl">excludes limited-access freeways, tollways, ramps and frontage roads</span> (a different facility type, and their crashes snap onto nearby streets), but <span class="lbl">keeps at-grade arterials regardless of owner</span>, including state-owned ones like S Main / US-90A, SH 6, and Westheimer / FM 1093. This matches Austin's Vision Zero dashboard and the City's own High Injury Network, which include state arterials.</p>
+        <p>By default the dashboard <span class="lbl">leaves out freeways, tollways, ramps and frontage roads</span>. It <span class="lbl">keeps major streets whoever owns them</span>, including state roads such as S Main (US-90A), SH 6 and Westheimer (FM 1093). Austin's Vision Zero dashboard and the City's High Injury Network do the same.</p>
+        <p>Set <span class="lbl">Freeways</span> to Included to add crashes on freeways, toll roads, ramps and frontage roads. They are added to every total and chart and appear on the map as dots. Toll roads are run by the county toll authority, so they count only under Road owner: All. Crashes in parking lots and on private property are never included.</p>
       </section>
       <section>
         <h3>Road ownership</h3>
-        <p>Each street and crash is labeled <span class="lbl">city-owned vs TxDOT-owned</span> (from TxDOT's roadway inventory) so the dashboard can show the state-owned share; the City must partner with TxDOT to redesign those. A street is counted as TxDOT-owned only where it runs <span class="lbl">parallel to</span> a state roadway, so a city street that merely bridges over a freeway is not mislabeled.</p>
+        <p>Each street and crash is labeled <span class="lbl">city-owned or TxDOT-owned</span>, using TxDOT's roadway inventory. A street counts as TxDOT-owned only where it runs <span class="lbl">along</span> a state road. A city street that crosses over a freeway stays city-owned.</p>
       </section>
       <section>
         <h3>How crashes map to streets</h3>
@@ -583,22 +582,22 @@
       <section>
         <h3>Definitions</h3>
         <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
-        <p><span class="lbl">Years of life lost</span> = years before age 75 summed over those killed (CDC YPLL convention). The public extract records a victim age for only about half of fatalities, so the rest are estimated at the average, making the total an estimate.</p>
-        <p><span class="lbl">Neighborhood income</span> = the median household income of the Census block group around each crash (an area characteristic, not the individual's).</p>
+        <p><span class="lbl">Years of life lost</span> = years before age 75, added up for everyone killed (the CDC method). About half of the records list an age. The rest use the average age.</p>
+        <p><span class="lbl">Neighborhood income</span> = median household income of the Census block group where the crash happened.</p>
       </section>
       <section>
         <h3>Counts, not rates</h3>
-        <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured, not a rate per traffic volume. This is the Vision Zero convention (and how the City's own High Injury Network is built): the goal is zero deaths, so attention goes where the most harm actually occurs. Counts are <span class="lbl">not</span> normalized for exposure (vehicle miles traveled or foot traffic), which is unavailable for most local streets. A crash rate is also unstable on quiet streets, where a single crash produces a large per-mile-driven rate. On the busier streets where traffic counts exist, the harm remains about as concentrated after dividing by vehicle-miles traveled, which indicates specific dangerous roads rather than heavy traffic alone; separating road-design risk from exposure is a task for the systemic risk model (in development).</p>
+        <p>Streets are ranked and shaded by the <span class="lbl">number</span> of people killed or seriously injured. The City's High Injury Network is built the same way. The counts are <span class="lbl">not</span> adjusted for traffic volume, because most local streets have no traffic counts. On busier streets that do have counts, the results are about the same after adjusting for traffic.</p>
       </section>
       <section>
         <h3>Crash costs</h3>
-        <p>Each person hurt in a crash is assigned the <span class="lbl">FHWA per-person cost</span> for their injury severity on the KABCO scale (FHWA-SA-25-021, 2024 dollars), summed across everyone in the crashes in view. <span class="lbl">Economic cost</span> is the societal economic loss: medical care, lost productivity, property damage, and emergency, legal, and insurance services. It is a loss spread across victims, insurers, employers, and government, not a single public budget line.</p>
-        <p>The <span class="lbl">comprehensive</span> figure adds the monetized value of lost quality and length of life. Its fatal portion values the same deaths the years-of-life-lost figure already counts (in years rather than dollars), so the two are different lenses on one loss and should not be added together.</p>
-        <p>Costs are summed per person, so a crash that kills or injures several people counts each of them. Injuries with an unrecorded severity carry no cost, and reported crashes undercount the true toll, so every figure shown is a <span class="lbl">conservative floor</span>. Costs are national figures; no state adjustment is applied.</p>
+        <p>Each person hurt in a crash is given the <span class="lbl">FHWA per-person cost</span> for their injury level (FHWA-SA-25-021, 2024 dollars). <span class="lbl">Economic cost</span> covers medical care, lost work, property damage, and emergency, legal and insurance costs. Victims, insurers, employers and government all pay part of it.</p>
+        <p>The <span class="lbl">comprehensive</span> cost also puts a dollar value on lost quality and length of life. It overlaps with years of life lost, so the two should not be added together.</p>
+        <p>A crash that hurts several people counts each person. Injuries with no recorded severity have no cost, and some crashes are never reported, so these figures are a <span class="lbl">minimum</span>. Costs are national averages.</p>
       </section>
       <section>
         <h3>Data sources</h3>
-        <p>Every dataset here is public. Each link goes to the official source.</p>
+        <p>All data is public.</p>
         <p><span class="lbl">Crashes</span>: TxDOT Crash Records Information System (CRIS), public extracts, 2016&ndash;2025 plus partial 2026. <a href="https://www.txdot.gov/data-maps/crash-reports-records.html" target="_blank" rel="noopener">txdot.gov</a>, <a href="https://cris.txdot.gov/" target="_blank" rel="noopener">cris.txdot.gov</a></p>
         <p><span class="lbl">Street network &amp; sidewalks</span>: OpenStreetMap. <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">openstreetmap.org</a></p>
         <p><span class="lbl">Road ownership (city vs TxDOT)</span>: TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
@@ -609,7 +608,7 @@
         <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span>: City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">Schools</span>: Texas Education Agency school directory (public district and charter campuses), via City of Houston GIS. <span class="lbl">Parks</span>: City of Houston Parks and Recreation, via City of Houston GIS.</p>
         <p><span class="lbl">Census tracts</span>: U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
-        <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
+        <p>Layer names, dates and methods are listed in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
   </div>
@@ -620,9 +619,9 @@
   <div class="sheet">
     <div class="shd"><h2>Share feedback</h2><button class="x" id="fb-x" aria-label="Close">×</button></div>
     <div class="sbody">
-      <p style="font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px">To report a problem or suggest an improvement, use the form below.<span id="fb-newtab-wrap"> <a href="#" id="fb-newtab" target="_blank" rel="noopener">Open in a new tab</a>.</span></p>
+      <p style="font-size:13px;line-height:1.55;color:var(--muted);margin:10px 0 12px">Report a problem or suggest a change.<span id="fb-newtab-wrap"> <a href="#" id="fb-newtab" target="_blank" rel="noopener">Open in a new tab</a>.</span></p>
       <iframe id="fbframe" class="fbframe" title="Feedback form" loading="lazy">Loading the feedback form&hellip;</iframe>
-      <p id="fb-note" style="display:none;font-size:13px;line-height:1.55;color:var(--muted)">The feedback form is being set up and will be available shortly. In the meantime, please check back soon.</p>
+      <p id="fb-note" style="display:none;font-size:13px;line-height:1.55;color:var(--muted)">The feedback form is not available right now. Please try again later.</p>
     </div>
   </div>
 </div>
@@ -636,7 +635,7 @@
     <div class="rc-hd">
       <div>
         <h2 id="rcfg-title">Build your report</h2>
-        <div class="rc-lede">Choose what to include. Filters are pre-filled from your current view.</div>
+        <div class="rc-lede">Filters start from your current view.</div>
       </div>
       <button class="x" id="rcfg-x" type="button" aria-label="Close">&times;</button>
     </div>
@@ -1322,7 +1321,7 @@ function doBlink(){
 function updateBlinkBtn(){
   const btn=document.getElementById('blink'), note=document.getElementById('blink-note');
   if(_shownCount===0){ btn.disabled=true; note.textContent='No crashes in this view.'; }
-  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many to flash. Filter down first.'; }
+  else if(_shownCount>BLINK_MAX){ btn.disabled=true; note.textContent='Too many crashes to highlight. Narrow the filters first.'; }
   else { btn.disabled=false; note.textContent='Flash the '+fmt(_shownCount)+' crash'+(_shownCount===1?'':'es')+'.'; }
 }
 // --- shareable URL state -----------------------------------------------------
@@ -1613,7 +1612,7 @@ function drawKPIs(t){
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = timeSpan(true);
   const yll=Math.round(yllTotal()), serious=ksi-killed;
-  const yllTip='Years of potential life lost before age 75 (a CDC measure): for each person killed, the years they would have lived to reach 75. The public crash records list an age for only about half of the deaths, so the rest use the average, so the total is an estimate.';
+  const yllTip='Years of life lost before age 75, a CDC measure. About half of the crash records list the age of the person killed. The rest use the average age, so this total is an estimate.';
   // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
   // (concentration of a single street is meaningless).
   let kpi4;
@@ -1625,11 +1624,11 @@ function drawKPIs(t){
     const half = con.pctForHalf!=null ? con.pctForHalf*100 : null;
     const halfStr = half!=null ? (half<10?half.toFixed(1):Math.round(half))+'%' : '–';
     const conSub = 'of streets, half the harm';   // mode-independent + short so this KPI stays on one row in both modes (metric + Gini are in the Lorenz panel below)
-    const conTip = 'The headline figure is the share of street-miles that carry half of all '+metric+'. The Gini coefficient (0 = spread evenly across streets, 1 = all on one street) summarizes the full concentration curve in a single value, independent of any cutoff. The deadliest 6% of street-miles in this view — the same share of the network the City sized its High Injury Network to — carry '+Math.round(con.hinKsi*100)+'% of '+metric+'. See the concentration panel below.';
+    const conTip = 'Half of all '+metric+' happened on this share of street miles. The worst 6% of street miles, the size of the City\'s High Injury Network, account for '+Math.round(con.hinKsi*100)+'% in this view.';
     kpi4=kpi(KICON.conc,'Harm is concentrated', halfStr, conSub, true, conTip);
   }
   const cost=costTotal();
-  const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), from FHWA per-person costs by injury severity (KABCO) applied to the people hurt in each crash (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity injuries carry no cost and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
+  const costTip='Medical care, lost work, property damage, and emergency and legal costs, using federal (FHWA) per-person costs by injury severity in 2024 dollars. The comprehensive cost also counts lost quality of life. Both are likely undercounts because not every crash is reported.';
   const costCard=kpi(KICON.cost,'Economic cost, '+span, fmtMoney(cost.econ), 'comprehensive cost: '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
   document.getElementById('kpis').innerHTML=
     kpi(KICON.killed,'People killed, '+span, fmt(killed), who, false, null, 'killed', killed)
@@ -1968,7 +1967,7 @@ function drawTrend(){
       headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>'; } }
   drawBarChart(document.getElementById('trend'),labels,fatal,serious,{fadeIdx,line,h:78,dim:'year',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('trend-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by year';
-  document.getElementById('trend-sub').innerHTML=facetSub('year','Click a bar, or drag the slider, to filter');
+  document.getElementById('trend-sub').innerHTML=facetSub('year','Click a bar or drag the slider to filter.');
   document.getElementById('trend-leg').innerHTML=stackLegend();
   syncRange('year');
   const parts=[]; if(headline) parts.push(headline);
@@ -1981,7 +1980,7 @@ function drawMonth(){
   for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); if(selM.size && !selM.has(m)) fadeIdx.add(m-1); }
   drawBarChart(document.getElementById('month'),labels,fatal,serious,{fadeIdx,h:78,dim:'month',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('month-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by month';
-  document.getElementById('month-sub').innerHTML=facetSub('month','Seasonality across all years. Click a bar or drag the slider.');
+  document.getElementById('month-sub').innerHTML=facetSub('month','All years combined');
   document.getElementById('month-leg').innerHTML=stackLegend();
   syncRange('month');
 }
@@ -1992,7 +1991,7 @@ function drawTimeOfDay(){
     if(selH.size && !selH.has(h)) fadeIdx.add(h); }
   drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx,dim:'hour',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('tod-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by time of day';
-  document.getElementById('tod-sub').innerHTML=facetSub('hour','By hour, '+totalsSpan()+'. Click a bar or drag the slider.');
+  document.getElementById('tod-sub').innerHTML=facetSub('hour',totalsSpan().replace(/^t/,'T'));
   document.getElementById('tod-leg').innerHTML=stackLegend();
   syncRange('hour');
 }
@@ -2002,7 +2001,7 @@ function drawDayOfWeek(){
   for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); if(selD.size && !selD.has(d)) fadeIdx.add(d); }
   drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx,dim:'dow',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('dow-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by day of week';
-  document.getElementById('dow-sub').innerHTML=facetSub('dow','By weekday, '+totalsSpan()+'. Click a bar or drag the slider.');
+  document.getElementById('dow-sub').innerHTML=facetSub('dow',totalsSpan().replace(/^t/,'T'));
   document.getElementById('dow-leg').innerHTML=stackLegend();
   syncRange('dow');
 }
@@ -2337,7 +2336,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads (dots on the map; street shading and rankings cover city streets only).':'')+' Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, TIRZs, management districts, HPD divisions, ZIP codes, High Injury Network), U.S. Census TIGER (tracts), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+' to '+vz.years[vz.years.length-2]+' and part of '+vz.years[vz.years.length-1]+', from TxDOT crash records (CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads, shown as dots. Street shading and rankings cover city streets only.':' Freeways are not included.')+' Streets are ranked by count, not adjusted for traffic volume. Economic cost uses FHWA per-person costs by injury level (FHWA-SA-25-021, 2024 dollars). The comprehensive cost ('+fmtMoney(cost.comp)+' for this view) also values lost quality of life and overlaps with years of life lost. Costs are a minimum because some crashes are never reported. The purple overlay, if shown, is the City&rsquo;s 2022 High Injury Network. Sources: TxDOT CRIS and Roadway Inventory, OpenStreetMap, City of Houston GIS, U.S. Census (TIGER tracts, ACS 2023 income), FHWA. Full methods are in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }

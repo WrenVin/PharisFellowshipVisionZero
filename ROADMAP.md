@@ -17,6 +17,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-30 Rewrote page copy in plainer, shorter language; removed the Source data header link.
 - [x] 2026-10-30 Named the site "Houston Street Safety Dashboard" (tab, search and link-preview titles); sticky header; removed center-dot separators.
 - [x] 2026-10-30 Full page redesign toward a city-dashboard look: navy header with links, not-official notice, descriptive title, ruled KPI band, blue controls with red reserved for data, three-column footer.
 - [x] 2026-10-29 Area filter: removed county precincts (partial); added management districts, HPD patrol divisions, ZIP codes and Census tracts, offering only areas at least 95% inside the city limits.
