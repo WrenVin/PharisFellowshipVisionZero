@@ -306,11 +306,14 @@ print(f"Wrote boundary -> {bpath}")
 
 # crash points for the VZ dashboard "Crash locations" view + the by-month,
 # by-time-of-day, years-of-life-lost, by-neighborhood-income, and crash-cost panels:
-# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj]
+# [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj,
+#  light, factors, ksi_people]
 # fields 16-20 are the per-crash person counts by KABCO injury severity (killed K, serious A,
 # minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
+# 21 light (0 unknown, 1 daylight, 2 dark, 3 dawn/dusk), 22 contributing-factor bit flags,
+# 23 people killed or seriously injured as comma-joined codes or null (see build_crashes.py).
 def crash_rows(cr, freeway=False):
-    """Tag crash points and build dashboard rows (21 fields; freeway rows add road_type)."""
+    """Tag crash points and build dashboard rows (24 fields; freeway rows add road_type)."""
     cr = cr.to_crs(seg.crs)
     cr = cr[cr.within(_bnd)].copy()   # clip crashes to the full-purpose boundary (drops limited-purpose slivers)
     # Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
@@ -397,10 +400,11 @@ def crash_rows(cr, freeway=False):
     else:
         cr["sn"] = None
     pts = []
-    for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn, rt in zip(
+    for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn, rt, lt, fc, kp in zip(
             cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
             cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn,
-            cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj, cr.road_type if freeway else [None] * len(cr)):
+            cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj, cr.road_type if freeway else [None] * len(cr),
+            cr.light, cr.factors, cr.ksi_people):
         if g is None or g.is_empty:
             continue
         pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
@@ -414,7 +418,8 @@ def crash_rows(cr, freeway=False):
                     1 if otx else 0,
                     sid if isinstance(sid, str) else None,
                     int(snv) if pd.notna(snv) else None,
-                    int(nk), int(na), int(nb), int(nc), int(nn)] + ([int(rt)] if freeway else []))
+                    int(nk), int(na), int(nb), int(nc), int(nn),
+                    int(lt), int(fc), kp if isinstance(kp, str) and kp else None] + ([int(rt)] if freeway else []))
     return pts
 
 
@@ -456,3 +461,42 @@ if sn_4326 is not None:
         spath.unlink()
     ss[["POLYID", "SNBNAME", "geometry"]].to_file(spath, driver="GeoJSON", COORDINATE_PRECISION=5)
     print(f"Wrote {len(ss)} Super Neighborhoods -> {spath} ({spath.stat().st_size/1e3:.0f} KB)")
+
+# Census block groups for the income panel's rate per resident: one row per block
+# group inside the boundary, [lat, lon, pop, inc_tier, district, sn]. A block group
+# that crosses the city line keeps the share of its population equal to the share
+# of its land inside (area-weighted). Point = a representative point of the inside
+# part, tagged to a council district and Super Neighborhood like a crash, so the
+# page can total residents for any area filter.
+_bgcache = cfg.external("census_bg.gpkg")
+if _bgcache.exists() and "pop" in seg.columns:
+    bg = gpd.read_file(_bgcache)[["GEOID", "geometry"]].to_crs(seg.crs)
+    bg["GEOID"] = bg["GEOID"].astype(str)
+    _bgattr = (seg.dropna(subset=["bg_geoid"]).assign(bg_geoid=lambda d: d["bg_geoid"].astype(str))
+                  .groupby("bg_geoid")[["pop", "median_hh_income"]].first())
+    bg = bg.join(_bgattr, on="GEOID").dropna(subset=["pop"])
+    inside = bg.geometry.intersection(_bnd)
+    share = inside.area / bg.geometry.area
+    bg = bg.assign(geometry=inside, pop=(bg["pop"] * share).round())
+    bg = bg[(share > 0.01) & (bg["pop"] > 0)].copy()
+    bg["geometry"] = bg.geometry.representative_point()
+    bg["inc_tier"] = pd.to_numeric(bg["median_hh_income"], errors="coerce").map(inc_tier)
+    bg = bg.to_crs(4326)
+    bg["district"] = None
+    if districts_4326 is not None:
+        j = gpd.sjoin(bg[["geometry"]], districts_4326[["DISTRICT", "geometry"]], how="left", predicate="within")
+        bg["district"] = j[~j.index.duplicated()]["DISTRICT"].values
+    bg["sn"] = None
+    if sn_4326 is not None:
+        j = gpd.sjoin(bg[["geometry"]], sn_4326[["POLYID", "geometry"]], how="left", predicate="within")
+        bg["sn"] = pd.to_numeric(j[~j.index.duplicated()]["POLYID"].values, errors="coerce")
+    rows = [[round(g.y, 5), round(g.x, 5), int(p), int(t) if pd.notna(t) else None,
+             d if isinstance(d, str) else None, int(s) if pd.notna(s) else None]
+            for g, p, t, d, s in zip(bg.geometry, bg["pop"], bg["inc_tier"], bg["district"], bg["sn"])]
+    bpath = DOCS / "blockgroups.json"
+    bpath.write_text(json.dumps({"cols": ["lat", "lon", "pop", "inc_tier", "district", "sn"], "rows": rows},
+                                separators=(",", ":")))
+    print(f"Wrote {len(rows):,} block groups ({int(bg['pop'].sum()):,} residents) -> {bpath.name} "
+          f"({bpath.stat().st_size/1e3:.0f} KB)")
+else:
+    print("WARNING: block-group cache or segment population missing; blockgroups.json not written")

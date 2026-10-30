@@ -4,6 +4,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Open
 
+- [ ] **People killed: count people or fatal crashes?** The KPI counts fatal crashes (1,729); person records now give 1,822 people killed. Vincent's call.
 - [ ] **Schools and parks (from form feedback, 2026-07-22).** Overlays plus a "near schools / parks" distance filter and a per-school/park report for Safe Routes applications. Plan in [SCHOOLS_PARKS_PLAN.md](SCHOOLS_PARKS_PLAN.md). Part 1 (overlays) done 2026-10-29; next: confirm the radius with the submitter (federal SRTS uses about 2 miles), then the per-school/park radius view and report.
 - [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Written plan in [FREEWAY_PLAN.md](FREEWAY_PLAN.md): ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as streets, crashes placed by TxDOT milepost. Two decisions open (color scale, direction display). Not started.
 - [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
@@ -17,6 +18,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-30 Lower-half rebuild: street table first, year with year-to-date, travel mode donut, day-and-time heatmap, contributing factors, age and sex, lighting, income as a rate per resident; Who / When filters in the sidebar; drag-to-reorder removed. Fixed the person-record dedupe bug (years of life lost now 59,461 from actual ages).
 - [x] 2026-10-30 Rewrote page copy in plainer, shorter language; removed the Source data header link.
 - [x] 2026-10-30 Named the site "Houston Street Safety Dashboard" (tab, search and link-preview titles); sticky header; removed center-dot separators.
 - [x] 2026-10-30 Full page redesign toward a city-dashboard look: navy header with links, not-official notice, descriptive title, ruled KPI band, blue controls with red reserved for data, three-column footer.

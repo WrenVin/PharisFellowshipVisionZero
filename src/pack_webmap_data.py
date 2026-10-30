@@ -1,12 +1,12 @@
 """Pack the dashboard's two large exports into compact files the page loads.
 
-crash_points.json (one 21-field row per crash) and segments_vz.geojson stay the
+crash_points.json (one 24-field row per crash) and segments_vz.geojson stay the
 canonical, human-readable exports. This step writes column-oriented versions:
 
-    docs/crashes.packed.json    every crash, same 21 fields, lossless
+    docs/crashes.packed.json    every crash, same 24 fields, lossless
     docs/segments.packed.json   every street segment, same properties + geometry
     docs/freeway_crashes.packed.json   freeway/tollway/ramp/frontage crashes for the
-                                optional toggle (21 fields + road_type), lossless
+                                optional toggle (24 fields + road_type), lossless
 
 Compaction: values are stored per column instead of per row; coordinates become
 integers (1e-5 degrees, the exports' existing precision) stored as differences
@@ -66,10 +66,15 @@ def pack_crashes(rows):
     }
     for i, k in zip(range(16, 21), ("k", "a", "b", "c", "o")):
         c[k] = [r[i] for r in rows]
-    if rows and len(rows[0]) > 21:          # freeway rows carry road_type as field 21
-        c["road"] = [r[21] for r in rows]
-    return {"format": "vz-crashes", "version": 1, "day0": D0.isoformat(),
-            "flagFields": list(FLAG_FIELDS), "districts": dists,
+    c["light"] = [r[21] for r in rows]
+    c["fac"] = [r[22] for r in rows]
+    people = sorted({r[23] for r in rows if r[23] is not None})
+    pi = {v: i for i, v in enumerate(people)}
+    c["ppl"] = [-1 if r[23] is None else pi[r[23]] for r in rows]
+    if rows and len(rows[0]) > 24:          # freeway rows carry road_type as field 24
+        c["road"] = [r[24] for r in rows]
+    return {"format": "vz-crashes", "version": 2, "day0": D0.isoformat(),
+            "flagFields": list(FLAG_FIELDS), "districts": dists, "people": people,
             "n": len(rows), "cols": c}
 
 

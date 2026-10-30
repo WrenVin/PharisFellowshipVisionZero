@@ -35,7 +35,7 @@ ROOT, CRIS, PROCESSED, REPORTS = cfg.ROOT, cfg.CRIS, cfg.PROCESSED, cfg.REPORTS
 WANT = ["Crash_ID", "Crash_Date", "Crash_Time", "Crash_Fatal_Fl", "Crash_Sev_ID",
         "Latitude", "Longitude", "Rpt_Latitude", "Rpt_Longitude",
         "Sus_Serious_Injry_Cnt", "Tot_Injry_Cnt", "Crash_Speed_Limit",
-        "Road_Cls_ID", "Rpt_Road_Part_ID", "Rpt_Street_Name"]
+        "Road_Cls_ID", "Rpt_Road_Part_ID", "Rpt_Street_Name", "Light_Cond_ID"]
 # Years of Life Lost: YPLL before age 75 (CDC convention) = max(0, 75 - age),
 # summed over the people killed. Age comes from the CRIS person table.
 LIFE_EXPECTANCY = 75
@@ -55,6 +55,23 @@ FWY_NAME = re.compile(r"SOUTHWEST|NORTHWEST|NORTH FWY|FREEWAY|FWY|EASTEX|GULF|"
                       r"SAM HOUSTON|SER ", re.I)
 # CRIS Crash_Sev_ID -> KABCO (verified against Fatal_Fl + serious-injury counts)
 KABCO = {4: "K", 1: "A", 2: "B", 3: "C", 5: "O", 0: "UNK"}
+# Light_Cond_ID -> dashboard lighting: 1 daylight, 2 dark (lighted, not lighted,
+# or unknown lighting), 3 dawn or dusk, 0 unknown/other
+LIGHT = {1: 1, 3: 2, 4: 2, 6: 2, 2: 3, 5: 3}
+# Contributing factors (unit table, Contrib_Factr_1..3_ID; CONTRIB_FACTR_LKP) -> bit
+# flags per crash, set if any unit in the crash was cited for one:
+FACTOR_BITS = {
+    1: {22, 60, 61},                   # speeding: failed to control speed, unsafe speed, over limit
+    2: set(range(32, 40)),             # driver failed to yield right of way (all kinds)
+    4: {45, 67, 68},                   # impaired: had been drinking, under influence (alcohol, drug)
+    8: {19, 20, 72, 75, 76, 77, 78},   # distracted: inattention, distraction in vehicle, phone use
+    16: {15, 16},                      # ran a red light or stop sign
+}
+# People killed or seriously injured, one small code each:
+# code = 32*killed + 4*age_group + sex
+# age_group 0 unknown, 1 under 15, 2 15-24, 3 25-44, 4 45-64, 5 65+;
+# sex (GNDR_LKP) 0 unknown, 1 male, 2 female
+AGE_EDGES = (15, 25, 45, 65)
 
 # --- read + dedupe (every Houston_Crash_* folder, year-agnostic) --------------
 folders = sorted(p.name for p in CRIS.glob("Houston_Crash_*"))
@@ -119,6 +136,22 @@ for f in glob.glob(str(CRIS / "Houston_Crash_*" / "*unit_*.csv")):
     ped_ids |= set(u.loc[u["Unit_Desc_ID"] == 4, "Crash_ID"])
     bike_ids |= set(u.loc[u["Unit_Desc_ID"] == 3, "Crash_ID"])
 
+# contributing factors per crash (bit flags, see FACTOR_BITS)
+_fcols = ("Crash_ID", "Contrib_Factr_1_ID", "Contrib_Factr_2_ID", "Contrib_Factr_3_ID")
+_fac = []
+for f in glob.glob(str(CRIS / "Houston_Crash_*" / "*unit_*.csv")):
+    u = pd.read_csv(f, usecols=lambda c: c in _fcols, low_memory=False)
+    u = u[u["Crash_ID"].isin(dc_ids)]
+    _fac.append(u.melt(id_vars="Crash_ID", value_name="code")[["Crash_ID", "code"]])
+_fac = pd.concat(_fac, ignore_index=True).dropna()
+_fac["code"] = pd.to_numeric(_fac["code"], errors="coerce")
+_fac["bit"] = 0
+for _bit, _codes in FACTOR_BITS.items():
+    _fac.loc[_fac["code"].isin(_codes), "bit"] = _bit
+_fac = _fac[_fac["bit"] > 0].drop_duplicates(["Crash_ID", "bit"])
+g["factors"] = g["Crash_ID"].map(_fac.groupby("Crash_ID")["bit"].sum()).fillna(0).astype(int)
+g["light"] = pd.to_numeric(g["Light_Cond_ID"], errors="coerce").map(LIGHT).fillna(0).astype(int)
+
 # cross-check against the person table (Prsn_Type_ID 4/3)
 pped, pbike = set(), set()
 for f in glob.glob(str(CRIS / "Houston_Crash_*" / "*person_*.csv")):
@@ -155,20 +188,32 @@ g["speed_limit"] = pd.to_numeric(g["Crash_Speed_Limit"], errors="coerce")
 # person = max(0, 75 - age); sum per crash. Persons live in two files per year —
 # `primaryperson` (drivers / non-motorists) and `person` (passengers) — which
 # REUSE Prsn_Nbr, so dedupe each type separately (handles overlapping extracts)
-# then concatenate; never cross-dedupe the two types.
-# Caveat: the public CRIS extract records a victim age for only ~half of fatal
-# crashes (person detail is suppressed on the rest), so the crash-level K flag
-# (`fatal`) is the reliable death count. We use recorded ages where present and
-# impute the mean years-lost-per-fatality to the remaining fatal crashes, making
-# the YLL total an *estimate* anchored to the fatal-crash count.
-pcols = ("Crash_ID", "Prsn_Nbr", "Prsn_Injry_Sev_ID", "Prsn_Age")
+# then concatenate; never cross-dedupe the two types. Prsn_Nbr also restarts in
+# every unit (person 1 of vehicle 1, person 1 of vehicle 2), so the key must
+# include Unit_Nbr; deduping on (Crash_ID, Prsn_Nbr) alone dropped about half of
+# all people (fixed 2026-10-30).
+# Fatal crashes with no killed person row (or no recorded age) get the mean
+# years-lost-per-fatality, so the YLL total stays anchored to the fatal-crash count.
+pcols = ("Crash_ID", "Unit_Nbr", "Prsn_Nbr", "Prsn_Injry_Sev_ID", "Prsn_Age", "Prsn_Gndr_ID")
 def _load_persons(kind):
     fs = [f for f in glob.glob(str(CRIS / "Houston_Crash_*" / f"*{kind}_*.csv"))
           if (kind == "primaryperson") or ("primaryperson" not in f)]
     fr = [pd.read_csv(f, usecols=lambda c: c in pcols, low_memory=False) for f in fs]
-    return pd.concat(fr, ignore_index=True).drop_duplicates(["Crash_ID", "Prsn_Nbr"])
-killed = pd.concat([_load_persons("primaryperson"), _load_persons("person")],
-                   ignore_index=True)
+    return pd.concat(fr, ignore_index=True).drop_duplicates(["Crash_ID", "Unit_Nbr", "Prsn_Nbr"])
+persons = pd.concat([_load_persons("primaryperson"), _load_persons("person")],
+                    ignore_index=True)
+# people killed (K) or seriously injured (A), coded for the age/sex panels and filters
+ksi_p = persons[persons["Crash_ID"].isin(dc_ids) & persons["Prsn_Injry_Sev_ID"].isin([4, 1])].copy()
+_age = pd.to_numeric(ksi_p["Prsn_Age"], errors="coerce")
+ksi_p["ageg"] = 0
+for _i, _lo in enumerate((0,) + AGE_EDGES):
+    ksi_p.loc[_age >= _lo, "ageg"] = _i + 1
+_sex = pd.to_numeric(ksi_p["Prsn_Gndr_ID"], errors="coerce")
+ksi_p["sex"] = _sex.where(_sex.isin([1, 2]), 0).astype(int)
+ksi_p["code"] = 32 * ksi_p["Prsn_Injry_Sev_ID"].eq(4).astype(int) + 4 * ksi_p["ageg"] + ksi_p["sex"]
+g["ksi_people"] = g["Crash_ID"].map(ksi_p.sort_values("code").groupby("Crash_ID")["code"]
+                                     .agg(lambda v: ",".join(str(int(c)) for c in v)))
+killed = persons
 killed = killed[killed["Crash_ID"].isin(dc_ids) & (killed["Prsn_Injry_Sev_ID"] == 4)].copy()
 killed["age"] = pd.to_numeric(killed["Prsn_Age"], errors="coerce")
 killed["yll"] = (LIFE_EXPECTANCY - killed["age"]).clip(lower=0)
@@ -191,7 +236,7 @@ total_yll = float(g["yll"].sum())
 out = g[["Crash_ID", "year", "month", "hour", "date", "kabco", "fatal",
          "serious", "severe", "yll", "any_injury", "mode", "involves_ped",
          "involves_bike", "Crash_Sev_ID", "speed_limit", "coord_source",
-         "geometry"]].copy()
+         "light", "factors", "ksi_people", "geometry"]].copy()
 out["date"] = out["date"].dt.strftime("%Y-%m-%d")
 PROCESSED.mkdir(parents=True, exist_ok=True)
 dst = cfg.processed("crashes.gpkg")
@@ -245,6 +290,11 @@ Generated by `src/build_crashes.py` from raw TxDOT CRIS extracts (gitignored).
 - Fatal crashes (crash-level K): {int(g['fatal'].sum())}
 - ...with a recorded victim age in the public extract: {n_fatal_recorded} ({n_killed_persons} killed persons); the other {n_fatal_imputed} get the mean ({mean_yll:.0f} yrs/fatality)
 - **Estimated Total Years of Life Lost: {total_yll:,.0f}** (Σ max(0, {LIFE_EXPECTANCY} − age), imputed where age is suppressed)
+
+## Lighting, contributing factors, people (for the dashboard's Who / When / Why panels)
+- Lighting known: {100*(g['light']>0).mean():.1f}% of crashes; dark: {100*(g['light']==2).mean():.1f}%
+- KSI crashes with at least one tracked contributing factor: {100*(g.loc[g['severe'],'factors']>0).mean():.1f}%
+- KSI crashes with person-level detail: {100*g.loc[g['severe'],'ksi_people'].notna().mean():.1f}%
 
 ## Time of day / month
 - Crashes with a parseable time: {int(g['hour'].notna().sum()):,} / {len(g):,}

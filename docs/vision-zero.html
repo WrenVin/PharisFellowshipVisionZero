@@ -127,13 +127,6 @@
   .below{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;align-items:start}
   .card{background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 12px}
   .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700;display:flex;align-items:center;gap:6px}
-  .grip{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;margin:0;border:none;background:none;color:var(--muted);opacity:.55;cursor:grab;border-radius:4px;-webkit-user-select:none;user-select:none}
-  .grip:hover{opacity:1;color:var(--accent);background:var(--panel)}
-  .grip:active{cursor:grabbing}
-  .grip svg{width:13px;height:13px;display:block;pointer-events:none}
-  .card.dragging{opacity:.5}
-  .card.drop-before{box-shadow:-3px 0 0 0 var(--accent)}
-  .card.drop-after{box-shadow:3px 0 0 0 var(--accent)}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:9px;min-height:15px}
   .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:2px;cursor:pointer;animation:rowIn .32s ease both}
   .worst-row:hover{background:#f3f4f6}
@@ -267,7 +260,9 @@
   #report .r-note{font-size:11px;color:var(--muted);margin-top:5px}
   #report .r-worst{width:100%;border-collapse:collapse;font-size:12.5px;break-inside:avoid;page-break-inside:avoid}
   #report .r-worst td{padding:4px 6px;border-bottom:1px solid var(--line)}
-  #report .r-worst td:last-child{text-align:right;font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums}
+  #report .r-worst th,#report .r-worst td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  #report .r-worst th{font-size:11px;color:var(--muted);padding:4px 6px;border-bottom:1.5px solid var(--ink)}
+  #report .r-worst th:nth-child(2),#report .r-worst td:nth-child(2){text-align:left}
   #report .r-worst td:first-child{color:var(--muted);width:26px}
   #report .r-foot{font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);
     margin-top:16px;padding-top:10px}
@@ -281,7 +276,7 @@
   }
 
   /* ---- civic layout: header, key-figure band, form panel, ruled sections, footer ---- */
-  :root{--ink:#1b1b1b;--muted:#565c65;--line:#dfe1e2;--panel:#f0f0f0;--act:#005ea2;--act-dk:#1a4480;--act-lt:#e7f2f8;--navy:#162e51}
+  :root{--fatal:#a3302a;--serious:#df735c;--ink:#1b1b1b;--muted:#565c65;--line:#dfe1e2;--panel:#f0f0f0;--act:#005ea2;--act-dk:#1a4480;--act-lt:#e7f2f8;--navy:#162e51}
   html,body{background:#fff}
   a{color:var(--act)}
   :focus-visible{outline:2px solid #2491ff;outline-offset:2px;border-radius:0}
@@ -334,9 +329,6 @@
   .below{gap:28px;margin-top:24px}
   .card{border:none;border-top:2px solid var(--ink);padding:12px 0 0;background:transparent}
   .card h3{font-size:15px}
-  .grip:hover{color:var(--act)}
-  .card.drop-before{box-shadow:-3px 0 0 0 var(--act)}
-  .card.drop-after{box-shadow:3px 0 0 0 var(--act)}
   .worst-row:hover{background:var(--panel)}
   .sitefoot{margin-top:40px;background:var(--panel);border-top:1px solid var(--line)}
   .sf-cols{max-width:1360px;margin:0 auto;padding:24px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px;font-size:13.5px;line-height:1.55;color:var(--ink)}
@@ -351,6 +343,48 @@
   .rc-check input,.toggle input{accent-color:var(--act)}
   .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
   .sitehead{position:sticky;top:0;z-index:1150}
+  @media(min-width:781px){.main{align-items:flex-start}#mapwrap{position:sticky;top:64px;height:calc(100vh - 84px);max-height:900px}}   /* map stays in view while the longer sidebar scrolls */
+  .ctrl .sec{font-size:15px;font-weight:700;color:var(--ink);margin:18px 0 10px;padding-top:12px;border-top:1px solid #c9cdd1}
+  .ctrl .sec:first-child{margin-top:0;padding-top:0;border-top:none}
+  .yrrow{display:flex;align-items:center;gap:6px}.yrrow select{flex:1;min-width:0}.yrrow span{font-size:13px;color:var(--muted)}
+  .below{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .below .wide{grid-column:1/-1}.below .span2{grid-column:span 2}
+  .hb{display:grid;grid-template-columns:minmax(92px,38%) 1fr auto;align-items:center;gap:8px;padding:3px 4px;margin:0 -4px;font-size:13px}
+  .hb-click{cursor:pointer}.hb-click:hover{background:var(--act-lt)}
+  .hb-off{opacity:.42}.hb-on .hb-l{font-weight:700}
+  .hb-l{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hb-t{display:flex;height:14px;background:transparent}
+  .hb-f{background:var(--fatal);height:100%}.hb-s{background:var(--serious);height:100%;margin-left:0}
+  .hb-f+.hb-s{border-left:2px solid #fff}
+  .hb-v{font-variant-numeric:tabular-nums;color:var(--ink);min-width:44px;text-align:right}
+  .hbh{font-size:12.5px;font-weight:700;color:var(--muted);margin:2px 0 4px}
+  .donutwrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .donutwrap svg{flex:none}
+  .dleg{flex:1;min-width:150px}
+  .dleg .hb{grid-template-columns:auto 1fr auto}
+  .dsw{display:inline-block;width:11px;height:11px;margin-right:7px;vertical-align:-1px}
+  .slice{cursor:pointer}.slice:hover{opacity:.85}
+  .heat{display:grid;grid-template-columns:34px repeat(24,minmax(0,1fr));gap:2px;font-size:11.5px;color:var(--muted)}
+  .heat .hc{height:17px}.heat .hl{text-align:left;line-height:17px}.heat .hx{text-align:left;white-space:nowrap;height:auto;padding-top:2px}
+  .heatleg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:8px}
+  .heatleg span.ramp{display:inline-flex}.heatleg span.ramp i{display:inline-block;width:18px;height:10px}
+  .tblwrap{overflow-x:auto}
+  .wtbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .wtbl th{text-align:right;font-weight:700;color:var(--muted);font-size:12.5px;padding:6px 8px;border-bottom:2px solid var(--ink);white-space:nowrap}
+  .wtbl td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .wtbl th:nth-child(-n+2),.wtbl td:nth-child(-n+2){text-align:left}
+  .wtbl td:nth-child(2){white-space:normal;min-width:150px}
+  .wtbl tbody tr{cursor:pointer}.wtbl tbody tr:hover{background:var(--act-lt)}
+  .wtbl tr.on td{background:var(--act-lt);font-weight:700}
+  .wtbl .sname{color:var(--act);text-decoration:underline}
+  .wfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+  .morebtn{border:1px solid var(--act);color:var(--act);background:#fff;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;border-radius:2px}
+  .morebtn:hover{background:var(--act-lt)}
+  .card .note{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+  #report .hb{font-size:10px;padding:1px 0}#report .hb-t{height:9px}#report .heat .hc{height:10px}#report .heat{font-size:8px}
+  @media(max-width:1100px){.below{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .below>.card{min-width:0}
+  @media(max-width:680px){.below{grid-template-columns:minmax(0,1fr)}.below .span2{grid-column:auto}}
   @media(max-width:780px){.sh-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:0}.sh-nav::-webkit-scrollbar{display:none}.sh-nav a{white-space:nowrap;padding-left:10px;padding-right:10px;font-size:14px}.sh-nav a:first-child{padding-left:0}}
   @media print{.sitehead,.provenance,.sitefoot{display:none!important}}
 </style>
@@ -390,6 +424,7 @@
 
   <div class="main">
     <div class="ctrl">
+      <h2 class="sec">Where</h2>
       <div class="grp">
         <h3>Find a street</h3>
         <input type="text" id="search" placeholder="e.g. Westheimer, Main St…" autocomplete="off" list="streetnames" aria-label="Find a street by name"/>
@@ -414,6 +449,7 @@
         <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
         <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
+      <h2 class="sec">Who</h2>
       <div class="grp">
         <h3 id="mode-h">Travel mode</h3>
         <div class="lens" role="group" aria-labelledby="mode-h">
@@ -423,6 +459,46 @@
           <span class="pill" data-mode="bike" role="button" tabindex="0" aria-pressed="false">Biking</span>
         </div>
       </div>
+      <div class="grp">
+        <h3><label for="agesel">Age of person hurt</label> <button class="info" onclick="toggleTip(this)" aria-label="About age and sex">i</button></h3>
+        <select id="agesel">
+          <option value="0">All ages</option><option value="1">Under 15</option><option value="2">15 to 24</option>
+          <option value="3">25 to 44</option><option value="4">45 to 64</option><option value="5">65 and older</option>
+        </select>
+        <div class="tip">Age and sex come from the crash report for each person killed or seriously injured. Choosing one shows crashes where at least one person in that group was killed or seriously injured.</div>
+      </div>
+      <div class="grp">
+        <h3 id="sex-h">Sex of person hurt</h3>
+        <span class="seg" role="group" aria-labelledby="sex-h">
+          <label><input type="radio" name="sexf" value="0" checked> All</label>
+          <label><input type="radio" name="sexf" value="1"> Male</label>
+          <label><input type="radio" name="sexf" value="2"> Female</label>
+        </span>
+      </div>
+      <h2 class="sec">When</h2>
+      <div class="grp">
+        <h3 id="yr-h">Years</h3>
+        <div class="yrrow" role="group" aria-labelledby="yr-h"><select id="yr-from" aria-label="From year"></select><span>to</span><select id="yr-to" aria-label="To year"></select></div>
+      </div>
+      <div class="grp">
+        <h3><label for="mosel">Month</label></h3>
+        <select id="mosel"></select>
+      </div>
+      <div class="grp">
+        <h3><label for="dowsel">Day of week</label></h3>
+        <select id="dowsel"></select>
+      </div>
+      <div class="grp">
+        <h3><label for="hrsel">Time of day</label></h3>
+        <select id="hrsel"></select>
+      </div>
+      <div class="grp">
+        <h3><label for="lightsel">Lighting</label></h3>
+        <select id="lightsel">
+          <option value="0">Any lighting</option><option value="1">Daylight</option><option value="2">Dark</option><option value="3">Dawn or dusk</option>
+        </select>
+      </div>
+      <h2 class="sec">Roads</h2>
       <div class="grp">
         <h3>Road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
         <span class="seg">
@@ -439,8 +515,9 @@
           <label title="Add crashes on freeways, toll roads, ramps and frontage roads"><input type="radio" name="fwy" value="1"> Included</label>
         </span>
         <div class="note" id="fwy-note" aria-live="polite"></div>
-        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the concentration chart still count city streets only.</div>
+        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the share of streets carrying half the harm still count city streets only.</div>
       </div>
+      <h2 class="sec">Map</h2>
       <div class="grp">
         <h3>Show</h3>
         <span class="seg">
@@ -481,70 +558,61 @@
   </div>
 
   <div class="below">
-    <div class="card" data-card="trend">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
+    <div class="card wide" data-card="worst">
+      <h3>Most dangerous streets <button class="info" onclick="toggleTip(this)" aria-label="About the street ranking">i</button></h3>
+      <div class="sub" id="worst-sub"></div>
+      <div class="tblwrap"><table class="wtbl" id="worst-tbl"></table></div>
+      <div class="wfoot"><button type="button" class="morebtn" id="worst-more">Show 10 more</button><span id="roadfacts"></span></div>
+      <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view. Click a street to select it on the map. Per mile divides by the street's length in the current area. The High Injury Network column shows how much of the street is on the City's 2022 network.</div>
+    </div>
+    <div class="card span2" data-card="trend">
+      <h3><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
-      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div><div class="fill" id="yr-fill2" style="display:none"></div><input type="range" id="yr-from" min="0" step="1" aria-label="From year"><input type="range" id="yr-to" min="0" step="1" aria-label="To year"></div></div>
       <div class="bleg" id="trend-leg"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
-    </div>
-    <div class="card" data-card="month">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="month-title">Killed or seriously injured, by month</span> <button class="info" onclick="toggleTip(this)" aria-label="About the month chart">i</button></h3>
-      <div class="sub" id="month-sub"></div>
-      <div id="month"></div>
-      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="mo-fill"></div><div class="fill" id="mo-fill2" style="display:none"></div><input type="range" id="mo-from" min="0" step="1" aria-label="From month"><input type="range" id="mo-to" min="0" step="1" aria-label="To month"></div></div>
-      <div class="bleg" id="month-leg"></div>
-      <div class="tip">Each bar adds up every year shown for that month.</div>
-    </div>
-    <div class="card" data-card="tod">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span id="tod-title">By time of day</span> <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
-      <div class="sub" id="tod-sub"></div>
-      <div id="tod"></div>
-      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div><div class="fill" id="hr-fill2" style="display:none"></div><input type="range" id="hr-from" min="0" step="1" aria-label="From hour"><input type="range" id="hr-to" min="0" step="1" aria-label="To hour"></div></div>
-      <div class="bleg" id="tod-leg"></div>
-      <div class="tip">Each bar adds up every year shown for that hour. The 5 PM bar covers 5:00 to 5:59 PM.</div>
-    </div>
-    <div class="card" data-card="dow">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="dow-title">By day of week</span> <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
-      <div class="sub" id="dow-sub"></div>
-      <div id="dow"></div>
-      <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="dw-fill"></div><div class="fill" id="dw-fill2" style="display:none"></div><input type="range" id="dw-from" min="0" step="1" aria-label="From day"><input type="range" id="dw-to" min="0" step="1" aria-label="To day"></div></div>
-      <div class="bleg" id="dow-leg"></div>
-      <div class="tip">Each bar adds up every year shown for that day of the week.</div>
+      <div class="note" id="ytd-note"></div>
     </div>
     <div class="card" data-card="mode">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
+      <h3>By travel mode</h3>
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
-      <div class="stack" id="modebar"></div>
-      <div class="legrow" id="modeleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
+      <div id="donut"></div>
+      <div class="note" id="modedeaths"></div>
+    </div>
+    <div class="card span2" data-card="when">
+      <h3>By day and time <button class="info" onclick="toggleTip(this)" aria-label="About the day and time chart">i</button></h3>
+      <div class="sub" id="when-sub"></div>
+      <div id="heat"></div>
+      <div class="note" id="when-note"></div>
+      <div class="tip">Each square is one hour of one day of the week, added up across all years shown. Darker squares have more.</div>
+    </div>
+    <div class="card" data-card="factors">
+      <h3>Contributing factors <button class="info" onclick="toggleTip(this)" aria-label="About contributing factors">i</button></h3>
+      <div class="sub" id="fac-sub"></div>
+      <div id="facbars"></div>
+      <div class="tip">Factors the police officer recorded for a driver or vehicle in the crash. A crash can have more than one, so the shares can add up to more than 100%. Speeding includes unsafe speed and failing to control speed.</div>
+    </div>
+    <div class="card" data-card="people">
+      <h3>Age and sex <button class="info" onclick="toggleTip(this)" aria-label="About age and sex">i</button></h3>
+      <div class="sub" id="ppl-sub">People killed or seriously injured</div>
+      <div id="agebars"></div>
+      <div id="sexbars" style="margin-top:12px"></div>
+      <div class="bleg" id="ppl-leg"></div>
+      <div class="tip">Counts people, not crashes. Click an age group or sex to filter the dashboard to crashes where someone in that group was killed or seriously injured.</div>
+    </div>
+    <div class="card" data-card="light">
+      <h3>Lighting</h3>
+      <div class="sub" id="light-sub"></div>
+      <div id="lightbars"></div>
+      <div class="bleg" id="light-leg"></div>
+      <div class="note" id="light-note"></div>
     </div>
     <div class="card" data-card="eq">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
-      <div class="sub" id="eq-sub">Killed or seriously injured</div>
-      <div class="stack" id="eqbar"></div>
-      <div class="legrow" id="eqleg"></div>
-      <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="eqnote"></div>
-      <div class="tip">Median household income of the Census block group where each crash happened. It describes the area, not the people involved.</div>
-    </div>
-    <div class="card" data-card="own">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
-      <div class="sub" id="own-sub">Killed or seriously injured</div>
-      <div class="stack" id="ownbar"></div>
-      <div class="legrow" id="ownleg"></div>
-      <div class="tip">Road ownership comes from TxDOT's roadway inventory. The City needs TxDOT's approval to change a state-owned road.</div>
-    </div>
-    <div class="card" data-card="worst">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
-      <div class="sub" id="worst-sub">Killed or seriously injured</div>
-      <div id="worst-list"></div>
-    </div>
-    <div class="card" data-card="conc">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
-      <div class="sub" id="conc-sub"></div>
-      <div id="conc"></div>
-      <div class="tip">Streets are sorted from most to least harm. The curve shows the share of people killed or seriously injured on each share of street miles. The dashed line is an even spread. The Gini coefficient runs from 0 (even) to 1 (all on one street). The purple 6% line marks the size of the City's High Injury Network. These are counts, not rates per mile driven. On streets with traffic counts, the pattern is about the same after adjusting for traffic.</div>
+      <h3>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
+      <div class="sub" id="eq-sub"></div>
+      <div id="eqbars"></div>
+      <div class="note" id="eqnote"></div>
+      <div class="tip">People killed or seriously injured in crashes in neighborhoods (Census block groups) at each income level, per 100,000 people who live there, per year. Some people hurt do not live where the crash happened. Income is from the 2023 American Community Survey and covers the Harris County part of Houston.</div>
     </div>
   </div>
 
@@ -582,7 +650,11 @@
       <section>
         <h3>Definitions</h3>
         <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
-        <p><span class="lbl">Years of life lost</span> = years before age 75, added up for everyone killed (the CDC method). About half of the records list an age. The rest use the average age.</p>
+        <p><span class="lbl">Years of life lost</span> = years before age 75, added up for everyone killed (the CDC method), using each person's age from the crash report.</p>
+        <p><span class="lbl">Age and sex</span> = from the crash report for each person killed or seriously injured. As a filter, they keep crashes where at least one person in that group was killed or seriously injured.</p>
+        <p><span class="lbl">Lighting</span> = the light condition the officer recorded. Dark includes lighted and unlighted streets.</p>
+        <p><span class="lbl">Contributing factors</span> = factors the officer recorded for any driver or vehicle in the crash. Speeding includes unsafe speed, speeding over the limit and failing to control speed. Failed to yield covers all right-of-way violations by a driver. Alcohol or drugs includes had been drinking and under the influence. Distracted includes inattention and phone use.</p>
+        <p><span class="lbl">Rate by neighborhood income</span> = people killed or seriously injured in crashes in the block groups at each income level, divided by the people who live in those block groups, per 100,000 residents per year. Population is from the 2023 American Community Survey. Block groups that cross the city line count only the share of residents inside it, by land area.</p>
         <p><span class="lbl">Neighborhood income</span> = median household income of the Census block group where the crash happened.</p>
       </section>
       <section>
@@ -725,15 +797,16 @@
         <h3>Include in report</h3>
         <div class="rc-note rc-always">Headline stats (people killed, seriously injured, years of life lost) are always included.</div>
         <div class="rc-checks">
-          <label class="rc-check"><input type="checkbox" id="rc-s-summary" checked> <span>Summary sentence</span></label>
+<label class="rc-check"><input type="checkbox" id="rc-s-summary" checked> <span>Summary sentence</span></label>
           <label class="rc-check"><input type="checkbox" id="rc-s-map" checked> <span>Map</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-trend" checked> <span>By year</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-tod" checked> <span>By time of day</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-dow" checked> <span>By day of week</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-mode" checked> <span>By travel mode</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-eq" checked> <span>By neighborhood income</span></label>
-          <label class="rc-check"><input type="checkbox" id="rc-s-own" checked> <span>By road owner (city vs state)</span></label>
           <label class="rc-check"><input type="checkbox" id="rc-s-worst" checked> <span>Most dangerous streets</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-trend" checked> <span>By year</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-mode" checked> <span>By travel mode</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-when" checked> <span>By day and time</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-factors" checked> <span>Contributing factors</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-people" checked> <span>Age and sex</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-light" checked> <span>Lighting</span></label>
+          <label class="rc-check"><input type="checkbox" id="rc-s-eq" checked> <span>By neighborhood income</span></label>
         </div>
       </section>
 
@@ -763,6 +836,7 @@ let ymLo=null, ymHi=null;   // report's continuous month-granularity range (year
 // source of truth for filtering; the legacy year/month/yrLo/yrHi/hr/dow vars above are DERIVED
 // from them by syncDerived() so the existing labels, KPIs, and report keep working unchanged.
 let selY=new Set(), selM=new Set(), selD=new Set(), selH=new Set();   // years, months 1-12, days 0(Mon)-6(Sun), hours 0-23
+let lightSel=0, ageSel=0, sexSel=0;   // lighting (1 daylight, 2 dark, 3 dawn/dusk), age group 1-5, sex 1 male / 2 female; 0 = all
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[], dowArr=null;
@@ -837,11 +911,12 @@ function polyTester(geom, N){
 }
 const titleCase=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
-// crash-row owner test: toll-road crashes (p[21]===2, freeway toggle only) belong to neither City nor TxDOT
-const ownerOkP=p=> p[21]===2 ? owner==='all' : ownerOk(p[13]);
+// crash-row owner test: toll-road crashes (p[RT]===2, freeway toggle only) belong to neither City nor TxDOT
+const ownerOkP=p=> p[RT]===2 ? owner==='all' : ownerOk(p[13]);
 // freeway toggle: cityPts are the default crashes; fwyPts load on first use and are appended to pts
 let fwyOn=false, cityPts=[], fwyPts=null, wantFwy=false;
 const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
+const LT=21, FAC=22, PPL=23, RT=24;   // lighting code, contributing-factor bits, people codes, freeway road_type
 
 // ---- HIN overlay clipping ---------------------------------------------------
 // The HIN geojson carries no district/SN tags, so each segment is tagged with the
@@ -918,20 +993,26 @@ function syncDerived(){ if(!vz) return; const Y=vz.years;
   if(selD.size){ const a=[...selD].sort((x,y)=>x-y); dowLo=a[0]; dowHi=a[a.length-1]; } else { dowLo=0; dowHi=6; }
 }
 function deriveYear(){ syncDerived(); }   // back-compat alias for old callers
-// unified temporal predicate. skip ('year'|'month'|'hour'|'dow') excludes ONE dimension so a
-// chart can render its own full distribution while still filtered by the others.
+// unified filter predicate for the time and who filters. skip names the filters to
+// ignore (e.g. 'hour,dow') so a chart can show its own full distribution while still
+// following every other filter.
 function timeOk(p, skip){
-  if(skip!=='year'){
+  const sk=d=> !!skip && skip.indexOf(d)>=0;
+  if(!sk('year')){
     if(mrActive()){ const d=p[7]; if(!d) return false; const ym=p[6]*12+(+d.slice(5,7)-1); if(ym<ymLo || ym>ymHi) return false; }
     else if(selY.size && !selY.has(p[6])) return false;
   }
-  if(skip!=='month' && !mrActive() && selM.size){ const m=p[7]?+p[7].slice(5,7):0; if(!selM.has(m)) return false; }
-  if(skip!=='hour' && selH.size){ if(p[8]==null || !selH.has(p[8])) return false; }
-  if(skip!=='dow' && selD.size){ if(!p[7] || !selD.has(dowOf(p[7]))) return false; }
+  if(!sk('month') && !mrActive() && selM.size){ const m=p[7]?+p[7].slice(5,7):0; if(!selM.has(m)) return false; }
+  if(!sk('hour') && selH.size){ if(p[8]==null || !selH.has(p[8])) return false; }
+  if(!sk('dow') && selD.size){ if(!p[7] || !selD.has(dowOf(p[7]))) return false; }
+  if(!sk('light') && lightSel && p[LT]!==lightSel) return false;
+  const a=ageSel && !sk('age'), x=sexSel && !sk('sex');
+  if(a || x){ const pp=p[PPL]; if(!pp) return false;   // only people killed or seriously injured carry age/sex
+    if(!pp.some(c=> (!a || ((c>>2)&7)===ageSel) && (!x || (c&3)===sexSel))) return false; }
   return true;
 }
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const FATAL_C='#7a1419', SERIOUS_C='#ef8a73';   // stacked-bar: killed / seriously injured
+const FATAL_C='#a3302a', SERIOUS_C='#df735c';   // stacked bars: killed / seriously injured (same as --fatal / --serious)
 const KICON={
   killed:'<svg viewBox="0 0 24 24" fill="none" stroke="#e23b3b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-4-16-3 8H2"/></svg>',
   yll:'<svg viewBox="0 0 24 24" fill="none" stroke="#2f7fb0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3v3.5L12 12 7 17.5V21M17 3v3.5L12 12l5 5.5V21"/></svg>',
@@ -956,7 +1037,7 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
-  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive();
+  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive() || lightSel || ageSel || sexSel;
   if(narrowed){
     for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
@@ -1035,37 +1116,6 @@ function concentration(){
 }
 // draw the concentration (Lorenz) curve panel: cumulative share of harm vs cumulative
 // share of street-miles, with the equality diagonal and the City's 6% HIN cut marked.
-function drawConcentration(){
-  const el=document.getElementById('conc'), sub=document.getElementById('conc-sub'); if(!el) return;
-  const c=concentration(), metric = sev==='all'?'crashes':'KSI';
-  if(!c.totK){ el.innerHTML=''; if(sub) sub.textContent='No '+metric+' in this view.'; return; }
-  const half=c.pctForHalf!=null?c.pctForHalf*100:null, halfStr=half!=null?(half<10?half.toFixed(1):Math.round(half))+'%':'–';
-  if(sub) sub.innerHTML='Half of all '+metric+' is on <b>'+halfStr+'</b> of street-miles. Gini <b>'+(c.gini!=null?c.gini.toFixed(2):'–')+'</b>';
-  const W=336,H=156,padL=30,padR=10,padT=24,padB=28,pw=W-padL-padR,ph=H-padT-padB;
-  const X=x=>(padL+x*pw), Y=y=>(padT+(1-y)*ph), x0=X(0),x1=X(1),y0=Y(0),y1=Y(1);
-  let line=''; for(const p of c.curve) line+=(line?' L ':'M ')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);
-  let areaP='M '+x0.toFixed(1)+' '+y0.toFixed(1); for(const p of c.curve) areaP+=' L '+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1); areaP+=' L '+x1.toFixed(1)+' '+y0.toFixed(1)+' Z';
-  const hx=X(0.06), hy=Y(c.hinKsi);
-  const T=[0,0.5,1], lab=['0','50%','100%'];
-  let ax='<text x="2" y="11" font-size="9.5" fill="#5b6672">% of KSI</text>';   // y-axis title (above the plot)
-  ax+='<line x1="'+x0+'" y1="'+y1+'" x2="'+x0+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // y-axis
-  ax+='<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // x-axis
-  T.forEach((t,i)=>{ const ty=Y(t), tx=X(t);
-    if(t>0&&t<1) ax+='<line x1="'+x0+'" y1="'+ty.toFixed(1)+'" x2="'+x1+'" y2="'+ty.toFixed(1)+'" stroke="#eef0f3" stroke-width="1"/>';   // y gridline
-    ax+='<text x="'+(x0-5)+'" y="'+(ty+3).toFixed(1)+'" font-size="9" fill="#5b6672" text-anchor="end">'+lab[i]+'</text>';                // y tick label
-    ax+='<text x="'+tx.toFixed(1)+'" y="'+(y0+12)+'" font-size="9" fill="#5b6672" text-anchor="middle">'+lab[i]+'</text>'; });             // x tick label
-  ax+='<text x="'+(x0+pw/2).toFixed(1)+'" y="'+(H-4)+'" font-size="9.5" fill="#5b6672" text-anchor="middle">% of street-miles (most dangerous first)</text>';
-  el.innerHTML='<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'
-    + ax
-    +'<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y1+'" stroke="#b9c0c8" stroke-width="1" stroke-dasharray="3 3"/>'   // equality line
-    +'<path d="'+areaP+'" fill="#e23b3b" fill-opacity="0.10"/>'
-    +'<path d="'+line+'" fill="none" stroke="#b3202a" stroke-width="2" stroke-linejoin="round"/>'
-    +'<line x1="'+hx.toFixed(1)+'" y1="'+y0+'" x2="'+hx.toFixed(1)+'" y2="'+hy.toFixed(1)+'" stroke="#6a3d9a" stroke-width="1" stroke-dasharray="2 2"/>'
-    +'<circle cx="'+hx.toFixed(1)+'" cy="'+hy.toFixed(1)+'" r="3" fill="#6a3d9a"/>'
-    +'<text x="'+(hx+6).toFixed(1)+'" y="'+(hy+13).toFixed(1)+'" font-size="10.5" fill="#6a3d9a" font-weight="600">6% (HIN) &#8594; '+Math.round(c.hinKsi*100)+'%</text>'
-    +'</svg>';
-}
-
 const renderer=L.canvas({tolerance:8});
 const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
 L.control.zoom({position:'bottomright'}).addTo(map);
@@ -1091,14 +1141,16 @@ const _segId=n=>'H-'+String(n).padStart(5,'0');
 function unpackCrashes(pk){
   const c=pk.cols, n=pk.n, lat=_undelta(c.lat), lon=_undelta(c.lon), day=_undelta(c.day), seg=_undelta(c.seg);
   const d0=Date.parse(pk.day0+'T00:00:00Z'), F=pk.flagFields, D=pk.districts, rows=new Array(n), dcache=new Map();
+  const PPL=(pk.people||[]).map(v=>v.split(',').map(Number));   // people killed/seriously injured: code = 32*killed + 4*age group + sex
   for(let i=0;i<n;i++){
     let ds=dcache.get(day[i]); if(ds===undefined){ ds=new Date(d0+day[i]*86400000).toISOString().slice(0,10); dcache.set(day[i],ds); }
     const r=[lat[i]/1e5, lon[i]/1e5, 0,0,0,0, +ds.slice(0,4), ds,
       c.hour[i]===-1?null:c.hour[i], c.yll[i], c.dist[i]===-1?null:D[c.dist[i]],
       c.inc[i]===-1?null:c.inc[i], 0,0, seg[i]===-1?null:_segId(seg[i]), c.sn[i]===-1?null:c.sn[i],
-      c.k[i], c.a[i], c.b[i], c.c[i], c.o[i]];
+      c.k[i], c.a[i], c.b[i], c.c[i], c.o[i],
+      c.light[i], c.fac[i], c.ppl[i]===-1?null:PPL[c.ppl[i]]];
     const fl=c.flags[i]; for(let b=0;b<F.length;b++) r[F[b]]=(fl>>b)&1;
-    if(c.road) r.push(c.road[i]);   // freeway rows: road_type 1 = TxDOT freeway/ramp/frontage, 2 = toll road
+    if(c.road) r.push(c.road[i]);   // freeway rows (field 24): road_type 1 = TxDOT freeway/ramp/frontage, 2 = toll road
     rows[i]=r;
   }
   return rows;
@@ -1194,7 +1246,10 @@ Promise.all([
   map.on('zoomend', ()=>{ if(view==='points') buildPoints(); else if(fwyOn) buildPoints(true); });  // rescale dots to zoom
   try{fitCity();}catch(e){}
   buildStreetIndex();
-  ['year','month','hour','dow'].forEach(wireRange);   // attach the four range sliders (data is loaded, so year bounds are known)
+  { const last=cityPts.reduce((m,p)=>p[7]&&p[7]>m?p[7]:m,''), d=new Date(last+'T12:00:00');   // last complete month of data
+    if(last){ d.setDate(d.getDate()+1); d.setDate(0); DATA_END=d.toISOString().slice(0,10); } }   // day after the last date, back to the end of the prior month
+  setupWhenUI();   // fill the Years / Month / Day / Time selects (year bounds are known now)
+  fetch('blockgroups.json').then(r=>r.ok?r.json():null).then(b=>{ if(b){ BG=b.rows; drawEquity(); } }).catch(()=>{});
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
@@ -1283,7 +1338,7 @@ function buildPoints(fwyOnly){   // fwyOnly: just the freeway crashes, drawn ove
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,n_k,n_a,n_b,n_c,n_noinj]
     if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
-    if(fwyOnly && !p[21]) continue;
+    if(fwyOnly && !p[RT]) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
       fillColor:isSev?'#c0151a':'#f08a5c', fillOpacity:isSev?.5:.3}).addTo(g);
@@ -1337,6 +1392,9 @@ function syncURL(){
   if(!mrActive() && selM.size) q.push('mo='+encSet(selM));
   if(selH.size) q.push('hr='+encSet(selH));
   if(selD.size) q.push('dw='+encSet(selD));
+  if(lightSel) q.push('lt='+lightSel);
+  if(ageSel) q.push('age='+ageSel);
+  if(sexSel) q.push('sex='+sexSel);
   if(district!=null) q.push('district='+encodeURIComponent(district));
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(poly) q.push('area='+poly.type+':'+encodeURIComponent(poly.id));
@@ -1378,6 +1436,8 @@ function applyURL(){
   const mp=p.get('mo')||p.get('month'); if(mp) selM=decSet(mp,1,12);
   const hp=p.get('hr'); if(hp) selH=decSet(hp,0,23);
   const dp=p.get('dw')||p.get('dow'); if(dp) selD=decSet(dp,0,6);
+  const ip=(k,hi)=>{ const v=+p.get(k); return v>=1&&v<=hi?v:0; };
+  lightSel=ip('lt',3); ageSel=ip('age',5); sexSel=ip('sex',2);
   const ym=p.get('ym');   // report's continuous month-range overrides the facets
   if(ym && /^\d+-\d+$/.test(ym)){ let [a,b]=ym.split('-').map(Number); if(a>b)[a,b]=[b,a]; ymLo=a; ymHi=b; selY=new Set(); selM=new Set(); }
   syncDerived();
@@ -1420,7 +1480,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(fwyOn) buildPoints(true);   // street views: freeways have no street to shade, so their crashes show as dots
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  const _t=tally(year); drawKPIs(_t); drawLegend(); drawTrend(); drawMonth(); drawTimeOfDay(); drawDayOfWeek(); drawMode(_t); drawEquity(); drawOwnership(); drawWorstStreets(); drawConcentration(); drawViewing(); updateBlinkBtn();
+  const _t=tally(year); drawKPIs(_t); drawLegend(); drawWorstStreets(); drawTrend(); drawMode(_t); drawWhen(); drawFactors(); drawPeople(); drawLight(); drawEquity(); drawViewing(); updateBlinkBtn(); syncWhoWhenUI();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1441,6 +1501,9 @@ function drawViewing(){
   if(mrActive() || selY.size || selM.size) parts.push('<b>'+timeSpan(false)+'</b>');
   if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
   if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
+  if(lightSel) parts.push('<b>'+LIGHT_LAB[lightSel].toLowerCase()+'</b>');
+  if(ageSel) parts.push('<b>age '+AGE_LAB[ageSel].toLowerCase()+'</b>');
+  if(sexSel) parts.push('<b>'+SEX_LAB[sexSel].toLowerCase()+'</b>');
   if(parts.length){
     v.innerHTML='Viewing '+parts.join(', ')+'&nbsp;&nbsp;<span style="color:var(--act);cursor:pointer;text-decoration:underline">Clear</span>';
     v.querySelector('span').onclick=clearView;
@@ -1570,6 +1633,7 @@ function syncAreaUI(){
 })();
 function clearView(){
   selY.clear(); selM.clear(); selD.clear(); selH.clear(); ymLo=ymHi=null; syncDerived();   // clear all time facets
+  lightSel=ageSel=sexSel=0;
   selStreet=null; selSeg=null; selIds=new Set();   // clear selection
   _clearSN(); _clearPoly();   // clear any super-neighborhood / polygon area too
   const sel=document.getElementById('district'); if(sel) sel.value='';
@@ -1579,6 +1643,7 @@ function clearView(){
 function resetAll(){
   mode='all'; sev='ksi'; view='streets'; owner='all'; ymLo=ymHi=null;
   selY.clear(); selM.clear(); selD.clear(); selH.clear(); syncDerived();   // all time facets back to full
+  lightSel=ageSel=sexSel=0; _worstN=10;
   selStreet=null; selSeg=null; selIds=new Set();
   document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
@@ -1596,7 +1661,7 @@ function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked || !!(document.getElementById('schools')||{}).checked || !!(document.getElementById('parks')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
-    && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow()
+    && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow() && !lightSel && !ageSel && !sexSel
     && district===null && sn===null && !poly && selIds.size===0 && !hinOn && !fwyOn;
   rb.style.display = def ? 'none' : '';
 }
@@ -1612,7 +1677,7 @@ function drawKPIs(t){
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = timeSpan(true);
   const yll=Math.round(yllTotal()), serious=ksi-killed;
-  const yllTip='Years of life lost before age 75, a CDC measure. About half of the crash records list the age of the person killed. The rest use the average age, so this total is an estimate.';
+  const yllTip='Years of life lost before age 75, a CDC measure, using the age of each person killed from the crash report.';
   // 4th KPI: concentration citywide, OR all-crashes for a selected street/segment
   // (concentration of a single street is meaningless).
   let kpi4;
@@ -1701,68 +1766,159 @@ function setStack(id, segs){
     d.textContent=s.label||'';
   }
 }
-function drawMode(t){
-  if(!t) t=tally(year);
-  const all = sev==='all';
-  const total = all ? t.crashes : t.ksi;
-  const ped = all ? t.ped_all : t.ped_ksi, bike = all ? t.bike_all : t.bike_ksi, veh = total-ped-bike;
-  document.getElementById('mode-sub').textContent=(all?'All crashes':'Killed or seriously injured')+timeSuffix(true);
-  if(total<=0){ setStack('modebar',[{key:'veh',pct:0,color:'#9aa3ad'},{key:'ped',pct:0,color:'#d7301f'},{key:'bike',pct:0,color:'#fc8d59'}]);
-    document.getElementById('modeleg').innerHTML='';
-    document.getElementById('modedeaths').textContent=(all?'No crashes were recorded':'No one killed or seriously injured was recorded')+(year?' in '+year:'')+' for this view.'; return; }
-  const pct=x=>Math.round(100*x/total);
-  setStack('modebar',[
-    {key:'veh',pct:pct(veh),color:'#9aa3ad',label:pct(veh)+'%'},
-    {key:'ped',pct:pct(ped),color:'#d7301f',label:pct(ped)+'%'},
-    {key:'bike',pct:pct(bike),color:'#fc8d59',label:pct(bike)+'%'}]);
-  document.getElementById('modeleg').innerHTML=
-    '<span><span class="dot" style="background:#9aa3ad"></span>In a vehicle ('+fmt(veh)+')</span>'
-   +'<span><span class="dot" style="background:#d7301f"></span>Walking ('+fmt(ped)+')</span>'
-   +'<span><span class="dot" style="background:#fc8d59"></span>Biking ('+fmt(bike)+')</span>';
-  document.getElementById('modedeaths').innerHTML=t.killed+' people killed: '+t.ped_killed+' walking, '+t.bike_killed+' biking.';
+// ---- breakdown panels --------------------------------------------------------
+// Charts follow every filter. The ones whose categories are also sidebar filters
+// (travel mode, age, sex, lighting) skip their own filter so the full split stays
+// visible, highlight the active choice, and set that sidebar filter when clicked.
+const MODE_COL={veh:'#1f8f7a', ped:'#d9622b', bike:'#7b61c9'};
+const MODE_LAB={veh:'Driving or riding', ped:'Walking', bike:'Biking'};
+const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const unitWord=()=> sev==='all' ? 'crashes' : 'killed or seriously injured';
+// horizontal bars: rows [{label, f, s, on, click, val}]; f = dark (killed) part, s = light part
+function hbars(el, rows){
+  const max=Math.max(1,...rows.map(r=>(r.f||0)+(r.s||0))), anyOn=rows.some(r=>r.on);
+  el.innerHTML=rows.map(r=>{ const t=(r.f||0)+(r.s||0);
+    const cls='hb'+(r.click?' hb-click':'')+(anyOn&&!r.on?' hb-off':'')+(r.on?' hb-on':'');
+    const act=r.click?' role="button" tabindex="0" aria-pressed="'+(!!r.on)+'" onclick="'+r.click+'" title="'+esc(r.title||('Show only '+r.label))+'"':'';
+    return '<div class="'+cls+'"'+act+'><span class="hb-l">'+esc(r.label)+'</span>'
+      +'<span class="hb-t"><span class="hb-f" style="width:'+(100*(r.f||0)/max)+'%"></span>'+(r.s?'<span class="hb-s" style="width:'+(100*r.s/max)+'%"></span>':'')+'</span>'
+      +'<span class="hb-v">'+(r.val!=null?r.val:fmt(t))+'</span></div>'; }).join('');
+}
+const legKS=()=> sev==='all'
+  ? '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed or seriously injured</span><span><span class="dot" style="background:'+SERIOUS_C+'"></span>Other crashes</span>'
+  : '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span><span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>';
+// sidebar setters used by the chart shortcuts
+function setMode(m){ mode=m; document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode===m; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); }); render(); }
+function pickMode(m){ setMode(mode===m?'all':m); }
+function pickLight(v){ lightSel = lightSel===v ? 0 : v; render(); }
+function pickAge(v){ ageSel = ageSel===v ? 0 : v; render(); }
+function pickSex(v){ sexSel = sexSel===v ? 0 : v; render(); }
+
+// --- travel mode: donut (skips the mode filter; the active mode is highlighted) ---
+function drawMode(){
+  const n={veh:0,ped:0,bike:0}, k={veh:0,ped:0,bike:0};
+  for(const p of pts){ if(!inArea(p)||!ownerOkP(p)||!selOk(p)||!timeOk(p)||!chartInc(p)) continue;
+    const m=p[4]?'ped':p[5]?'bike':'veh'; n[m]++; if(p[3]) k[m]++; }
+  const tot=n.veh+n.ped+n.bike, keys=['veh','ped','bike'];
+  document.getElementById('mode-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
+  const el=document.getElementById('donut');
+  if(!tot){ el.innerHTML='<div class="note">Nothing to show for this view.</div>'; document.getElementById('modedeaths').textContent=''; return; }
+  const R0=56, SW=22, C=2*Math.PI*R0; let off=0, arcs='';
+  keys.forEach(m=>{ const frac=n[m]/tot; if(frac<=0) return; const len=Math.max(0,frac*C-(frac<1?2:0));
+    arcs+='<circle class="slice" r="'+R0+'" cx="70" cy="70" fill="none" stroke="'+MODE_COL[m]+'" stroke-width="'+SW+'" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 70 70)" opacity="'+(mode==='all'||mode===m?1:.3)+'" onclick="pickMode(\''+m+'\')"><title>'+MODE_LAB[m]+': '+fmt(n[m])+'</title></circle>';
+    off+=frac*C; });
+  const shown=mode==='all'?tot:n[mode]||0;
+  const svg='<svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="Travel mode split">'+arcs
+    +'<text x="70" y="68" text-anchor="middle" font-size="20" font-weight="700" fill="#1b1b1b">'+fmt(shown)+'</text>'
+    +'<text x="70" y="86" text-anchor="middle" font-size="11" fill="#565c65">'+(mode==='all'?'total':MODE_LAB[mode].toLowerCase())+'</text></svg>';
+  const leg='<div class="dleg">'+keys.map(m=>{ const on=mode===m, off_=mode!=='all'&&!on;
+    return '<div class="hb hb-click'+(off_?' hb-off':'')+(on?' hb-on':'')+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="pickMode(\''+m+'\')" title="Show only '+MODE_LAB[m].toLowerCase()+'">'
+      +'<span class="hb-l"><span class="dsw" style="background:'+MODE_COL[m]+'"></span>'+MODE_LAB[m]+'</span><span></span>'
+      +'<span class="hb-v">'+Math.round(100*n[m]/tot)+'%</span></div>'; }).join('')+'</div>';
+  el.innerHTML='<div class="donutwrap">'+svg+leg+'</div>';
+  const kt=k.veh+k.ped+k.bike;
+  document.getElementById('modedeaths').textContent=kt ? (fmt(kt)+' fatal crashes: '+fmt(k.ped)+' killed someone walking and '+fmt(k.bike)+' someone biking.') : '';
 }
 
-// --- equity: KSI by neighborhood median household income (mode/year/district aware) ---
-const INC_COL=['#7a1419','#d7301f','#fc8d59','#fdd49e'];   // darker = lower income (bears more)
-const INC_LAB=['Under $50k','$50–100k','$100–150k','$150k+'];
+// --- day and time heatmap (display only; follows every filter except hour and day) ---
+const HEAT=['#fbe6e0','#f5c4b6','#ec9d88','#df735c','#c24b3a','#a3302a','#74201b'];
+function drawWhen(){
+  const g=new Array(168).fill(0);
+  for(let i=0;i<pts.length;i++){ const p=pts[i]; if(p[8]==null||!p[7]) continue;
+    if(!timeOk(p,'hour,dow')||!inLens(p)||!chartInc(p)) continue; g[dowArr[i]*24+p[8]]++; }
+  const max=Math.max(...g), hl=h=> h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p';
+  let h='<div class="heat" role="img" aria-label="'+esc(unitWord())+' by day of week and hour">';
+  for(let d=0;d<7;d++){ h+='<div class="hl">'+DOW_LAB[d]+'</div>';
+    for(let hr=0;hr<24;hr++){ const v=g[d*24+hr], lvl=v&&max?Math.min(HEAT.length-1,Math.floor(v/max*HEAT.length)):-1;
+      const off=(selD.size&&!selD.has(d))||(selH.size&&!selH.has(hr));
+      h+='<div class="hc" style="background:'+(lvl<0?'#f1f2f3':HEAT[lvl])+(off?';opacity:.25':'')+'" title="'+DOW_LAB[d]+' '+hourLabel(hr)+': '+fmt(v)+'"></div>'; } }
+  h+='<div></div>'; for(let hr=0;hr<24;hr++) h+='<div class="hx">'+(hr%3===0?hl(hr):'')+'</div>';
+  h+='</div><div class="heatleg">Fewer <span class="ramp">'+HEAT.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span> More</div>';
+  document.getElementById('heat').innerHTML=h;
+  document.getElementById('when-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', '+totalsSpan();
+  let bi=0; g.forEach((v,i)=>{ if(v>g[bi]) bi=i; });
+  const night=[0,1,2,3,4,5,19,20,21,22,23]; let nn=0, tt=0; g.forEach((v,i)=>{ tt+=v; if(night.includes(i%24)) nn+=v; });
+  document.getElementById('when-note').textContent= tt ? ('Highest hour: '+DOW_LAB[Math.floor(bi/24)]+' '+hourLabel(bi%24)+' ('+fmt(g[bi])+'). '+Math.round(100*nn/tt)+'% happened between 7 PM and 6 AM.') : '';
+}
+
+// --- contributing factors (display only) ---
+const FACTORS=[[1,'Speeding'],[2,'Driver failed to yield'],[16,'Ran a red light or stop sign'],[8,'Distracted driving'],[4,'Alcohol or drugs']];
+function drawFactors(){
+  const c={}; let n=0;
+  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; n++; const b=p[FAC]; if(b) for(const [bit] of FACTORS) if(b&bit) c[bit]=(c[bit]||0)+1; }
+  document.getElementById('fac-sub').textContent='Share of '+(sev==='all'?'crashes':'crashes that killed or seriously injured someone')+timeSuffix(true);
+  const rows=FACTORS.map(([bit,lab])=>({label:lab, f:c[bit]||0, val:n?Math.round(100*(c[bit]||0)/n)+'%':'–'})).sort((a,b)=>b.f-a.f);
+  hbars(document.getElementById('facbars'), rows);
+}
+
+// --- age and sex of people killed or seriously injured (clickable filters) ---
+const AGE_LAB=['Age not recorded','Under 15','15 to 24','25 to 44','45 to 64','65 and older'];
+const SEX_LAB=['Not recorded','Male','Female'];
+function drawPeople(){
+  const af=[0,0,0,0,0,0], as=[0,0,0,0,0,0], sf=[0,0,0], ss=[0,0,0];
+  for(const p of pts){ const pp=p[PPL]; if(!pp||!inLens(p)) continue;
+    const okA=timeOk(p,'age'), okS=timeOk(p,'sex'); if(!okA && !okS) continue;
+    for(const c of pp){ const killed=c>=32, ag=(c>>2)&7, sx=c&3;
+      if(okA && (!sexSel||sx===sexSel)) (killed?af:as)[ag]++;
+      if(okS && (!ageSel||ag===ageSel)) (killed?sf:ss)[sx]++; } }
+  const ageRows=[1,2,3,4,5].map(a=>({label:AGE_LAB[a], f:af[a], s:as[a], on:ageSel===a, click:'pickAge('+a+')'}));
+  if(af[0]+as[0]) ageRows.push({label:AGE_LAB[0], f:af[0], s:as[0]});
+  const sexRows=[1,2].map(x=>({label:SEX_LAB[x], f:sf[x], s:ss[x], on:sexSel===x, click:'pickSex('+x+')'}));
+  if(sf[0]+ss[0]) sexRows.push({label:SEX_LAB[0], f:sf[0], s:ss[0]});
+  const ae=document.getElementById('agebars'), se=document.getElementById('sexbars');
+  hbars(ae, ageRows); ae.insertAdjacentHTML('afterbegin','<div class="hbh">Age</div>');
+  hbars(se, sexRows); se.insertAdjacentHTML('afterbegin','<div class="hbh">Sex</div>');
+  document.getElementById('ppl-sub').textContent='People killed or seriously injured'+timeSuffix(true);
+  document.getElementById('ppl-leg').innerHTML='<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span><span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>';
+}
+
+// --- lighting (clickable filter) ---
+const LIGHT_LAB=['Not recorded','Daylight','Dark','Dawn or dusk'];
+function drawLight(){
+  const f=[0,0,0,0], s_=[0,0,0,0];
+  for(const p of pts){ if(!timeOk(p,'light')||!inLens(p)||!chartInc(p)) continue; (chartTop(p)?f:s_)[p[LT]]++; }
+  hbars(document.getElementById('lightbars'), [1,2,3].map(v=>({label:LIGHT_LAB[v], f:f[v], s:s_[v], on:lightSel===v, click:'pickLight('+v+')'})));
+  document.getElementById('light-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
+  document.getElementById('light-leg').innerHTML=legKS();
+  const tot=f[1]+f[2]+f[3]+s_[1]+s_[2]+s_[3];
+  document.getElementById('light-note').textContent=tot ? (Math.round(100*(f[2]+s_[2])/tot)+'% happened in the dark.') : '';
+}
+
+// --- neighborhood income: rate per 100,000 residents per year ---
+const INC_LAB=['Under $50k','$50k to $100k','$100k to $150k','$150k and up'];
+let BG=null, DATA_END='';   // block groups [lat, lon, pop, inc_tier, district, sn]; last crash date
+function monthsInView(){   // months of data covered by the year/month filters (2026 is partial)
+  if(!DATA_END) return 0; const endYM=+DATA_END.slice(0,4)*12+(+DATA_END.slice(5,7)-1), y0=vz.years[0];
+  let n=0; for(let ym=y0*12; ym<=endYM; ym++){ const y=Math.floor(ym/12), m=ym%12+1;
+    if(mrActive()){ if(ym<ymLo||ym>ymHi) continue; } else { if(selY.size&&!selY.has(y)) continue; if(selM.size&&!selM.has(m)) continue; }
+    n++; } return n; }
 function drawEquity(){
-  const c=[0,0,0,0]; let unk=0;
-  for(const p of pts){
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue; if(sev==='ksi' && p[2]!==1) continue;  // KSI in ksi mode, all crashes in all-crashes mode
-    const t=p[11]; if(t==null) unk++; else c[t]++; }
-  const tot=c[0]+c[1]+c[2]+c[3];
-  document.getElementById('eq-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+' by neighborhood income'+timeSuffix(true);
-  if(tot<=0){ setStack('eqbar',[0,1,2,3].map(i=>({key:'t'+i,pct:0,color:INC_COL[i]}))); document.getElementById('eqleg').innerHTML='';
-    document.getElementById('eqnote').textContent='No '+(sev==='all'?'crashes':'KSI')+' with a known neighborhood income for this view.'; return; }
-  const pct=x=>Math.round(100*x/tot);
-  setStack('eqbar', c.map((v,i)=>({key:'t'+i,pct:pct(v),color:INC_COL[i],label:pct(v)>=8?pct(v)+'%':''})));
-  document.getElementById('eqleg').innerHTML=c.map((v,i)=>
-    '<span><span class="dot" style="background:'+INC_COL[i]+'"></span>'+INC_LAB[i]+' ('+fmt(v)+')</span>').join('');
-  const low=pct(c[0]+c[1]);
-  document.getElementById('eqnote').innerHTML='Neighborhoods under $100k median income account for <b>'+low
-    +'%</b> of '+(sev==='all'?'crashes':'KSI')+' here'+(unk?' ('+fmt(unk)+' more with income unknown)':'')+'.';
+  const el=document.getElementById('eqbars'), note=document.getElementById('eqnote');
+  const who=sev==='all'?'Crashes':'People killed or seriously injured';
+  document.getElementById('eq-sub').textContent=who+' per 100,000 residents per year'+timeSuffix(true);
+  if(!BG){ el.innerHTML=''; note.textContent='Loading population data…'; return; }
+  if(selIds.size){ el.innerHTML=''; note.textContent='Rates are shown for areas, not single streets. Clear the street selection to see them.'; return; }
+  const pop=[0,0,0,0]; let popAll=0;
+  for(const b of BG){ if(!inDist(b[4])||!snOk(b[5])||(poly&&!poly.test(b[1],b[0]))) continue; popAll+=b[2]; if(b[3]!=null) pop[b[3]]+=b[2]; }
+  const cnt=[0,0,0,0]; let cAll=0;
+  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; const v=sev==='all'?1:(p[16]+p[17]); cAll+=v; if(p[11]!=null) cnt[p[11]]+=v; }
+  const yrs=monthsInView()/12;
+  if(!yrs||!popAll){ el.innerHTML=''; note.textContent='No residents in this area.'; return; }
+  const rate=(c,pp)=> pp>=2000 ? c/pp*1e5/yrs : null;
+  const rows=[0,1,2,3].map(i=>{ const r=rate(cnt[i],pop[i]); return {label:INC_LAB[i], f:r||0, val:r==null?'too few':(r<10?r.toFixed(1):Math.round(r))}; });
+  hbars(el, rows);
+  const all=cAll/popAll*1e5/yrs;
+  note.textContent='All neighborhoods in this view: '+(all<10?all.toFixed(1):Math.round(all))+' per 100,000 residents per year ('+fmt(Math.round(popAll))+' residents).';
 }
 
-// --- by road owner: KSI on city-owned vs TxDOT-owned roads (mode/year/district aware) ---
-const OWN_COL={city:'#4e79a7', txdot:'#6a3d9a', toll:'#9c755f'};
-function drawOwnership(){
-  let cityN=0, txN=0, tollN=0;
-  for(const p of pts){
-    if(!modeMatch(p[4],p[5]) || !inArea(p) || !selOk(p) || !timeOk(p)) continue; if(sev==='ksi' && p[2]!==1) continue;  // KSI in ksi mode, all crashes in all-crashes mode (ignores the owner filter; this card IS the split)
-    if(p[21]===2) tollN++; else if(p[13]===1) txN++; else cityN++; }
-  const tot=cityN+txN+tollN;
-  document.getElementById('own-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
-  if(tot<=0){ setStack('ownbar',[{key:'city',pct:0,color:OWN_COL.city},{key:'txdot',pct:0,color:OWN_COL.txdot},{key:'toll',pct:0,color:OWN_COL.toll}]);
-    document.getElementById('ownleg').innerHTML='<span style="color:var(--muted)">No '+(sev==='all'?'crashes':'KSI')+' for this view.</span>'; return; }
-  const pct=x=>Math.round(100*x/tot);
-  setStack('ownbar',[
-    {key:'city',pct:pct(cityN),color:OWN_COL.city,label:pct(cityN)>=8?pct(cityN)+'%':''},
-    {key:'txdot',pct:pct(txN),color:OWN_COL.txdot,label:pct(txN)>=8?pct(txN)+'%':''},
-    {key:'toll',pct:pct(tollN),color:OWN_COL.toll,label:pct(tollN)>=8?pct(tollN)+'%':''}]);
-  document.getElementById('ownleg').innerHTML=
-    '<span><span class="dot" style="background:'+OWN_COL.city+'"></span>City-owned ('+fmt(cityN)+')</span>'
-   +'<span><span class="dot" style="background:'+OWN_COL.txdot+'"></span>TxDOT / state ('+fmt(txN)+')</span>'
-   +(tollN?'<span><span class="dot" style="background:'+OWN_COL.toll+'"></span>Toll road ('+fmt(tollN)+')</span>':'');
+// --- most dangerous streets (table) ---
+let _worstN=10, _lenCache={key:null, v:null};
+function streetLengths(){   // street name -> {ft, tx, hin} over segments in the current area and owner filter
+  const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner;
+  if(_lenCache.key===key) return _lenCache.v; const o={};
+  geo.eachLayer(l=>{ const p=l.feature.properties; if(!p.name||!p.name.trim()||!inAreaProp(p)||!ownerOk(p.on_txdot)) return;
+    const r=o[p.name]||(o[p.name]={ft:0,tx:0,hin:0}), ft=p.length_ft||0; r.ft+=ft; if(p.on_txdot) r.tx+=ft; if(p.on_hin) r.hin+=ft; });
+  _lenCache={key, v:o}; return o;
 }
 // --- top 10 streets by KSI (or crashes) within the active filters, click to select ---
 // all-time KSI ranking by street (uses n_severe), scoped to the active region: when a
@@ -1799,21 +1955,45 @@ function streetKsiRank(name){
 }
 let seg2name=null;
 function drawWorstStreets(){
-  if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties;
-    if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
-  document.getElementById('worst-sub').textContent='Top 5 by '+(sev==='all'?'crashes':'KSI')+' in this view. Click one to select it.';
-  const totals={};
-  for(const sid in activeCounts){ const nm=seg2name[sid]; if(!nm) continue;
-    totals[nm]=(totals[nm]||0)+activeCounts[sid]; }
-  const rows=Object.keys(totals).map(nm=>[nm,totals[nm]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const el=document.getElementById('worst-list');
-  if(!rows.length){ el.innerHTML='<div style="font-size:12.5px;color:var(--muted)">No streets in this view.</div>'; return; }
-  el.innerHTML=rows.map((r,i)=>
-    '<div class="worst-row" style="animation-delay:'+(i*45)+'ms" tabindex="0" role="button" aria-label="'+r[0].replace(/"/g,'&quot;').replace(/</g,'&lt;')+', '+r[1]+'" onclick="selectStreet('+JSON.stringify(r[0]).replace(/"/g,'&quot;')+',true)">'
-    +'<span class="worst-name"><span class="worst-rank">'+(i+1)+'</span>'+r[0].replace(/</g,'&lt;')+'</span>'
-    +'<span class="worst-n">'+fmt(r[1])+'</span></div>').join('');
+  if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties; if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
+  const agg={};
+  for(const p of pts){ const sg=p[SEG]; if(sg==null) continue; const nm=seg2name[sg]; if(!nm) continue;
+    if(!inAreaSeg(sg)||!ownerOk(seg2tx[sg])||!modeMatch(p[4],p[5])||!timeOk(p)||!chartInc(p)) continue;
+    const r=agg[nm]||(agg[nm]={f:0,s:0}); if(chartTop(p)) r.f++; else r.s++; }
+  const L=streetLengths();
+  const rows=Object.keys(agg).map(nm=>({nm, f:agg[nm].f, s:agg[nm].s, t:agg[nm].f+agg[nm].s, L:L[nm]})).sort((a,b)=>b.t-a.t||b.f-a.f);
+  const all=sev==='all';
+  document.getElementById('worst-sub').textContent=(all?'Ranked by crashes':'Ranked by people killed or seriously injured')+timeSuffix(true)+'. Click a street to select it.';
+  const tbl=document.getElementById('worst-tbl');
+  if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="8" style="text-align:left;color:var(--muted)">No streets in this view.</td></tr></tbody>'; document.getElementById('worst-more').style.display='none'; }
+  else {
+    const head='<thead><tr><th>#</th><th>Street</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Miles</th><th>Per mile</th><th>Owner</th><th>High Injury Network</th></tr></thead>';
+    const body=rows.slice(0,_worstN).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
+      const own=txs>=.9?'TxDOT':txs<=.1?'City':'City and TxDOT', hin=hs>=.5?'Yes':hs>=.05?'Part':'No';
+      return '<tr'+(selStreet===r.nm?' class="on"':'')+' tabindex="0" role="button" onclick="selectStreet('+esc(JSON.stringify(r.nm))+',true)">'
+        +'<td>'+(i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+        +'<td>'+(mi?mi.toFixed(1):'–')+'</td><td>'+(mi>=0.1?(r.t/mi).toFixed(1):'–')+'</td><td>'+own+'</td><td>'+hin+'</td></tr>'; }).join('');
+    tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
+    const more=document.getElementById('worst-more'); more.style.display=rows.length>_worstN&&_worstN<50?'':'none';
+  }
+  // ownership and High Injury Network shares for the whole view
+  let n=0, tx=0, toll=0, hin=0;
+  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; n++; if(p[RT]===2) toll++; else if(p[13]===1) tx++; if(p[12]===1) hin++; }
+  document.getElementById('roadfacts').textContent= n ? ('In this view, '+Math.round(100*tx/n)+'% were on TxDOT-owned roads'+(toll?', '+Math.round(100*toll/n)+'% on toll roads,':'')+' and '+Math.round(100*hin/n)+'% on the City’s High Injury Network.') : '';
 }
-
+// year-to-date comparison for the latest (partial) year
+function drawYTD(){
+  const el=document.getElementById('ytd-note'); if(!el) return;
+  if(!DATA_END){ el.textContent=''; return; }
+  const ly=+DATA_END.slice(0,4), lm=+DATA_END.slice(5,7); if(lm>=12){ el.textContent=''; return; }
+  let a=0, b=0;
+  for(const p of pts){ if(!p[7]||(p[6]!==ly&&p[6]!==ly-1)) continue; if(+p[7].slice(5,7)>lm) continue;
+    if(!timeOk(p,'year')||!inLens(p)||!chartInc(p)) continue; if(p[6]===ly) a++; else b++; }
+  const span='January to '+MONTHS[lm-1];
+  if(!b){ el.textContent=''; return; }
+  const ch=Math.round(100*(a-b)/b);
+  el.innerHTML=span+' '+ly+': <b>'+fmt(a)+'</b>. Same months of '+(ly-1)+': '+fmt(b)+' ('+(ch>0?'up '+ch+'%':ch<0?'down '+(-ch)+'%':'no change')+').';
+}
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
 function inLens(p){ return modeMatch(p[4],p[5]) && inArea(p) && ownerOkP(p) && selOk(p); }   // lens + district + owner + selection (no severity filter)
 // The by-year / time-of-day / day-of-week charts follow the SHOW toggle (sev).
@@ -1878,30 +2058,12 @@ function clearDim(dim){ AX[dim].set().clear(); _commitSel(); }
 function facetLabel(dim){ const ax=AX[dim], arc=arcOf(dim); if(arc.all) return null;
   return arc.from===arc.to ? ax.fmt(ax.val(arc.from)) : (ax.fmt(ax.val(arc.from))+'–'+ax.fmt(ax.val(arc.to))); }
 // position a panel's slider handles + fill(s) from its facet Set (one band, or two for a wrap)
-function paintRange(dim, from, to){ const px=RPFX[dim], n=AX[dim].n();
-  const f1=document.getElementById(px+'-fill'), f2=document.getElementById(px+'-fill2'); if(!f1) return;
-  const pos=i=> (n<=1?0:i/(n-1)*100), wrap = AX[dim].cyc && from>to;
-  if(!wrap){ const lo=Math.min(from,to),hi=Math.max(from,to); f1.style.display=''; f1.style.left=pos(lo)+'%'; f1.style.right=(100-pos(hi))+'%'; if(f2)f2.style.display='none'; }
-  else { f1.style.display=''; f1.style.left='0%'; f1.style.right=(100-pos(to))+'%'; if(f2){ f2.style.display=''; f2.style.left=pos(from)+'%'; f2.style.right='0%'; } } }
-function syncRange(dim){ const px=RPFX[dim], n=AX[dim].n();
-  const f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
-  f.max=n-1; t.max=n-1; const arc=arcOf(dim); f.value=arc.from; t.value=arc.to; paintRange(dim, arc.from, arc.to); }
-// live preview while dragging a handle: fade the chart's bars to the arc, no recompute
-function previewFadeDim(dim, from, to){ const c=document.getElementById(RCHART[dim]); if(!c||!c._chart) return; const st=c._chart, ax=AX[dim];
-  const inArc=i=> ax.cyc ? (from<=to ? (i>=from&&i<=to) : (i>=from||i<=to)) : (i>=Math.min(from,to)&&i<=Math.max(from,to));
-  paintRange(dim, from, to);
-  for(let i=0;i<st.se.length;i++){ let op=inArc(i)?1:0.3; if(dim==='year'&&vz.years[i]===2026) op=Math.min(op,0.45); st.se[i].setAttribute('opacity',op); st.fa[i].setAttribute('opacity',op); } }
-function wireRange(dim){ const px=RPFX[dim], f=document.getElementById(px+'-from'), t=document.getElementById(px+'-to'); if(!f||!t) return;
-  const n=AX[dim].n(); f.min=0; t.min=0; f.max=n-1; t.max=n-1; f.step=1; t.step=1;
-  f.oninput=t.oninput=()=>previewFadeDim(dim, +f.value, +t.value);
-  f.onchange=t.onchange=()=>{ setArc(dim, +f.value, +t.value); _commitSel(); }; }
-// labels[], fatal[], serious[]; opt:{dim?, clickKeys?, fadeIdx?:Set, h?, line?, unit?}
 function drawBarChart(container, labels, fatal, serious, opt){
-  opt=opt||{}; const W=340, H=opt.h||156, L=30, R=6, T=10, B=26;
+  opt=opt||{}; const W=opt.w||340, H=opt.h||156, L=34, R=6, T=10, B=26;
   const n=labels.length, pw=W-L-R, ph=H-T-B, gap=pw/n, bw=Math.max(2,gap*0.72);
   const tot=labels.map((_,i)=>(fatal[i]||0)+(serious[i]||0));
   const nice=niceMax(Math.max(1,...tot)), y=v=>T+ph-(v/nice)*ph;
-  const key=n+'|'+labels.join('|')+'|line:'+(opt.line?1:0)+'|hit:'+((opt.dim||opt.clickKeys)?1:0);  // structure identity
+  const key=W+'|'+n+'|'+labels.join('|')+'|line:'+(opt.line?1:0)+'|hit:'+((opt.dim||opt.clickKeys)?1:0);  // structure identity
   let st=container._chart;
   if(!st || st.key!==key){   // (re)build from scratch: structure changed
     container.textContent='';
@@ -1965,47 +2127,17 @@ function drawTrend(){
     if(a0>0){ const pct=Math.round((a1-a0)/a0*100), base=yr(0)+(k2>1?(' to '+yr(k2-1)):'');
       const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)'), dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
       headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>'; } }
-  drawBarChart(document.getElementById('trend'),labels,fatal,serious,{fadeIdx,line,h:78,dim:'year',unit:(sev==='all'?'crashes':'KSI')});
+  const tEl=document.getElementById('trend');   // draw at the card's real width so text stays at its true size
+  drawBarChart(tEl,labels,fatal,serious,{fadeIdx,line,w:Math.max(300,Math.round(tEl.clientWidth||340)),h:170,unit:(sev==='all'?'crashes':'KSI')});
+  drawYTD();
   document.getElementById('trend-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by year';
-  document.getElementById('trend-sub').innerHTML=facetSub('year','Click a bar or drag the slider to filter.');
+  document.getElementById('trend-sub').textContent=selY.size||mrActive() ? 'Showing '+timeSpan(false)+'. Change years in the sidebar.' : 'Years are set in the sidebar.';
   document.getElementById('trend-leg').innerHTML=stackLegend();
-  syncRange('year');
   const parts=[]; if(headline) parts.push(headline);
   if(vz.years.includes(2026)) parts.push('<span style="color:var(--muted)">2026 partial</span>');
   document.getElementById('trend-note').innerHTML=parts.join('. ');
 }
-function drawMonth(){
-  const k=monthStacksC(), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
-  const labels=[],fatal=[],serious=[],fadeIdx=new Set();
-  for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); if(selM.size && !selM.has(m)) fadeIdx.add(m-1); }
-  drawBarChart(document.getElementById('month'),labels,fatal,serious,{fadeIdx,h:78,dim:'month',unit:(sev==='all'?'crashes':'KSI')});
-  document.getElementById('month-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by month';
-  document.getElementById('month-sub').innerHTML=facetSub('month','All years combined');
-  document.getElementById('month-leg').innerHTML=stackLegend();
-  syncRange('month');
-}
-function drawTimeOfDay(){
-  const k=hourStacks(), labels=[], fatal=[], serious=[], fadeIdx=new Set();
-  for(let h=0;h<24;h++){ fatal.push(k.f[h]||0); serious.push(k.s[h]||0);
-    labels.push(h%6===0 ? (h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p') : '');
-    if(selH.size && !selH.has(h)) fadeIdx.add(h); }
-  drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx,dim:'hour',unit:(sev==='all'?'crashes':'KSI')});
-  document.getElementById('tod-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by time of day';
-  document.getElementById('tod-sub').innerHTML=facetSub('hour',totalsSpan().replace(/^t/,'T'));
-  document.getElementById('tod-leg').innerHTML=stackLegend();
-  syncRange('hour');
-}
 const DOW_LAB=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-function drawDayOfWeek(){
-  const k=dayStacks(), labels=DOW_LAB.slice(), fatal=[], serious=[], fadeIdx=new Set();
-  for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); if(selD.size && !selD.has(d)) fadeIdx.add(d); }
-  drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx,dim:'dow',unit:(sev==='all'?'crashes':'KSI')});
-  document.getElementById('dow-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by day of week';
-  document.getElementById('dow-sub').innerHTML=facetSub('dow',totalsSpan().replace(/^t/,'T'));
-  document.getElementById('dow-leg').innerHTML=stackLegend();
-  syncRange('dow');
-}
-// programmatic single-bucket toggles (kept for any external callers; charts use the brush handlers)
 function selectYear(y){ if(selY.size===1 && selY.has(y)) selY.clear(); else { selY.clear(); selY.add(y); } _commitSel(); }
 function selectMonth(m){ if(selM.size===1 && selM.has(m)) selM.clear(); else { selM.clear(); selM.add(m); } _commitSel(); }
 const hourLabel=h=> h==null?null : (h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM');
@@ -2040,9 +2172,12 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   if(p[10]) rows.push(['Council district', p[10]]);
   if(p[11]!=null) rows.push(['Neighborhood income', INC_LAB[p[11]]]);
   if(p[3] && p[9]) rows.push(['Years of life lost', Math.round(p[9])]);
+  if(p[LT]) rows.push(['Lighting', LIGHT_LAB[p[LT]]]);
+  if(p[FAC]) rows.push(['Factors recorded', FACTORS.filter(([bit])=>p[FAC]&bit).map(f=>f[1]).join(', ')]);
+  if(p[PPL]) rows.push(['People hurt', p[PPL].map(c=>(c>=32?'Killed':'Seriously injured')+', '+(((c>>2)&7)?'age '+AGE_LAB[(c>>2)&7].toLowerCase():'age not recorded')+((c&3)?', '+SEX_LAB[c&3].toLowerCase():'')).join('; ')]);
   // nearest street + its design, so a crash reads in context of the road it's on
-  if(p[21]) rows.push(['Road', p[21]===2 ? 'Toll road' : 'Freeway, ramp or frontage road']);
-  const sp=p[21] ? null : nearestSegProps(p[0],p[1]);   // a freeway crash is not on the nearest city street
+  if(p[RT]) rows.push(['Road', p[RT]===2 ? 'Toll road' : 'Freeway, ramp or frontage road']);
+  const sp=p[RT] ? null : nearestSegProps(p[0],p[1]);   // a freeway crash is not on the nearest city street
   const swTxt={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'};
   const street=[];
   if(sp){
@@ -2186,6 +2321,48 @@ document.getElementById('blink').onclick=doBlink;
 function resetYearRange(){ selY.clear(); selM.clear(); _commitSel(); }
 function resetHourRange(){ selH.clear(); _commitSel(); }
 function resetDowRange(){ selD.clear(); _commitSel(); }
+// ---- sidebar When / Who controls -------------------------------------------
+// The selects write the same facet Sets the rest of the page reads (selY/selM/selD/selH),
+// so links, the report and every chart keep working. A Set that matches no preset
+// (an old shared link) shows as "Custom".
+const HOUR_BANDS=[['','All day',[]],['night','Late night, 12 AM to 6 AM',[0,1,2,3,4,5]],['am','Morning, 6 AM to 10 AM',[6,7,8,9]],
+  ['mid','Midday, 10 AM to 3 PM',[10,11,12,13,14]],['pm','Afternoon, 3 PM to 7 PM',[15,16,17,18]],['eve','Evening, 7 PM to 12 AM',[19,20,21,22,23]]];
+const DOW_OPTS=[['','All days',[]],['wk','Weekdays',[0,1,2,3,4]],['we','Weekends',[5,6]]].concat(
+  ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map((d,i)=>['d'+i,d,[i]]));
+const _sameSet=(S,a)=> S.size===a.length && a.every(v=>S.has(v));
+function _opts(sel, list){ sel.innerHTML=list.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join(''); }
+function setupWhenUI(){
+  const yrs=vz.years, yf=document.getElementById('yr-from'), yt=document.getElementById('yr-to');
+  _opts(yf, yrs.map(y=>[y,y])); _opts(yt, yrs.map(y=>[y,y]));
+  _opts(document.getElementById('mosel'), [['','All months']].concat(MONTHS.map((m,i)=>[i+1,m])));
+  _opts(document.getElementById('dowsel'), DOW_OPTS);
+  _opts(document.getElementById('hrsel'), HOUR_BANDS);
+  const yrChange=()=>{ let a=+yf.value, b=+yt.value; if(a>b){ const t=a; a=b; b=t; }
+    ymLo=ymHi=null; selY.clear(); if(!(a===yrs[0] && b===yrs[yrs.length-1])) for(let y=a;y<=b;y++) selY.add(y); render(); };
+  yf.onchange=yrChange; yt.onchange=yrChange;
+  document.getElementById('mosel').onchange=e=>{ ymLo=ymHi=null; selM.clear(); if(e.target.value) selM.add(+e.target.value); render(); };
+  document.getElementById('dowsel').onchange=e=>{ selD.clear(); const o=DOW_OPTS.find(x=>x[0]===e.target.value); if(o) o[2].forEach(v=>selD.add(v)); render(); };
+  document.getElementById('hrsel').onchange=e=>{ selH.clear(); const o=HOUR_BANDS.find(x=>x[0]===e.target.value); if(o) o[2].forEach(v=>selH.add(v)); render(); };
+  document.getElementById('lightsel').onchange=e=>{ lightSel=+e.target.value; render(); };
+  document.getElementById('agesel').onchange=e=>{ ageSel=+e.target.value; render(); };
+  document.querySelectorAll('input[name=sexf]').forEach(r=>r.onchange=()=>{ sexSel=+document.querySelector('input[name=sexf]:checked').value; render(); });
+}
+function _syncSel(sel, list, S){   // pick the option matching Set S, adding a "Custom" option when none does
+  const hit=list.find(o=>_sameSet(S,o[2])); let c=sel.querySelector('option[value="custom"]');
+  if(hit){ if(c) c.remove(); sel.value=hit[0]; }
+  else { if(!c){ c=document.createElement('option'); c.value='custom'; c.textContent='Custom'; sel.appendChild(c); } sel.value='custom'; }
+}
+function syncWhoWhenUI(){
+  const yrs=vz.years, yf=document.getElementById('yr-from'), yt=document.getElementById('yr-to'); if(!yf||!yf.options.length) return;
+  if(mrActive()){ yf.value=Math.floor(ymLo/12); yt.value=Math.floor(ymHi/12); }
+  else if(selY.size){ const a=[...selY].sort((x,y)=>x-y); yf.value=a[0]; yt.value=a[a.length-1]; }
+  else { yf.value=yrs[0]; yt.value=yrs[yrs.length-1]; }
+  const ms=document.getElementById('mosel'); ms.value= selM.size===1 ? [...selM][0] : '';
+  _syncSel(document.getElementById('dowsel'), DOW_OPTS, selD);
+  _syncSel(document.getElementById('hrsel'), HOUR_BANDS, selH);
+  document.getElementById('lightsel').value=lightSel; document.getElementById('agesel').value=ageSel;
+  const sx=document.querySelector('input[name=sexf][value="'+sexSel+'"]'); if(sx) sx.checked=true;
+}
 // share: copy the current URL (syncURL keeps it in step with the active filters/selection)
 let _shareTimer=null;
 document.getElementById('share').onclick=async()=>{
@@ -2253,11 +2430,15 @@ function viewDesc(){
   const extras=[];
   if(hrNarrow()) extras.push(hourLabel(hrLo)+'–'+hourLabel(hrHi));
   if(dowNarrow()) extras.push(DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]);
+  if(lightSel) extras.push(LIGHT_LAB[lightSel]);
+  if(ageSel) extras.push('Age '+AGE_LAB[ageSel].toLowerCase());
+  if(sexSel) extras.push(SEX_LAB[sexSel]);
   if(sev==='all') extras.push('all crashes, not only KSI');
   return {region, when, modeTxt, sel, extras};
 }
 const _ih=id=>{ const e=document.getElementById(id); return e?e.innerHTML:''; };
-const RSECT_DEFAULT={summary:true,map:true,trend:true,tod:true,dow:true,mode:true,eq:true,own:true,worst:true};
+const RSECT_KEYS=['summary','map','worst','trend','mode','when','factors','people','light','eq'];
+const RSECT_DEFAULT=Object.fromEntries(RSECT_KEYS.map(k=>[k,true]));
 // build the report honoring cfg, await the map image decode, then print
 async function generateReport(cfg){
   cfg=cfg||{}; const S=Object.assign({},RSECT_DEFAULT,cfg.sections||{});
@@ -2310,19 +2491,19 @@ async function generateReport(cfg){
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
     return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline.</div>'; })();
   let chartsHTML='';
-  if(S.trend) chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
-  if(S.tod)   chartsHTML += chart('By time of day', _ih('tod'), _ih('tod-leg'));
-  if(S.dow)   chartsHTML += chart('By day of week', _ih('dow'), _ih('dow-leg'));
-  if(S.mode)  chartsHTML += chart('By travel mode', stackBody('modebar'), _ih('modeleg'));
-  if(S.eq)    chartsHTML += chart('By neighborhood income', stackBody('eqbar'), _ih('eqleg'));
-  if(S.own)   chartsHTML += chart('By road owner (city vs TxDOT)', stackBody('ownbar'), _ih('ownleg'));
+  if(S.trend)   chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
+  if(S.mode)    chartsHTML += chart('By travel mode', _ih('donut'));
+  if(S.when)    chartsHTML += chart('By day and time', _ih('heat'));
+  if(S.factors) chartsHTML += chart('Contributing factors', _ih('facbars'));
+  if(S.people)  chartsHTML += chart('Age and sex of people killed or seriously injured', _ih('agebars')+_ih('sexbars'), _ih('ppl-leg'));
+  if(S.light)   chartsHTML += chart('Lighting', _ih('lightbars'), _ih('light-leg'));
+  if(S.eq)      chartsHTML += chart('By neighborhood income, per 100,000 residents per year', _ih('eqbars'), '', '<div class="r-note">'+_ih('eqnote')+'</div>');
   // worst-streets table (gated)
   let worstHTML='';
   if(S.worst){
-    let worstRows=''; document.querySelectorAll('#worst-list .worst-row').forEach((row,i)=>{
-      const nm=((row.querySelector('.worst-name')||{}).textContent||'').replace(/^\s*\d+\s*/,'').trim();
-      const n=(row.querySelector('.worst-n')||{}).textContent||''; worstRows+='<tr><td>'+(i+1)+'</td><td>'+nm+'</td><td>'+n+'</td></tr>'; });
-    worstHTML = worstRows ? ('<table class="r-worst"><tbody>'+worstRows+'</tbody></table>') : '';
+    const t_=document.getElementById('worst-tbl'), hd=t_.querySelector('thead');
+    const rws=[...t_.querySelectorAll('tbody tr')].slice(0,10).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
+    worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>') : '';
   }
   const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -2378,7 +2559,7 @@ function openReportModal(){
   }
   const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
   // sections: all checked by default each time the modal opens
-  ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
+  RSECT_KEYS.forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
   _rcLastFocus=document.activeElement;
   const first=_rcEl('rc-title'); if(first) first.focus();
@@ -2425,11 +2606,7 @@ async function _rcGenerate(){
   render();   // final recompute so the cloned charts + captured map reflect every chosen filter
   // gather the config: headline stats are always on; a section renders only if its box is checked
   const cfg={ title:(_rcEl('rc-title').value||'').trim()||'Traffic deaths & serious injuries',
-    sections:{
-      summary:_rcEl('rc-s-summary').checked, map:_rcEl('rc-s-map').checked, trend:_rcEl('rc-s-trend').checked,
-      tod:_rcEl('rc-s-tod').checked, dow:_rcEl('rc-s-dow').checked, mode:_rcEl('rc-s-mode').checked,
-      eq:_rcEl('rc-s-eq').checked, own:_rcEl('rc-s-own').checked, worst:_rcEl('rc-s-worst').checked
-    } };
+    sections:Object.fromEntries(RSECT_KEYS.map(k=>[k, !!(_rcEl('rc-s-'+k)||{}).checked])) };
   closeReportModal();   // remove the overlay before printing so it is not in the PDF
   await generateReport(cfg);
 }
@@ -2443,10 +2620,11 @@ async function _rcGenerate(){
 document.getElementById('report-btn').onclick=openReportModal;
 window.addEventListener('beforeprint', ()=>{ const R=document.getElementById('report'); if(R && !R.dataset.built) R.innerHTML='<div class="r-foot">Use the Create report button to build a printable report.</div>'; });
 window.addEventListener('afterprint', ()=>{ const R=document.getElementById('report'); R.innerHTML=''; R.removeAttribute('data-built'); });
-// keyboard activation for the generated worst-street rows (Enter/Space)
-document.getElementById('worst-list').addEventListener('keydown',e=>{
-  const row=e.target.closest('.worst-row'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
+// keyboard activation for clickable panel rows and table rows (Enter/Space)
+document.querySelector('.below').addEventListener('keydown',e=>{
+  const row=e.target.closest('[role=button]'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
 });
+document.getElementById('worst-more').onclick=()=>{ _worstN=Math.min(50,_worstN+10); drawWorstStreets(); };
 (()=>{ const m=document.getElementById('modal');
   const open=e=>{e.preventDefault(); m.classList.add('show');};
   const close=()=>m.classList.remove('show');
@@ -2473,63 +2651,6 @@ document.getElementById('worst-list').addEventListener('keydown',e=>{
   document.getElementById('fb-x').onclick=close;
   m.addEventListener('click',e=>{ if(e.target===m) close(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
-})();
-// Drag-to-reorder for the data-view cards in .below (handle-only drag, order persisted)
-(()=>{
-  const below=document.querySelector('.below');
-  if(!below) return;
-  const KEY='vz-card-order';
-  const draggables=()=>Array.from(below.querySelectorAll('.card[data-card]'));
-  let dragCard=null;
-  const clearCues=()=>below.querySelectorAll('.card').forEach(c=>c.classList.remove('drop-before','drop-after'));
-  const restore=()=>{
-    let order;
-    try{ order=JSON.parse(localStorage.getItem(KEY)); }catch(e){ return; }
-    if(!Array.isArray(order)||!order.length) return;
-    order.forEach(id=>{
-      const card=below.querySelector('.card[data-card="'+id+'"]');
-      if(card) below.appendChild(card);
-    });
-    draggables().forEach(c=>{ if(order.indexOf(c.getAttribute('data-card'))<0) below.appendChild(c); });   // cards added after a saved order go last
-  };
-  const save=()=>{
-    try{ localStorage.setItem(KEY, JSON.stringify(draggables().map(c=>c.getAttribute('data-card')))); }catch(e){}
-  };
-  below.addEventListener('dragstart',e=>{
-    const grip=e.target.closest('.grip'); if(!grip){ e.preventDefault(); return; }
-    dragCard=grip.closest('.card[data-card]'); if(!dragCard){ e.preventDefault(); return; }
-    e.dataTransfer.effectAllowed='move';
-    try{ e.dataTransfer.setData('text/plain', dragCard.getAttribute('data-card')); }catch(_){}
-    requestAnimationFrame(()=>dragCard&&dragCard.classList.add('dragging'));
-  });
-  below.addEventListener('dragover',e=>{
-    if(!dragCard) return;
-    const over=e.target.closest('.card[data-card]');
-    if(!over||over===dragCard){ return; }
-    e.preventDefault();
-    e.dataTransfer.dropEffect='move';
-    const r=over.getBoundingClientRect();
-    const after=(e.clientX - r.left) > r.width/2;
-    clearCues();
-    over.classList.add(after?'drop-after':'drop-before');
-  });
-  below.addEventListener('drop',e=>{
-    if(!dragCard) return;
-    const over=e.target.closest('.card[data-card]');
-    if(!over||over===dragCard){ clearCues(); return; }
-    e.preventDefault();
-    const r=over.getBoundingClientRect();
-    const after=(e.clientX - r.left) > r.width/2;
-    below.insertBefore(dragCard, after ? over.nextSibling : over);
-    clearCues();
-    save();
-  });
-  below.addEventListener('dragend',()=>{
-    if(dragCard) dragCard.classList.remove('dragging');
-    clearCues();
-    dragCard=null;
-  });
-  restore();
 })();
 </script>
 </body>

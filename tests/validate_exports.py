@@ -28,11 +28,13 @@ DOCS = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().pare
 LAT_MIN, LAT_MAX = 29.3, 30.4
 LON_MIN, LON_MAX = -96.2, -94.6
 
-# crash_points.json row layout (21 fields). Index -> meaning, for reference:
+# crash_points.json row layout (24 fields). Index -> meaning, for reference:
 # 0 lat, 1 lon, 2 sev(KSI flag), 3 fatal, 4 ped, 5 bike, 6 year, 7 date, 8 hour,
 # 9 yll, 10 district, 11 inc_tier, 12 on_hin, 13 on_txdot, 14 seg_id, 15 sn,
-# 16 n_k, 17 n_a, 18 n_b, 19 n_c, 20 n_noinj
-CRASH_ROW_LEN = 21
+# 16 n_k, 17 n_a, 18 n_b, 19 n_c, 20 n_noinj, 21 light (0-3), 22 factor bits (0-31),
+# 23 people killed/seriously injured (comma-joined codes 0-63, or null)
+CRASH_ROW_LEN = 24
+PEOPLE_RE = re.compile(r"^\d{1,2}(,\d{1,2})*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # Properties the dashboard logic depends on for every segment feature.
@@ -109,6 +111,10 @@ def check_crashes(pts):
             bad_date += 1
         if sev not in (0, 1) or fat not in (0, 1):
             bad_flag += 1
+        if r[21] not in (0, 1, 2, 3) or not (isinstance(r[22], int) and 0 <= r[22] < 32):
+            bad_flag += 1
+        if r[23] is not None and (not PEOPLE_RE.match(r[23]) or any(int(x) > 63 for x in r[23].split(","))):
+            bad_flag += 1
         if sev == 1:
             ksi += 1
         if fat == 1:
@@ -125,7 +131,7 @@ def check_crashes(pts):
     if bad_year:
         err(f"crash_points.json: {bad_year:,} rows have a missing/implausible year")
     if bad_flag:
-        err(f"crash_points.json: {bad_flag:,} rows have a non-0/1 sev or fatal flag")
+        err(f"crash_points.json: {bad_flag:,} rows have a bad sev/fatal flag, light code, factor bits or people codes")
     if bad_date:
         warn(f"crash_points.json: {bad_date:,} rows have a malformed date string")
 
@@ -318,7 +324,7 @@ def _undelta(a):
 
 
 def decode_crashes(pk):
-    """Mirror of the decoder in vision-zero.html: rebuild the 21-field rows."""
+    """Mirror of the decoder in vision-zero.html: rebuild the 24-field rows."""
     import datetime as dt
     c, n = pk["cols"], pk["n"]
     lat, lon, day, seg = (_undelta(c[k]) for k in ("lat", "lon", "day", "seg"))
@@ -332,7 +338,8 @@ def decode_crashes(pk):
              None if c["inc"][i] == -1 else c["inc"][i], 0, 0,
              None if seg[i] == -1 else f"H-{seg[i]:05d}",
              None if c["sn"][i] == -1 else c["sn"][i],
-             c["k"][i], c["a"][i], c["b"][i], c["c"][i], c["o"][i]]
+             c["k"][i], c["a"][i], c["b"][i], c["c"][i], c["o"][i],
+             c["light"][i], c["fac"][i], None if c["ppl"][i] == -1 else pk["people"][c["ppl"][i]]]
         if "road" in c:
             r.append(c["road"][i])
         for b, f in enumerate(pk["flagFields"]):
@@ -373,6 +380,24 @@ def _undelta_xy(a):
     return out
 
 
+def check_blockgroups():
+    """Block groups for the income rate panel: positive population, plausible city total."""
+    bg = load("blockgroups.json")
+    if bg is None:
+        return
+    rows = bg["rows"]
+    bad = [r for r in rows if len(r) != 6 or not r[2] or r[2] < 0
+           or not (within(r[0], LAT_MIN, LAT_MAX) and within(r[1], LON_MIN, LON_MAX))
+           or r[3] not in (None, 0, 1, 2, 3)]
+    if bad:
+        err(f"blockgroups.json: {len(bad)} rows malformed")
+    tot = sum(r[2] for r in rows)
+    if not 1_500_000 <= tot <= 3_000_000:
+        err(f"blockgroups.json: total population {tot:,} is implausible for Houston")
+    else:
+        print(f"  blockgroups.json: {len(rows):,} block groups, {tot:,} residents")
+
+
 def check_packed(pts, seg):
     """The packed files must decode to exactly the canonical exports."""
     pk = load("crashes.packed.json")
@@ -388,10 +413,10 @@ def check_packed(pts, seg):
     fw = load("freeway_crash_points.json")
     fk = load("freeway_crashes.packed.json")
     if fw is not None and fk is not None:
-        bad = [r for r in fw if len(r) != 22 or r[14] is not None or r[12] != 0
-               or r[21] not in (1, 2) or r[13] != (1 if r[21] == 1 else 0)]
+        bad = [r for r in fw if len(r) != 25 or r[14] is not None or r[12] != 0
+               or r[24] not in (1, 2) or r[13] != (1 if r[24] == 1 else 0)]
         if bad:
-            err(f"freeway_crash_points.json: {len(bad)} rows break the freeway contract (22 fields, no street, not on HIN, road_type 1/2 with matching TxDOT flag)")
+            err(f"freeway_crash_points.json: {len(bad)} rows break the freeway contract (25 fields, no street, not on HIN, road_type 1/2 with matching TxDOT flag)")
         key = lambda r: json.dumps(r)
         if sorted(map(key, decode_crashes(fk))) != sorted(map(key, fw)):
             err("freeway_crashes.packed.json: does not decode to freeway_crash_points.json; rerun src/pack_webmap_data.py")
@@ -426,6 +451,7 @@ def main():
         check_equity(pts)
     check_aux_geojson()
     check_packed(pts, seg)
+    check_blockgroups()
 
     print()
     for w in warnings:

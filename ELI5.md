@@ -321,6 +321,8 @@ A few things the dashboard makes plain:
   shown are on TxDOT (state)-owned arterials, the rest on city streets. Those
   are the ones the City can't fix alone and has to push the state to redesign.
 
+**October 2026 update.** The bottom of the dashboard was rebuilt so each panel answers one plain question: which streets are worst (a table), is it getting better (by year, plus this year so far against last year), who gets hurt (walking, biking, driving; age and sex), when (a day-by-hour grid; daylight or dark), why (what police recorded, like speeding), and whether poorer neighborhoods carry more of it *per person who lives there*. That last one fixes a real weakness: the old income chart mostly showed who lives in an area. Now it is a rate, and it shows lower-income neighborhoods do have more serious harm per resident. While doing this, a bug turned up that had been throwing away about half of the people in the crash records. Fixing it means the dashboard now knows the age of everyone killed, so "years of life lost" is counted instead of estimated.
+
 Next: build the model that answers the project's real question — **which
 dangerous streets is the city's current crash-only method missing?**
 
