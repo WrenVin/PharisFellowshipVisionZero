@@ -4,6 +4,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Open
 
+- [ ] **Schools and parks (from form feedback, 2026-07-22).** Overlays plus a "near schools / parks" distance filter and a per-school/park report for Safe Routes applications. Plan in [SCHOOLS_PARKS_PLAN.md](SCHOOLS_PARKS_PLAN.md); first step is confirming the program's radius with the submitter. Not started.
 - [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Written plan in [FREEWAY_PLAN.md](FREEWAY_PLAN.md): ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as streets, crashes placed by TxDOT milepost. Two decisions open (color scale, direction display). Not started.
 - [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
 - [ ] **Name the remaining management districts.** HCID #8, #10-A, #12, #16, #24 and Harris County PID #2 are inside the city but listed only by number in City data; add them once their names are confirmed.
