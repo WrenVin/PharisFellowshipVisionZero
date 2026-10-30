@@ -343,16 +343,23 @@
   .rc-check input,.toggle input{accent-color:var(--act)}
   .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
   .sitehead{position:sticky;top:0;z-index:1150}
-  @media(min-width:781px){.main{align-items:flex-start}#mapwrap{position:sticky;top:64px;height:calc(100vh - 84px);max-height:900px}}   /* map stays in view while the longer sidebar scrolls */
-  .ctrl .sec{font-size:15px;font-weight:700;color:var(--ink);margin:18px 0 10px;padding-top:12px;border-top:1px solid #c9cdd1}
-  .ctrl .sec:first-child{margin-top:0;padding-top:0;border-top:none}
+  #mapwrap{min-height:560px}   /* stretches to the sidebar's height (.main align-items:stretch) */
+  .secd{border-top:1px solid #c9cdd1}.secd:first-child{border-top:none}
+  .secd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink);padding:11px 0}
+  .secd:first-child>summary{padding-top:0}
+  .secd>summary::-webkit-details-marker{display:none}
+  .secd>summary::after{content:'';margin-left:auto;width:8px;height:8px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);margin-top:-4px}
+  .secd[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+  .secd>summary:hover{color:var(--act)}
+  .secd[open]{padding-bottom:4px}
+  .secn{font-size:12px;font-weight:700;color:#fff;background:var(--act);padding:1px 7px;border-radius:9px}.secn:empty{display:none}
   .yrrow{display:flex;align-items:center;gap:6px}.yrrow select{flex:1;min-width:0}.yrrow span{font-size:13px;color:var(--muted)}
   .below{grid-template-columns:repeat(3,minmax(0,1fr))}
   .below .wide{grid-column:1/-1}.below .span2{grid-column:span 2}
-  .hb{display:grid;grid-template-columns:minmax(92px,38%) 1fr auto;align-items:center;gap:8px;padding:3px 4px;margin:0 -4px;font-size:13px}
+  .hb{display:grid;grid-template-columns:minmax(110px,46%) 1fr auto;align-items:center;gap:8px;padding:3px 4px;margin:0 -4px;font-size:13px}
   .hb-click{cursor:pointer}.hb-click:hover{background:var(--act-lt)}
   .hb-off{opacity:.42}.hb-on .hb-l{font-weight:700}
-  .hb-l{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hb-l{color:var(--ink);line-height:1.25}
   .hb-t{display:flex;height:14px;background:transparent}
   .hb-f{background:var(--fatal);height:100%}.hb-s{background:var(--serious);height:100%;margin-left:0}
   .hb-f+.hb-s{border-left:2px solid #fff}
@@ -378,6 +385,7 @@
   .wtbl tr.on td{background:var(--act-lt);font-weight:700}
   .wtbl .sname{color:var(--act);text-decoration:underline}
   .wfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+  .pager{display:flex;align-items:center;gap:10px}.pager .morebtn:disabled{opacity:.4;cursor:default;background:#fff}
   .morebtn{border:1px solid var(--act);color:var(--act);background:#fff;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;border-radius:2px}
   .morebtn:hover{background:var(--act-lt)}
   .card .note{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
@@ -424,7 +432,8 @@
 
   <div class="main">
     <div class="ctrl">
-      <h2 class="sec">Where</h2>
+      <details class="secd" data-sec="where" open>
+        <summary class="sec">Where<span class="secn" id="secn-where"></span></summary>
       <div class="grp">
         <h3>Find a street</h3>
         <input type="text" id="search" placeholder="e.g. Westheimer, Main St…" autocomplete="off" list="streetnames" aria-label="Find a street by name"/>
@@ -449,7 +458,9 @@
         <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
         <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
-      <h2 class="sec">Who</h2>
+      </details>
+      <details class="secd" data-sec="who" open>
+        <summary class="sec">Who<span class="secn" id="secn-who"></span></summary>
       <div class="grp">
         <h3 id="mode-h">Travel mode</h3>
         <div class="lens" role="group" aria-labelledby="mode-h">
@@ -475,7 +486,9 @@
           <label><input type="radio" name="sexf" value="2"> Female</label>
         </span>
       </div>
-      <h2 class="sec">When</h2>
+      </details>
+      <details class="secd" data-sec="when">
+        <summary class="sec">When<span class="secn" id="secn-when"></span></summary>
       <div class="grp">
         <h3 id="yr-h">Years</h3>
         <div class="yrrow" role="group" aria-labelledby="yr-h"><select id="yr-from" aria-label="From year"></select><span>to</span><select id="yr-to" aria-label="To year"></select></div>
@@ -492,13 +505,28 @@
         <h3><label for="hrsel">Time of day</label></h3>
         <select id="hrsel"></select>
       </div>
+      </details>
+      <details class="secd" data-sec="circumstances">
+        <summary class="sec">Circumstances<span class="secn" id="secn-circumstances"></span></summary>
       <div class="grp">
-        <h3><label for="lightsel">Lighting</label></h3>
+        <h3><label for="lightsel">Lighting</label> <button class="info" onclick="toggleTip(this)" aria-label="About lighting">i</button></h3>
         <select id="lightsel">
-          <option value="0">Any lighting</option><option value="1">Daylight</option><option value="2">Dark</option><option value="3">Dawn or dusk</option>
+          <option value="0">Any lighting</option><option value="1">Daylight</option><option value="3">Dawn or dusk</option>
+          <option value="9">Dark (all)</option><option value="2">Dark, with street lights</option><option value="4">Dark, no street lights</option>
         </select>
+        <div class="tip">Lighting is what the officer recorded at the scene. <b>Dawn or dusk</b> is twilight, the low light just before sunrise or just after sunset. <b>Dark, with street lights</b> means it was dark and the road had street lighting. <b>Dark, no street lights</b> means it was dark with no street lighting. <b>Dark (all)</b> also includes dark crashes where the officer did not record the lighting.</div>
       </div>
-      <h2 class="sec">Roads</h2>
+      <div class="grp">
+        <h3><label for="facsel">Contributing factor</label> <button class="info" onclick="toggleTip(this)" aria-label="About contributing factors">i</button></h3>
+        <select id="facsel">
+          <option value="0">Any factor</option><option value="1">Speeding</option><option value="2">Driver failed to yield</option>
+          <option value="16">Ran a red light or stop sign</option><option value="8">Distracted driving</option><option value="4">Alcohol or drugs</option>
+        </select>
+        <div class="tip">Shows crashes where the officer recorded this factor for a driver or vehicle. Speeding includes unsafe speed and failing to control speed.</div>
+      </div>
+      </details>
+      <details class="secd" data-sec="roads">
+        <summary class="sec">Roads<span class="secn" id="secn-roads"></span></summary>
       <div class="grp">
         <h3>Road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
         <span class="seg">
@@ -517,7 +545,9 @@
         <div class="note" id="fwy-note" aria-live="polite"></div>
         <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the share of streets carrying half the harm still count city streets only.</div>
       </div>
-      <h2 class="sec">Map</h2>
+      </details>
+      <details class="secd" data-sec="map">
+        <summary class="sec">Map<span class="secn" id="secn-map"></span></summary>
       <div class="grp">
         <h3>Show</h3>
         <span class="seg">
@@ -546,6 +576,7 @@
         <button id="blink" class="blinkbtn">Blink crash locations</button>
         <div class="note" id="blink-note">Briefly highlights each crash in the current view.</div>
       </div>
+      </details>
     </div>
 
     <div id="mapwrap">
@@ -562,7 +593,7 @@
       <h3>Most dangerous streets <button class="info" onclick="toggleTip(this)" aria-label="About the street ranking">i</button></h3>
       <div class="sub" id="worst-sub"></div>
       <div class="tblwrap"><table class="wtbl" id="worst-tbl"></table></div>
-      <div class="wfoot"><button type="button" class="morebtn" id="worst-more">Show 10 more</button><span id="roadfacts"></span></div>
+      <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 10</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 10</button></div><span id="roadfacts"></span></div>
       <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view. Click a street to select it on the map. Per mile divides by the street's length in the current area. The High Injury Network column shows how much of the street is on the City's 2022 network.</div>
     </div>
     <div class="card span2" data-card="trend">
@@ -652,7 +683,7 @@
         <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
         <p><span class="lbl">Years of life lost</span> = years before age 75, added up for everyone killed (the CDC method), using each person's age from the crash report.</p>
         <p><span class="lbl">Age and sex</span> = from the crash report for each person killed or seriously injured. As a filter, they keep crashes where at least one person in that group was killed or seriously injured.</p>
-        <p><span class="lbl">Lighting</span> = the light condition the officer recorded. Dark includes lighted and unlighted streets.</p>
+        <p><span class="lbl">Lighting</span> = the light condition the officer recorded. Dawn or dusk is twilight, just before sunrise or just after sunset. Dark, with street lights means it was dark and the road was lit by street lights. Dark, no street lights means it was dark and unlit. A few dark crashes have no lighting recorded; they count under Dark (all).</p>
         <p><span class="lbl">Contributing factors</span> = factors the officer recorded for any driver or vehicle in the crash. Speeding includes unsafe speed, speeding over the limit and failing to control speed. Failed to yield covers all right-of-way violations by a driver. Alcohol or drugs includes had been drinking and under the influence. Distracted includes inattention and phone use.</p>
         <p><span class="lbl">Rate by neighborhood income</span> = people killed or seriously injured in crashes in the block groups at each income level, divided by the people who live in those block groups, per 100,000 residents per year. Population is from the 2023 American Community Survey. Block groups that cross the city line count only the share of residents inside it, by land area.</p>
         <p><span class="lbl">Neighborhood income</span> = median household income of the Census block group where the crash happened.</p>
@@ -836,7 +867,8 @@ let ymLo=null, ymHi=null;   // report's continuous month-granularity range (year
 // source of truth for filtering; the legacy year/month/yrLo/yrHi/hr/dow vars above are DERIVED
 // from them by syncDerived() so the existing labels, KPIs, and report keep working unchanged.
 let selY=new Set(), selM=new Set(), selD=new Set(), selH=new Set();   // years, months 1-12, days 0(Mon)-6(Sun), hours 0-23
-let lightSel=0, ageSel=0, sexSel=0;   // lighting (1 daylight, 2 dark, 3 dawn/dusk), age group 1-5, sex 1 male / 2 female; 0 = all
+let lightSel=0, ageSel=0, sexSel=0, facSel=0;   // lighting code (9 = any dark), age group 1-5, sex 1 male / 2 female, factor bit; 0 = all
+const DARK=[2,4,5];   // lighting codes that are dark (street lights, none, not recorded)
 const BLINK_MAX=800;    // manual "Blink" button works up to this many (not the huge citywide view)
 let _shownCount=0;      // total crashes/KSI in the current view (sum of activeCounts), for the Blink button
 let pts=[], activeCounts={}, _breaks=[], seg2dist={}, seg2tx={}, seg2sn={}, distLayer=null, distFeats=[], snLayer=null, snFeats=[], dowArr=null;
@@ -1005,7 +1037,8 @@ function timeOk(p, skip){
   if(!sk('month') && !mrActive() && selM.size){ const m=p[7]?+p[7].slice(5,7):0; if(!selM.has(m)) return false; }
   if(!sk('hour') && selH.size){ if(p[8]==null || !selH.has(p[8])) return false; }
   if(!sk('dow') && selD.size){ if(!p[7] || !selD.has(dowOf(p[7]))) return false; }
-  if(!sk('light') && lightSel && p[LT]!==lightSel) return false;
+  if(!sk('light') && lightSel && (lightSel===9 ? !DARK.includes(p[LT]) : p[LT]!==lightSel)) return false;
+  if(!sk('fac') && facSel && !(p[FAC]&facSel)) return false;
   const a=ageSel && !sk('age'), x=sexSel && !sk('sex');
   if(a || x){ const pp=p[PPL]; if(!pp) return false;   // only people killed or seriously injured carry age/sex
     if(!pp.some(c=> (!a || ((c>>2)&7)===ageSel) && (!x || (c&3)===sexSel))) return false; }
@@ -1037,7 +1070,7 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
-  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive() || lightSel || ageSel || sexSel;
+  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive() || lightSel || ageSel || sexSel || facSel;
   if(narrowed){
     for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
@@ -1252,6 +1285,7 @@ Promise.all([
   fetch('blockgroups.json').then(r=>r.ok?r.json():null).then(b=>{ if(b){ BG=b.rows; drawEquity(); } }).catch(()=>{});
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
+  if(window.ResizeObserver) new ResizeObserver(()=>map.invalidateSize()).observe(document.getElementById('mapwrap'));   // the map stretches with the sidebar
   const deferredSel=applyURL();   // set globals + UI from the URL; returns street/seg selection to run after render
   render();
   if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
@@ -1395,6 +1429,7 @@ function syncURL(){
   if(lightSel) q.push('lt='+lightSel);
   if(ageSel) q.push('age='+ageSel);
   if(sexSel) q.push('sex='+sexSel);
+  if(facSel) q.push('cf='+facSel);
   if(district!=null) q.push('district='+encodeURIComponent(district));
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(poly) q.push('area='+poly.type+':'+encodeURIComponent(poly.id));
@@ -1437,7 +1472,9 @@ function applyURL(){
   const hp=p.get('hr'); if(hp) selH=decSet(hp,0,23);
   const dp=p.get('dw')||p.get('dow'); if(dp) selD=decSet(dp,0,6);
   const ip=(k,hi)=>{ const v=+p.get(k); return v>=1&&v<=hi?v:0; };
-  lightSel=ip('lt',3); ageSel=ip('age',5); sexSel=ip('sex',2);
+  { const v=+p.get('lt'); lightSel=[1,2,3,4,9].includes(v)?v:0; }
+  ageSel=ip('age',5); sexSel=ip('sex',2);
+  { const v=+p.get('cf'); facSel=[1,2,4,8,16].includes(v)?v:0; }
   const ym=p.get('ym');   // report's continuous month-range overrides the facets
   if(ym && /^\d+-\d+$/.test(ym)){ let [a,b]=ym.split('-').map(Number); if(a>b)[a,b]=[b,a]; ymLo=a; ymHi=b; selY=new Set(); selM=new Set(); }
   syncDerived();
@@ -1501,7 +1538,8 @@ function drawViewing(){
   if(mrActive() || selY.size || selM.size) parts.push('<b>'+timeSpan(false)+'</b>');
   if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
   if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
-  if(lightSel) parts.push('<b>'+LIGHT_LAB[lightSel].toLowerCase()+'</b>');
+  if(lightSel) parts.push('<b>'+lightName(lightSel).toLowerCase()+'</b>');
+  if(facSel) parts.push('<b>'+FACTORS.find(f=>f[0]===facSel)[1].toLowerCase()+'</b>');
   if(ageSel) parts.push('<b>age '+AGE_LAB[ageSel].toLowerCase()+'</b>');
   if(sexSel) parts.push('<b>'+SEX_LAB[sexSel].toLowerCase()+'</b>');
   if(parts.length){
@@ -1633,7 +1671,7 @@ function syncAreaUI(){
 })();
 function clearView(){
   selY.clear(); selM.clear(); selD.clear(); selH.clear(); ymLo=ymHi=null; syncDerived();   // clear all time facets
-  lightSel=ageSel=sexSel=0;
+  lightSel=ageSel=sexSel=facSel=0;
   selStreet=null; selSeg=null; selIds=new Set();   // clear selection
   _clearSN(); _clearPoly();   // clear any super-neighborhood / polygon area too
   const sel=document.getElementById('district'); if(sel) sel.value='';
@@ -1643,7 +1681,7 @@ function clearView(){
 function resetAll(){
   mode='all'; sev='ksi'; view='streets'; owner='all'; ymLo=ymHi=null;
   selY.clear(); selM.clear(); selD.clear(); selH.clear(); syncDerived();   // all time facets back to full
-  lightSel=ageSel=sexSel=0; _worstN=10;
+  lightSel=ageSel=sexSel=facSel=0; _worstPage=0;
   selStreet=null; selSeg=null; selIds=new Set();
   document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode==='all'; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
@@ -1661,7 +1699,7 @@ function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked || !!(document.getElementById('schools')||{}).checked || !!(document.getElementById('parks')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
-    && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow() && !lightSel && !ageSel && !sexSel
+    && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow() && !lightSel && !ageSel && !sexSel && !facSel
     && district===null && sn===null && !poly && selIds.size===0 && !hinOn && !fwyOn;
   rb.style.display = def ? 'none' : '';
 }
@@ -1793,6 +1831,7 @@ function pickMode(m){ setMode(mode===m?'all':m); }
 function pickLight(v){ lightSel = lightSel===v ? 0 : v; render(); }
 function pickAge(v){ ageSel = ageSel===v ? 0 : v; render(); }
 function pickSex(v){ sexSel = sexSel===v ? 0 : v; render(); }
+function pickFac(v){ facSel = facSel===v ? 0 : v; render(); }
 
 // --- travel mode: donut (skips the mode filter; the active mode is highlighted) ---
 function drawMode(){
@@ -1845,9 +1884,9 @@ function drawWhen(){
 const FACTORS=[[1,'Speeding'],[2,'Driver failed to yield'],[16,'Ran a red light or stop sign'],[8,'Distracted driving'],[4,'Alcohol or drugs']];
 function drawFactors(){
   const c={}; let n=0;
-  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; n++; const b=p[FAC]; if(b) for(const [bit] of FACTORS) if(b&bit) c[bit]=(c[bit]||0)+1; }
+  for(const p of pts){ if(!timeOk(p,'fac')||!inLens(p)||!chartInc(p)) continue; n++; const b=p[FAC]; if(b) for(const [bit] of FACTORS) if(b&bit) c[bit]=(c[bit]||0)+1; }
   document.getElementById('fac-sub').textContent='Share of '+(sev==='all'?'crashes':'crashes that killed or seriously injured someone')+timeSuffix(true);
-  const rows=FACTORS.map(([bit,lab])=>({label:lab, f:c[bit]||0, val:n?Math.round(100*(c[bit]||0)/n)+'%':'–'})).sort((a,b)=>b.f-a.f);
+  const rows=FACTORS.map(([bit,lab])=>({label:lab, f:c[bit]||0, val:n?Math.round(100*(c[bit]||0)/n)+'%':'–', on:facSel===bit, click:'pickFac('+bit+')'})).sort((a,b)=>b.f-a.f);
   hbars(document.getElementById('facbars'), rows);
 }
 
@@ -1873,15 +1912,18 @@ function drawPeople(){
 }
 
 // --- lighting (clickable filter) ---
-const LIGHT_LAB=['Not recorded','Daylight','Dark','Dawn or dusk'];
+const LIGHT_LAB=['Not recorded','Daylight','Dark, with street lights','Dawn or dusk','Dark, no street lights','Dark, lighting not recorded'];
+const lightName=v=> v===9 ? 'Dark' : LIGHT_LAB[v];
 function drawLight(){
-  const f=[0,0,0,0], s_=[0,0,0,0];
+  const f=[0,0,0,0,0,0], s_=[0,0,0,0,0,0];
   for(const p of pts){ if(!timeOk(p,'light')||!inLens(p)||!chartInc(p)) continue; (chartTop(p)?f:s_)[p[LT]]++; }
-  hbars(document.getElementById('lightbars'), [1,2,3].map(v=>({label:LIGHT_LAB[v], f:f[v], s:s_[v], on:lightSel===v, click:'pickLight('+v+')'})));
+  const rows=[1,3,2,4].map(v=>({label:LIGHT_LAB[v], f:f[v], s:s_[v], on:lightSel===v||(lightSel===9&&DARK.includes(v)), click:'pickLight('+v+')'}));
+  if(f[5]+s_[5]) rows.push({label:LIGHT_LAB[5], f:f[5], s:s_[5], on:lightSel===9});
+  hbars(document.getElementById('lightbars'), rows);
   document.getElementById('light-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
   document.getElementById('light-leg').innerHTML=legKS();
-  const tot=f[1]+f[2]+f[3]+s_[1]+s_[2]+s_[3];
-  document.getElementById('light-note').textContent=tot ? (Math.round(100*(f[2]+s_[2])/tot)+'% happened in the dark.') : '';
+  let tot=0, dk=0; for(let v=1;v<=5;v++){ tot+=f[v]+s_[v]; if(DARK.includes(v)) dk+=f[v]+s_[v]; }
+  document.getElementById('light-note').textContent=tot ? (Math.round(100*dk/tot)+'% happened in the dark. Dawn or dusk means twilight, just before sunrise or after sunset.') : '';
 }
 
 // --- neighborhood income: rate per 100,000 residents per year ---
@@ -1912,7 +1954,7 @@ function drawEquity(){
 }
 
 // --- most dangerous streets (table) ---
-let _worstN=10, _lenCache={key:null, v:null};
+let _worstPage=0, _worstSig='', _lenCache={key:null, v:null};
 function streetLengths(){   // street name -> {ft, tx, hin} over segments in the current area and owner filter
   const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner;
   if(_lenCache.key===key) return _lenCache.v; const o={};
@@ -1965,16 +2007,22 @@ function drawWorstStreets(){
   const all=sev==='all';
   document.getElementById('worst-sub').textContent=(all?'Ranked by crashes':'Ranked by people killed or seriously injured')+timeSuffix(true)+'. Click a street to select it.';
   const tbl=document.getElementById('worst-tbl');
-  if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="8" style="text-align:left;color:var(--muted)">No streets in this view.</td></tr></tbody>'; document.getElementById('worst-more').style.display='none'; }
+  // back to the first page whenever a filter changes (but not when a street is selected from the table)
+  const sig=[mode,sev,owner,district,sn,poly?poly.key:'',[...selY],[...selM],[...selD],[...selH],ymLo,ymHi,lightSel,ageSel,sexSel,facSel,fwyOn].join('|');
+  if(sig!==_worstSig){ _worstSig=sig; _worstPage=0; }
+  const pages=Math.max(1,Math.ceil(rows.length/10)); if(_worstPage>=pages) _worstPage=pages-1;
+  const first=_worstPage*10;
+  document.getElementById('worst-prev').disabled=_worstPage===0; document.getElementById('worst-next').disabled=_worstPage>=pages-1;
+  document.getElementById('worst-range').textContent=rows.length ? ((first+1)+' to '+Math.min(rows.length,first+10)+' of '+fmt(rows.length)) : '';
+  if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="9" style="text-align:left;color:var(--muted)">No streets in this view.</td></tr></tbody>'; }
   else {
     const head='<thead><tr><th>#</th><th>Street</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Miles</th><th>Per mile</th><th>Owner</th><th>High Injury Network</th></tr></thead>';
-    const body=rows.slice(0,_worstN).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
+    const body=rows.slice(first,first+10).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
       const own=txs>=.9?'TxDOT':txs<=.1?'City':'City and TxDOT', hin=hs>=.5?'Yes':hs>=.05?'Part':'No';
       return '<tr'+(selStreet===r.nm?' class="on"':'')+' tabindex="0" role="button" onclick="selectStreet('+esc(JSON.stringify(r.nm))+',true)">'
-        +'<td>'+(i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+        +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
         +'<td>'+(mi?mi.toFixed(1):'–')+'</td><td>'+(mi>=0.1?(r.t/mi).toFixed(1):'–')+'</td><td>'+own+'</td><td>'+hin+'</td></tr>'; }).join('');
     tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
-    const more=document.getElementById('worst-more'); more.style.display=rows.length>_worstN&&_worstN<50?'':'none';
   }
   // ownership and High Injury Network shares for the whole view
   let n=0, tx=0, toll=0, hin=0;
@@ -2344,6 +2392,8 @@ function setupWhenUI(){
   document.getElementById('dowsel').onchange=e=>{ selD.clear(); const o=DOW_OPTS.find(x=>x[0]===e.target.value); if(o) o[2].forEach(v=>selD.add(v)); render(); };
   document.getElementById('hrsel').onchange=e=>{ selH.clear(); const o=HOUR_BANDS.find(x=>x[0]===e.target.value); if(o) o[2].forEach(v=>selH.add(v)); render(); };
   document.getElementById('lightsel').onchange=e=>{ lightSel=+e.target.value; render(); };
+  document.getElementById('facsel').onchange=e=>{ facSel=+e.target.value; render(); };
+  document.querySelectorAll('.secd').forEach(d=>d.addEventListener('toggle',()=>map.invalidateSize()));
   document.getElementById('agesel').onchange=e=>{ ageSel=+e.target.value; render(); };
   document.querySelectorAll('input[name=sexf]').forEach(r=>r.onchange=()=>{ sexSel=+document.querySelector('input[name=sexf]:checked').value; render(); });
 }
@@ -2352,6 +2402,7 @@ function _syncSel(sel, list, S){   // pick the option matching Set S, adding a "
   if(hit){ if(c) c.remove(); sel.value=hit[0]; }
   else { if(!c){ c=document.createElement('option'); c.value='custom'; c.textContent='Custom'; sel.appendChild(c); } sel.value='custom'; }
 }
+let _secPrev={};
 function syncWhoWhenUI(){
   const yrs=vz.years, yf=document.getElementById('yr-from'), yt=document.getElementById('yr-to'); if(!yf||!yf.options.length) return;
   if(mrActive()){ yf.value=Math.floor(ymLo/12); yt.value=Math.floor(ymHi/12); }
@@ -2361,6 +2412,14 @@ function syncWhoWhenUI(){
   _syncSel(document.getElementById('dowsel'), DOW_OPTS, selD);
   _syncSel(document.getElementById('hrsel'), HOUR_BANDS, selH);
   document.getElementById('lightsel').value=lightSel; document.getElementById('agesel').value=ageSel;
+  document.getElementById('facsel').value=facSel;
+  // count active filters per section; open a section when one of its filters turns on
+  const hinOn=['hin','schools','parks'].some(k=>(document.getElementById(k)||{}).checked);
+  const act={where:(district!==null||sn!==null||!!poly)+(selStreet!==null||selSeg!==null), who:(mode!=='all')+!!ageSel+!!sexSel,
+    when:(selY.size>0||mrActive())+(selM.size>0)+(selD.size>0)+(selH.size>0), circumstances:!!lightSel+!!facSel,
+    roads:(owner!=='all')+fwyOn, map:(sev!=='ksi')+(view!=='streets')+hinOn};
+  for(const k in act){ const n=+act[k], el=document.getElementById('secn-'+k); if(!el) continue;
+    el.textContent=n?n+' on':''; const d=el.closest('details'); if(n>(_secPrev[k]||0) && d && !d.open) d.open=true; _secPrev[k]=n; }
   const sx=document.querySelector('input[name=sexf][value="'+sexSel+'"]'); if(sx) sx.checked=true;
 }
 // share: copy the current URL (syncURL keeps it in step with the active filters/selection)
@@ -2430,7 +2489,8 @@ function viewDesc(){
   const extras=[];
   if(hrNarrow()) extras.push(hourLabel(hrLo)+'–'+hourLabel(hrHi));
   if(dowNarrow()) extras.push(DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]);
-  if(lightSel) extras.push(LIGHT_LAB[lightSel]);
+  if(lightSel) extras.push(lightName(lightSel));
+  if(facSel) extras.push(FACTORS.find(f=>f[0]===facSel)[1]);
   if(ageSel) extras.push('Age '+AGE_LAB[ageSel].toLowerCase());
   if(sexSel) extras.push(SEX_LAB[sexSel]);
   if(sev==='all') extras.push('all crashes, not only KSI');
@@ -2501,9 +2561,11 @@ async function generateReport(cfg){
   // worst-streets table (gated)
   let worstHTML='';
   if(S.worst){
+    const keepPage=_worstPage; _worstPage=0; drawWorstStreets();
     const t_=document.getElementById('worst-tbl'), hd=t_.querySelector('thead');
     const rws=[...t_.querySelectorAll('tbody tr')].slice(0,10).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
     worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>') : '';
+    _worstPage=keepPage; drawWorstStreets();
   }
   const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -2624,7 +2686,8 @@ window.addEventListener('afterprint', ()=>{ const R=document.getElementById('rep
 document.querySelector('.below').addEventListener('keydown',e=>{
   const row=e.target.closest('[role=button]'); if(row && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
 });
-document.getElementById('worst-more').onclick=()=>{ _worstN=Math.min(50,_worstN+10); drawWorstStreets(); };
+document.getElementById('worst-prev').onclick=()=>{ if(_worstPage>0){ _worstPage--; drawWorstStreets(); } };
+document.getElementById('worst-next').onclick=()=>{ _worstPage++; drawWorstStreets(); };
 (()=>{ const m=document.getElementById('modal');
   const open=e=>{e.preventDefault(); m.classList.add('show');};
   const close=()=>m.classList.remove('show');

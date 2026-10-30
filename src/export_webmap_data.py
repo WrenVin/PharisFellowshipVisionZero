@@ -310,7 +310,8 @@ print(f"Wrote boundary -> {bpath}")
 #  light, factors, ksi_people]
 # fields 16-20 are the per-crash person counts by KABCO injury severity (killed K, serious A,
 # minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
-# 21 light (0 unknown, 1 daylight, 2 dark, 3 dawn/dusk), 22 contributing-factor bit flags,
+# 21 light (0 unknown, 1 daylight, 2 dark with street lights, 3 dawn/dusk, 4 dark without street
+# lights, 5 dark with lighting not recorded), 22 contributing-factor bit flags,
 # 23 people killed or seriously injured as comma-joined codes or null (see build_crashes.py).
 def crash_rows(cr, freeway=False):
     """Tag crash points and build dashboard rows (24 fields; freeway rows add road_type)."""

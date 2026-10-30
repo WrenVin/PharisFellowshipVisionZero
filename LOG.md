@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Collapsible sidebar, lighting definitions, factor filter, table pager
+
+Vincent's follow-ups.
+
+- **Sidebar sections collapse** (Where and Who open by default; When, Circumstances, Roads and Map closed). Each summary shows a badge when filters in it are on, and a section opens by itself when a chart click or shared link turns on one of its filters. The map is no longer sticky; it stretches to the sidebar's height (minimum 560 px) and redraws when a section opens, so there is no empty space under it.
+- **Lighting defined.** Was Daylight / Dark / Dawn or dusk with no definition. Now the officer's categories are kept apart: Daylight; Dawn or dusk (twilight, just before sunrise or after sunset); Dark, with street lights; Dark, no street lights; Dark, lighting not recorded. The filter adds Dark (all). Definitions in the tip and Data & methods. Pipeline recoded (`light` 1 to 5); 29.6% of crashes are in the dark, 3.6% dark with no street lights.
+- **Contributing factor filter** in a new Circumstances section (with Lighting); the factors chart rows also set it. URL key `cf`.
+- **Street table pager:** Previous 10 / Next 10 with "11 to 20 of 1,774" instead of a growing list; returns to page 1 when a filter changes. The report still prints the top 10.
+- Chart labels wrap instead of cutting off ("Ran a red light or stop sign").
+- Statewide version by Texas House district discussed and pinned (roadmap).
+
 ## 2026-10-30 — Panels rebuilt; new Who / When filters; person-record bug fixed
 
 Vincent's review of the lower half: the concentration curve is not useful to a general audience; the time charts were both filters and displays, with their sliders away from the other filters; travel mode should be a pie; the income panel only mirrored who lives in the area (his professor's point); the street ranking matters most; no reordering.

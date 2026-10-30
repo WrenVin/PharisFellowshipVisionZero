@@ -4,6 +4,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Open
 
+- [ ] **Idea (pinned 2026-10-30): statewide version by Texas House district.** Separate project, possibly with Farm and City. Statewide CRIS is already on disk. Plan sketched in chat: one data file per district; TxDOT Roadway Inventory as the statewide road network; include all road systems (rural highways matter); confirm the statewide files may be republished at crash-point level. Possible deadline: the January 2027 legislative session. First step if picked up: one urban and one rural district end to end.
 - [ ] **People killed: count people or fatal crashes?** The KPI counts fatal crashes (1,729); person records now give 1,822 people killed. Vincent's call.
 - [ ] **Schools and parks (from form feedback, 2026-07-22).** Overlays plus a "near schools / parks" distance filter and a per-school/park report for Safe Routes applications. Plan in [SCHOOLS_PARKS_PLAN.md](SCHOOLS_PARKS_PLAN.md). Part 1 (overlays) done 2026-10-29; next: confirm the radius with the submitter (federal SRTS uses about 2 miles), then the per-school/park radius view and report.
 - [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Written plan in [FREEWAY_PLAN.md](FREEWAY_PLAN.md): ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as streets, crashes placed by TxDOT milepost. Two decisions open (color scale, direction display). Not started.
@@ -18,6 +19,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-30 Collapsible sidebar sections with filter badges; map matches sidebar height; lighting split into defined categories (street lights or not); contributing-factor filter; Previous/Next pager for the street table.
 - [x] 2026-10-30 Lower-half rebuild: street table first, year with year-to-date, travel mode donut, day-and-time heatmap, contributing factors, age and sex, lighting, income as a rate per resident; Who / When filters in the sidebar; drag-to-reorder removed. Fixed the person-record dedupe bug (years of life lost now 59,461 from actual ages).
 - [x] 2026-10-30 Rewrote page copy in plainer, shorter language; removed the Source data header link.
 - [x] 2026-10-30 Named the site "Houston Street Safety Dashboard" (tab, search and link-preview titles); sticky header; removed center-dot separators.
