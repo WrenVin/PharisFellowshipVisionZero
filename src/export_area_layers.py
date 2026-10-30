@@ -105,7 +105,7 @@ def main():
     if missing:
         raise SystemExit(f"TIRZ names with no known number (update TIRZ_NUMBER): {missing}")
     num = nm.map(TIRZ_NUMBER)
-    tz["id"], tz["name"], tz["sort"] = "tirz-" + num.astype(str), "TIRZ " + num.astype(str) + " · " + nm, num
+    tz["id"], tz["name"], tz["sort"] = "tirz-" + num.astype(str), "TIRZ " + num.astype(str) + ": " + nm, num
     write(keep_inside(tz, limits, boundary, "tirz"), "tirz")
 
     md = fetch_layer(f"{COH}/Administrative_Boundary/MapServer/4", out_fields="NAME", out_sr=cfg.CRS_FT)

@@ -3,20 +3,22 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vision Zero · Houston · Traffic Safety</title>
+<title>Houston Street Safety Dashboard: Traffic Deaths and Serious Injuries in Houston</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Houston Street Safety Dashboard","alternateName":"Houston Street Safety","url":"https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html"}</script>
+<meta name="application-name" content="Houston Street Safety Dashboard" />
 <meta name="description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="canonical" href="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="Houston Vision Zero" />
-<meta property="og:title" content="Vision Zero · Houston" />
+<meta property="og:site_name" content="Houston Street Safety Dashboard" />
+<meta property="og:title" content="Houston Street Safety Dashboard" />
 <meta property="og:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <meta property="og:url" content="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
 <!-- og:image: add a 1200x630 PNG at docs/og-vision-zero.png, then uncomment the next line and switch twitter:card to summary_large_image -->
 <!-- <meta property="og:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-vision-zero.png" /> -->
 <!-- Twitter -->
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Vision Zero · Houston" />
+<meta name="twitter:title" content="Houston Street Safety Dashboard" />
 <meta name="twitter:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -348,13 +350,15 @@
   .rc-primary:hover{background:var(--act-dk)}
   .rc-check input,.toggle input{accent-color:var(--act)}
   .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
+  .sitehead{position:sticky;top:0;z-index:1150}
+  @media(max-width:780px){.sh-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:0}.sh-nav::-webkit-scrollbar{display:none}.sh-nav a{white-space:nowrap;padding-left:10px;padding-right:10px;font-size:14px}.sh-nav a:first-child{padding-left:0}}
   @media print{.sitehead,.provenance,.sitefoot{display:none!important}}
 </style>
 </head>
 <body>
 <header class="sitehead">
   <div class="sh-in">
-    <a class="sh-name" href="vision-zero.html">Houston Vision Zero<span>Traffic safety data</span></a>
+    <a class="sh-name" href="vision-zero.html">Houston Street Safety Dashboard<span>Traffic deaths and serious injuries, mapped</span></a>
     <nav class="sh-nav" aria-label="Site">
       <a href="vision-zero.html" aria-current="page">Dashboard</a>
       <a href="#" onclick="document.getElementById('about').click();return false">Data &amp; methods</a>
@@ -365,7 +369,7 @@
 </header>
 <div class="provenance"><div class="sh-in">Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation.</div></div>
 <div class="wrap">
-  <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
+  <h2 class="sr-only">Houston Street Safety Dashboard: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
   <div class="top">
     <div>
@@ -538,7 +542,7 @@
       <div id="worst-list"></div>
     </div>
     <div class="card" data-card="conc">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">&middot; Lorenz curve</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">(Lorenz curve)</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
       <div class="sub" id="conc-sub"></div>
       <div id="conc"></div>
       <div class="tip">This is a <b>Lorenz curve</b> (a concentration curve, also used to measure income inequality). Streets are ranked from most to least dangerous, left to right; the curve shows what cumulative share of the harm (vertical) sits on what cumulative share of street-miles (horizontal). The dashed line marks a perfectly even spread. The <b>Gini coefficient</b> (0 = even, 1 = all harm on one street) summarizes the full curve in a single value, independent of any cutoff. The purple <b>6%</b> marker is the size of the City's High Injury Network, shown for comparison. The metric counts where harm occurs, not crashes per mile driven, so part of the concentration reflects that traffic is also concentrated. On the streets with traffic counts, the harm remains about as concentrated after adjusting for vehicle-miles traveled, which indicates specific dangerous roads rather than traffic volume alone.</div>
@@ -595,16 +599,16 @@
       <section>
         <h3>Data sources</h3>
         <p>Every dataset here is public. Each link goes to the official source.</p>
-        <p><span class="lbl">Crashes</span> &middot; TxDOT Crash Records Information System (CRIS), public extracts, 2016&ndash;2025 plus partial 2026. <a href="https://www.txdot.gov/data-maps/crash-reports-records.html" target="_blank" rel="noopener">txdot.gov</a> &middot; <a href="https://cris.txdot.gov/" target="_blank" rel="noopener">cris.txdot.gov</a></p>
-        <p><span class="lbl">Street network &amp; sidewalks</span> &middot; OpenStreetMap. <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">openstreetmap.org</a></p>
-        <p><span class="lbl">Road ownership (city vs TxDOT)</span> &middot; TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
-        <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
-        <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
-        <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
-        <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
-        <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
-        <p><span class="lbl">Schools</span> &middot; Texas Education Agency school directory (public district and charter campuses), via City of Houston GIS. <span class="lbl">Parks</span> &middot; City of Houston Parks and Recreation, via City of Houston GIS.</p>
-        <p><span class="lbl">Census tracts</span> &middot; U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
+        <p><span class="lbl">Crashes</span>: TxDOT Crash Records Information System (CRIS), public extracts, 2016&ndash;2025 plus partial 2026. <a href="https://www.txdot.gov/data-maps/crash-reports-records.html" target="_blank" rel="noopener">txdot.gov</a>, <a href="https://cris.txdot.gov/" target="_blank" rel="noopener">cris.txdot.gov</a></p>
+        <p><span class="lbl">Street network &amp; sidewalks</span>: OpenStreetMap. <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener">openstreetmap.org</a></p>
+        <p><span class="lbl">Road ownership (city vs TxDOT)</span>: TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
+        <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span>: City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">High Injury Network overlay</span>: City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
+        <p><span class="lbl">Neighborhood income</span>: U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
+        <p><span class="lbl">Crash costs</span>: FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
+        <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span>: City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">Schools</span>: Texas Education Agency school directory (public district and charter campuses), via City of Houston GIS. <span class="lbl">Parks</span>: City of Houston Parks and Recreation, via City of Houston GIS.</p>
+        <p><span class="lbl">Census tracts</span>: U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
@@ -902,7 +906,7 @@ function timeSpan(short){
   if(ml!==null) return yl!==null ? (ml+' '+yStr) : ml;
   return yStr;
 }
-function timeSuffix(short){ return (mrActive()||selY.size||selM.size) ? (' · '+timeSpan(short)) : ''; }
+function timeSuffix(short){ return (mrActive()||selY.size||selM.size) ? (', '+timeSpan(short)) : ''; }
 function totalsSpan(){ const one = selY.size===1 && !selM.size && !mrActive();
   return (one?'totals in ':'totals over ')+timeSpan(false); }
 // derive the legacy year/month/yrLo../hr/dow vars from the facet Sets so the many existing
@@ -1037,7 +1041,7 @@ function drawConcentration(){
   const c=concentration(), metric = sev==='all'?'crashes':'KSI';
   if(!c.totK){ el.innerHTML=''; if(sub) sub.textContent='No '+metric+' in this view.'; return; }
   const half=c.pctForHalf!=null?c.pctForHalf*100:null, halfStr=half!=null?(half<10?half.toFixed(1):Math.round(half))+'%':'–';
-  if(sub) sub.innerHTML='Half of all '+metric+' is on <b>'+halfStr+'</b> of street-miles &middot; Gini <b>'+(c.gini!=null?c.gini.toFixed(2):'–')+'</b>';
+  if(sub) sub.innerHTML='Half of all '+metric+' is on <b>'+halfStr+'</b> of street-miles. Gini <b>'+(c.gini!=null?c.gini.toFixed(2):'–')+'</b>';
   const W=336,H=156,padL=30,padR=10,padT=24,padB=28,pw=W-padL-padR,ph=H-padT-padB;
   const X=x=>(padL+x*pw), Y=y=>(padT+(1-y)*ph), x0=X(0),x1=X(1),y0=Y(0),y1=Y(1);
   let line=''; for(const p of c.curve) line+=(line?' L ':'M ')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);
@@ -1439,7 +1443,7 @@ function drawViewing(){
   if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
   if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
   if(parts.length){
-    v.innerHTML='Viewing '+parts.join(' · ')+' · <span style="color:#1d4ed8;cursor:pointer">clear ✕</span>';
+    v.innerHTML='Viewing '+parts.join(', ')+'&nbsp;&nbsp;<span style="color:var(--act);cursor:pointer;text-decoration:underline">Clear</span>';
     v.querySelector('span').onclick=clearView;
   } else {
     v.innerHTML='<span style="color:var(--muted)">Click a street or crash dot for details</span>';
@@ -1480,7 +1484,7 @@ function setupSN(sns){
   // sorted by SN number so a specific one (e.g. SN52) is easy to find; label carries the number
   snFeats.map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
     .sort((a,b)=>a[0]-b[0])
-    .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
+    .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN '+id+': '+nm+'</option>'));
   sel.innerHTML=opts.join('');
 }
 function selectSN(v){
@@ -1533,7 +1537,7 @@ function areaName(){
 function areaOptions(type){
   if(type==='district') return Promise.resolve((distFeats||[]).map(f=>f.properties.DISTRICT).sort().map(d=>[d,'District '+d]));
   if(type==='sn') return Promise.resolve((snFeats||[]).map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
-      .sort((a,b)=>a[0]-b[0]).map(([id,nm])=>[String(id),'SN'+id+' · '+nm]));
+      .sort((a,b)=>a[0]-b[0]).map(([id,nm])=>[String(id),'SN '+id+': '+nm]));
   if(POLY_TYPES[type]) return polyFeatures(type).then(fs=>fs.map(f=>[f.properties.id,f.properties.name]));
   return Promise.resolve([]);
 }
@@ -1614,7 +1618,7 @@ function drawKPIs(t){
   // (concentration of a single street is meaningless).
   let kpi4;
   if(selIds.size>0){
-    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':' · '+span), true, null, 'extra', t.crashes);
+    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':', '+span), true, null, 'extra', t.crashes);
   } else {
     const con=concentration();
     const metric = sev==='all'?'crashes':'KSI';
@@ -1626,11 +1630,11 @@ function drawKPIs(t){
   }
   const cost=costTotal();
   const costTip='Economic cost is the societal economic loss from these crashes (medical care, lost productivity, property damage, emergency and legal services), from FHWA per-person costs by injury severity (KABCO) applied to the people hurt in each crash (FHWA-SA-25-021, 2024 dollars). The comprehensive figure adds the monetized value of lost quality and length of life, so its fatal portion overlaps Years of life lost and the two should not be added. Unknown-severity injuries carry no cost and reported crashes undercount the true toll, so this is a conservative floor. See Data & methods.';
-  const costCard=kpi(KICON.cost,'Economic cost · '+span, fmtMoney(cost.econ), 'comprehensive cost: '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
+  const costCard=kpi(KICON.cost,'Economic cost, '+span, fmtMoney(cost.econ), 'comprehensive cost: '+fmtMoney(cost.comp), false, costTip, 'cost', cost.econ, true);
   document.getElementById('kpis').innerHTML=
-    kpi(KICON.killed,'People killed · '+span, fmt(killed), who, false, null, 'killed', killed)
+    kpi(KICON.killed,'People killed, '+span, fmt(killed), who, false, null, 'killed', killed)
    +kpi(KICON.yll,'Years of life lost', fmt(yll), who, false, yllTip, 'yll', yll)
-   +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people · '+who, false, null, 'serious', serious)
+   +kpi(KICON.ksi,'Seriously injured', fmt(serious), 'people '+who, false, null, 'serious', serious)
    +kpi4
    +costCard;
   animateKPIs();
@@ -1659,9 +1663,9 @@ function fmtMoney(v){ if(v>=1e9) return '$'+(v/1e9).toFixed(1)+'B'; if(v>=1e6) r
 function drawLegend(){
   const el=document.getElementById('legend');
   const metric=sev==='all'?'Crashes':'Killed or seriously injured';
-  const pre=mode==='all'?'':mode==='ped'?'Walking · ':mode==='bike'?'Biking · ':'Driving · ';
-  const yr=year===null?'':' · '+(month!==null?MONTHS[month-1].slice(0,3)+' '+year:year);
-  let h='<div style="font-weight:600;margin-bottom:3px">'+pre+metric+yr+'</div>';
+  const pre=mode==='all'?'':mode==='ped'?', walking':mode==='bike'?', biking':', driving';
+  const yr=year===null?'':', '+(month!==null?MONTHS[month-1].slice(0,3)+' '+year:year);
+  let h='<div style="font-weight:600;margin-bottom:3px">'+metric+pre+yr+'</div>';
   if(view==='points'){
     if(sev==='all'){
       h+='<div class="key"><span class="dot" style="background:#b30000;border-radius:50%;width:9px;height:9px"></span>Killed or seriously injured</div>'
@@ -1798,7 +1802,7 @@ let seg2name=null;
 function drawWorstStreets(){
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties;
     if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
-  document.getElementById('worst-sub').textContent='Top 5 by '+(sev==='all'?'crashes':'KSI')+', in this view · click to select';
+  document.getElementById('worst-sub').textContent='Top 5 by '+(sev==='all'?'crashes':'KSI')+' in this view. Click one to select it.';
   const totals={};
   for(const sid in activeCounts){ const nm=seg2name[sid]; if(!nm) continue;
     totals[nm]=(totals[nm]||0)+activeCounts[sid]; }
@@ -1943,7 +1947,7 @@ function monthStacksC(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'mon
   const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
 // per-panel sub line: a hint when nothing is selected on this axis, else the selection + a clear link
 function facetSub(dim, hint){ const lab=facetLabel(dim); if(lab===null) return hint;
-  return '<b>'+lab+'</b> · <span style="color:#1d4ed8;cursor:pointer" onclick="clearDim(\''+dim+'\')">clear</span>'; }
+  return '<b>'+lab+'</b>&nbsp;&nbsp;<span style="color:var(--act);cursor:pointer;text-decoration:underline" onclick="clearDim(\''+dim+'\')">clear</span>'; }
 function drawTrend(){
   const k=yearStacks(); const labels=[],fatal=[],serious=[],fadeIdx=new Set(),fullSet=new Set();
   vz.years.forEach((yr,i)=>{ labels.push('’'+String(yr).slice(2)); fatal.push(k.f[yr]||0); serious.push(k.s[yr]||0);
@@ -1969,7 +1973,7 @@ function drawTrend(){
   syncRange('year');
   const parts=[]; if(headline) parts.push(headline);
   if(vz.years.includes(2026)) parts.push('<span style="color:var(--muted)">2026 partial</span>');
-  document.getElementById('trend-note').innerHTML=parts.join(' · ');
+  document.getElementById('trend-note').innerHTML=parts.join('. ');
 }
 function drawMonth(){
   const k=monthStacksC(), MN=['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -1977,7 +1981,7 @@ function drawMonth(){
   for(let m=1;m<=12;m++){ labels.push(MN[m-1]); fatal.push(k.f[m]||0); serious.push(k.s[m]||0); if(selM.size && !selM.has(m)) fadeIdx.add(m-1); }
   drawBarChart(document.getElementById('month'),labels,fatal,serious,{fadeIdx,h:78,dim:'month',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('month-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by month';
-  document.getElementById('month-sub').innerHTML=facetSub('month','Seasonality across all years · click a bar or drag the slider');
+  document.getElementById('month-sub').innerHTML=facetSub('month','Seasonality across all years. Click a bar or drag the slider.');
   document.getElementById('month-leg').innerHTML=stackLegend();
   syncRange('month');
 }
@@ -1988,7 +1992,7 @@ function drawTimeOfDay(){
     if(selH.size && !selH.has(h)) fadeIdx.add(h); }
   drawBarChart(document.getElementById('tod'),labels,fatal,serious,{h:78,fadeIdx,dim:'hour',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('tod-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by time of day';
-  document.getElementById('tod-sub').innerHTML=facetSub('hour','By hour, '+totalsSpan()+' · click a bar or drag the slider');
+  document.getElementById('tod-sub').innerHTML=facetSub('hour','By hour, '+totalsSpan()+'. Click a bar or drag the slider.');
   document.getElementById('tod-leg').innerHTML=stackLegend();
   syncRange('hour');
 }
@@ -1998,7 +2002,7 @@ function drawDayOfWeek(){
   for(let d=0;d<7;d++){ fatal.push(k.f[d]||0); serious.push(k.s[d]||0); if(selD.size && !selD.has(d)) fadeIdx.add(d); }
   drawBarChart(document.getElementById('dow'),labels,fatal,serious,{h:78,fadeIdx,dim:'dow',unit:(sev==='all'?'crashes':'KSI')});
   document.getElementById('dow-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by day of week';
-  document.getElementById('dow-sub').innerHTML=facetSub('dow','By weekday, '+totalsSpan()+' · click a bar or drag the slider');
+  document.getElementById('dow-sub').innerHTML=facetSub('dow','By weekday, '+totalsSpan()+'. Click a bar or drag the slider.');
   document.getElementById('dow-leg').innerHTML=stackLegend();
   syncRange('dow');
 }
@@ -2032,7 +2036,7 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   const when = p[7] || (p[6]!=null ? String(p[6]) : 'date unknown');
   const tm = hourLabel(p[8]);
   const rows=[];
-  rows.push(['When', when + (tm?' · '+tm:'')]);
+  rows.push(['When', when + (tm?', '+tm:'')]);
   rows.push(['Mode', modeTxt]);
   if(p[10]) rows.push(['Council district', p[10]]);
   if(p[11]!=null) rows.push(['Neighborhood income', INC_LAB[p[11]]]);
@@ -2055,7 +2059,7 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   let h='<div style="font:13px/1.55 var(--sans);min-width:195px">'
     +'<div style="font-weight:700;font-size:14px;color:'+sevCol+';margin-bottom:5px">'+sevTxt+'</div>';
   if(sp) h+='<div style="font-weight:600;margin-bottom:4px">'+(sp.name||'(unnamed street)')
-    +' <span style="color:#5b6672;font-weight:400">· '+sp.road_class+'</span></div>';
+    +'<span style="color:#5b6672;font-weight:400">, '+sp.road_class+'</span></div>';
   for(const [k,v] of rows) h+=kv(k,v);
   if(street.length){
     h+='<div style="font-size:12px;font-weight:600;color:#15212b;margin:7px 0 3px">Street design</div>';
@@ -2078,8 +2082,8 @@ function openInfoSeg(p){
     : '';
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
     +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
-      +' · '+(p.on_txdot?'TxDOT (state)':'City of Houston')+'</div></div>'
-    +'<div class="g"><h4>This block · road makeup</h4>'
+      +', '+(p.on_txdot?'TxDOT (state)':'City of Houston')+'</div></div>'
+    +'<div class="g"><h4>Road makeup of this block</h4>'
       +row('Lanes',(p.lanes_final!=null?p.lanes_final:'n/a'))
       +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'n/a'))
       +row('Posted speed',(p.posted_speed_mph!=null?p.posted_speed_mph+' mph':'n/a'))
@@ -2114,8 +2118,8 @@ function openInfoStreet(name, props){
   const row=(k,v)=>'<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
   const title=name.startsWith('__seg__')?'(unnamed street)':name;
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
-    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls+' · '+owner
-      +' · '+nBlocks+' block'+(nBlocks>1?'s':'')+' · '+miles.toFixed(2)+' mi</div></div>'
+    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls+', '+owner
+      +', '+nBlocks+' block'+(nBlocks>1?'s':'')+', '+miles.toFixed(2)+' mi</div></div>'
     +'<div class="g"><h4>Road makeup</h4>'
       +row('Lanes',range('lanes_final'))
       +row('Roadway width',range('roadway_width_ft',' ft'))
@@ -2164,7 +2168,7 @@ function setOverlay(kind, on){
       if(kind==='schools'){
         schoolsLayer=L.geoJSON(g,{pointToLayer:(f,ll)=>L.circleMarker(ll,{renderer,radius:4.5,color:'#fff',weight:1.2,fillColor:SCHOOL_C,fillOpacity:.95}),
           onEachFeature:(f,l)=>{ const p=f.properties; l.bindPopup('<div style="font:13px/1.5 var(--sans)"><div style="font-weight:700">'+p.name+'</div>'
-            +'<div style="color:#5b6672">Grades '+p.grades+' · '+p.district+(p.charter?' (charter)':'')+'</div></div>'); }});
+            +'<div style="color:#5b6672">Grades '+p.grades+', '+p.district+(p.charter?' (charter)':'')+'</div></div>'); }});
       } else {
         parksLayer=L.geoJSON(g,{renderer:parksRenderer,interactive:false,style:{color:PARK_C,weight:1,opacity:.8,fillColor:PARK_C,fillOpacity:.22}});
       }
@@ -2265,7 +2269,7 @@ async function generateReport(cfg){
   const metric = sev==='all' ? 'crashes' : 'people killed or seriously injured';
   const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
   if(d.modeTxt) chips.push(d.modeTxt); d.extras.forEach(e=>chips.push(e));
-  const subtitle=chips.join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+  const subtitle=chips.join('&nbsp;&nbsp;|&nbsp;&nbsp;');
   const where = d.sel?('on '+d.sel) : (areaName()!==null)?('on '+d.region+' streets') : 'on City of Houston streets';
   // synthesis: ONE qualitative takeaway, no restated numbers (gated by S.summary)
   let synthHTML='';
@@ -2294,7 +2298,7 @@ async function generateReport(cfg){
     const capLeft = view==='points' ? 'Each dot is one crash location.'
       : view==='corridor' ? ('Whole streets shaded by '+metric+' (darker = more).')
       : ('Streets shaded by '+metric+' on each block (darker = more).');
-    mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+'&nbsp;·&nbsp;'+d.when+'</span></div></div>') : '';
+    mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+', '+d.when+'</span></div></div>') : '';
   }
   // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector). title + chart + legend only.
   const chart=(title,bodyHTML,legHtml,noteHtml)=>'<div class="r-chart"><h3>'+title+'</h3>'+bodyHTML+(legHtml?('<div class="bleg">'+legHtml+'</div>'):'')+(noteHtml||'')+'</div>';
@@ -2324,7 +2328,7 @@ async function generateReport(cfg){
   const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   R.innerHTML =
-    '<div class="r-hd"><div><div class="r-eyebrow">Vision Zero · Houston</div>'
+    '<div class="r-hd"><div><div class="r-eyebrow">Houston Street Safety Dashboard</div>'
       +'<h1 class="r-title">'+rTitle+'</h1>'
       +'<div class="r-sub">'+subtitle+'</div></div>'
       +'<div class="r-date">Prepared '+today+'<br>wrenvin.github.io/PharisFellowshipVisionZero</div></div>'

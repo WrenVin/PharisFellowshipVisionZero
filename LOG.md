@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Site name, sticky header, no center dots
+
+Vincent's follow-ups to the redesign.
+
+- **Name:** the site is now the **Houston Street Safety Dashboard** (header, browser tab and search title, link-preview titles, report header, redirect page). The tagline reads "Traffic deaths and serious injuries, mapped." A schema.org `WebSite` entry gives search engines the name. Chosen to describe the tool plainly and to stay distinct from the City's own program name ("Vision Zero Houston"), so it is not mistaken for an official City site; the text still says the site supports Vision Zero.
+- **Sticky header:** the navy header stays on screen while scrolling (above the map and its controls, below dialogs). On phones the links sit on one scrollable line, so the header is 63 px tall.
+- **Center dots removed** everywhere (KPI labels, chart subtitles, legend, popups, filter chips, data sources, report). Replaced with commas, colons, or periods by context; the report's filter chips use a vertical bar. TIRZ labels read "TIRZ 2: Midtown" (`export_area_layers.py` and `docs/areas_tirz.geojson`). Super neighborhoods read "SN 1: Willowbrook".
+- Checks: killed total still 1,729; no console errors; no sideways scrolling at 375 px; validator passes.
+
 ## 2026-10-30 — Full page redesign in the style of city data dashboards
 
 Follows the restyle above. References studied: Austin's and Los Angeles's Vision Zero dashboards (Bootstrap: system or plain sans fonts, square corners, almost no shadows, blue for anything clickable, red only for data) and the U.S. Web Design System (Public Sans, its blue and navy palette). Changes to `docs/vision-zero.html`, layout and styling only:
