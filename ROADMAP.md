@@ -19,6 +19,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-30 First-visit welcome guide (per-browser flag) with a How to use link; report and share buttons in the header; Reset in the sidebar; title row removed.
 - [x] 2026-10-30 Report dialog rebuilt: edits title, area, dates, map and sections; lists every other active filter read-only.
 - [x] 2026-10-30 Sidebar scrolls inside a fixed height beside the map; info tips float beside their button; street table shows 5 per page.
 - [x] 2026-10-30 Collapsible sidebar sections with filter badges; map matches sidebar height; lighting split into defined categories (street lights or not); contributing-factor filter; Previous/Next pager for the street table.

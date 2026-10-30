@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Welcome guide on first visit; buttons in the header; title row removed
+
+- **Welcome guide** opens on a visitor's first visit: what the dashboard shows and five steps for using it (filters, click a street, scroll for charts, report and share, the i buttons). "First visit" is per browser: a flag in the browser's local storage (`hsd-welcomed-v1`), set when the guide is closed. No cookies and nothing is sent anywhere; a new device, private window or cleared browser data shows it again. If storage is blocked the guide is not shown automatically. A **How to use** link in the header reopens it.
+- **Create report and Share view moved into the header** (white primary and outline buttons on navy; icons only below 960 px and on phones, with hover labels). **Reset** moved to the top of the sidebar as "Reset all filters" (still only shown when something is off its default), which keeps the header to one line on desktop.
+- **Title and subtitle removed** to move everything up; the page keeps a screen-reader-only H1 with the same title and date range. The sidebar and map height grows to use the space.
+
 ## 2026-10-30 — Report dialog rebuilt for the new filters
 
 The "Build your report" dialog repeated only some filters (area, mode, owner, show, dates, map style) and none of the new ones (age, sex, day, time of day, lighting, contributing factor, freeways, selected street). Now titled **Create a report**, it edits only what is report-specific: title, area, dates to the month, map style, the High Injury Network overlay, and the sections. Every other active filter is listed read-only under "Other filters in this report", with a link that closes the dialog so the visitor can change them in the sidebar; the title and section choices are kept when they come back. Dates default to the current view ending at the last month of data (September 2026), with a note if the range runs past the data or the dashboard is showing a single month. The full date range clears the date filter; whole years become the year filter; anything else is the month range. The printed subtitle now also names road owner and freeways when set. Fixed a race where generating before the area list loaded dropped the area. Verified: District C report with a March 2023 to August 2025 range and walking, 65+, weekends, dark filters; switching to TIRZ 2 in the dialog.

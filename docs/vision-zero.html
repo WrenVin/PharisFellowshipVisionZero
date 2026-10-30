@@ -173,9 +173,9 @@
     font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
   .topbtn:hover{border-color:var(--accent);color:#7a1419}
   /* Data & methods modal */
-  #modal,#fbmodal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
+  #modal,#fbmodal,#welcome{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
-  #modal.show,#fbmodal.show{display:flex}
+  #modal.show,#fbmodal.show,#welcome.show{display:flex}
   #fbmodal .fbframe{width:100%;height:600px;max-height:68vh;border:0;border-radius:2px;background:var(--panel)}
   .sheet{background:#fff;border-radius:2px;max-width:640px;width:100%;box-shadow:none}
   .sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
@@ -281,7 +281,7 @@
   @media print{
     @page{size:letter;margin:0.5in}
     html,body{background:#fff !important}
-    .wrap,#modal,#fbmodal,#rcfg{display:none !important}
+    .wrap,#modal,#fbmodal,#rcfg,#welcome{display:none !important}
     #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
     a{color:var(--ink);text-decoration:none}
   }
@@ -308,9 +308,24 @@
   .tag{font-size:15px;color:var(--muted);margin-top:6px;max-width:760px}
   .topbtn,.sharebtn{border:1px solid var(--act);color:var(--act);background:#fff}
   .topbtn:hover,.sharebtn:hover{background:var(--act-lt);color:var(--act-dk);border-color:var(--act-dk)}
-  #report-btn{background:var(--act);color:#fff}
-  #report-btn:hover{background:var(--act-dk);color:#fff}
-  #reset{border-color:#a9aeb1;color:var(--ink)}
+  .sh-nav{margin-left:auto}
+  .sh-act{display:flex;gap:8px;align-items:center;margin-left:8px}
+  .sh-act button{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:inherit;font-size:14px;font-weight:600;border-radius:2px;cursor:pointer;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.75)}
+  .sh-act button svg{width:15px;height:15px}
+  .sh-act button:hover{background:rgba(255,255,255,.12);color:#fff;border-color:#fff}
+  .sh-act #report-btn{background:#fff;color:var(--navy);border-color:#fff}
+  .sh-act #report-btn:hover{background:#dfe8f2;color:var(--navy)}
+  .resetbtn{display:block;width:100%;margin:0 0 12px;padding:7px 10px;font:inherit;font-size:14px;font-weight:600;color:var(--act);background:#fff;border:1px solid var(--act);border-radius:2px;cursor:pointer}
+  .resetbtn:hover{background:var(--act-lt)}
+  .sh-act #share.ok{background:#e7f4ec;border-color:#e7f4ec;color:#1e5e3c}
+  @media(max-width:1100px){.sh-nav a{padding-left:8px;padding-right:8px}.sh-act{gap:6px;margin-left:4px}.sh-act button{padding:7px 9px}.sitehead .sh-in{gap:4px 10px}}
+  @media(max-width:960px){.sh-act .lbl{display:none}}
+  .sheet .wl{margin:4px 0 0;padding-left:20px;font-size:14px;line-height:1.55;color:var(--ink)}.sheet .wl li{margin-bottom:6px}
+  .sheet .wl .info{vertical-align:-2px}
+  .sheet .wl-note{color:var(--muted)!important}
+  .wl-go{display:flex;justify-content:flex-end;padding-top:12px}
+  #welcome .sheet{max-width:560px}
+  #welcome .sheet section p{font-size:14px}
   .kpis{gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 20px}
   .kpi{border:none;border-left:1px solid var(--line);padding:12px 18px;background:#fff}
   .kpi:first-child{border-left:none;padding-left:0}
@@ -355,7 +370,7 @@
   .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
   .sitehead{position:sticky;top:0;z-index:1150}
   @media(min-width:681px){   /* sidebar and map share one fixed height; opening a section scrolls the sidebar, not the page */
-    .main{--panelH:clamp(520px, calc(100vh - 230px), 760px)}
+    .main{--panelH:clamp(520px, calc(100vh - 210px), 760px)}
     #mapwrap{height:var(--panelH);min-height:0}
     .ctrl{height:var(--panelH);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   }
@@ -408,6 +423,7 @@
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .below>.card{min-width:0}
   @media(max-width:680px){.below{grid-template-columns:minmax(0,1fr)}.below .span2{grid-column:auto}}
+  @media(max-width:780px){.sh-name{order:1;font-size:16px}.sh-act{order:2;margin-left:auto}.sh-nav{order:3;width:100%;margin-left:0}.sh-act .lbl{display:none}.sh-act{gap:6px}.sh-act button{padding:6px 8px}.sh-name{font-size:15px}.sitehead .sh-in{padding-top:8px}}
   @media(max-width:780px){.sh-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:0}.sh-nav::-webkit-scrollbar{display:none}.sh-nav a{white-space:nowrap;padding-left:10px;padding-right:10px;font-size:14px}.sh-nav a:first-child{padding-left:0}}
   @media print{.sitehead,.provenance,.sitefoot{display:none!important}}
 </style>
@@ -418,35 +434,29 @@
     <a class="sh-name" href="vision-zero.html">Houston Street Safety Dashboard</a>
     <nav class="sh-nav" aria-label="Site">
       <a href="vision-zero.html" aria-current="page">Dashboard</a>
+      <a href="#" onclick="openWelcome();return false">How to use</a>
       <a href="#" onclick="document.getElementById('about').click();return false">Data &amp; methods</a>
       <a href="#" onclick="document.getElementById('feedback-link').click();return false">Feedback</a>
     </nav>
-  </div>
-</header>
-<div class="provenance"><div class="sh-in">Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation.</div></div>
-<div class="wrap">
-  <h2 class="sr-only">Houston Street Safety Dashboard</h2>
-
-  <div class="top">
-    <div>
-      <h1>Traffic deaths and serious injuries on Houston streets</h1>
-      <div class="tag">Crashes on Houston city streets that killed or seriously injured someone, January 2016 to September 2026.</div>
-    </div>
-    <div class="topbtns">
-      <button id="reset" class="topbtn" style="display:none" aria-label="Reset all filters to the default view">Reset</button>
-      <button id="report-btn" class="topbtn" aria-label="Create a printable PDF report of the current view">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px"><path d="M6 2h9l5 5v15a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0V2z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>Create report</button>
-      <button id="share" class="sharebtn" aria-label="Copy a shareable link to the current view">
+    <div class="sh-act">
+      <button id="report-btn" class="topbtn" title="Create report" aria-label="Create a printable PDF report of the current view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0V2z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span class="lbl">Create report</span></button>
+      <button id="share" class="sharebtn" title="Share view" aria-label="Copy a shareable link to the current view">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
         <span class="lbl">Share view</span>
       </button>
     </div>
   </div>
+</header>
+<div class="provenance"><div class="sh-in">Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation.</div></div>
+<div class="wrap">
+  <h1 class="sr-only">Houston Street Safety Dashboard: traffic deaths and serious injuries on Houston streets, January 2016 to September 2026</h1>
 
   <div class="kpis" id="kpis"></div>
 
   <div class="main">
     <div class="ctrl">
+      <button type="button" id="reset" class="resetbtn" style="display:none" aria-label="Reset all filters to the default view">Reset all filters</button>
       <details class="secd" data-sec="where" open>
         <summary class="sec">Where<span class="secn" id="secn-where"></span></summary>
       <div class="grp">
@@ -671,6 +681,31 @@
   </div>
   <div class="sf-bottom"><div class="sh-in">Not an official City of Houston website. Figures are estimates from public crash reports and may differ from official City counts.</div></div>
 </footer>
+
+<div id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+  <div class="sheet">
+    <div class="shd"><h2 id="welcome-title">Welcome</h2><button class="x" id="welcome-x" aria-label="Close">×</button></div>
+    <div class="sbody">
+      <section>
+        <p>This dashboard maps traffic crashes on Houston city streets that killed or seriously injured someone, from January 2016 to September 2026, using Texas Department of Transportation crash records.</p>
+      </section>
+      <section>
+        <h3>How to use it</h3>
+        <ol class="wl">
+          <li><b>Filter</b> with the panel on the left: an area, who was hurt, a time period, or the conditions. Open a section to see its filters.</li>
+          <li><b>Click a street</b> on the map to see its numbers. Every number and chart updates to match.</li>
+          <li><b>Scroll down</b> for the most dangerous streets and the charts. Clicking a bar in some charts filters by it.</li>
+          <li><b>Create report</b> makes a printable PDF of what you see. <b>Share view</b> copies a link to it.</li>
+          <li>The <span class="info" aria-hidden="true">i</span> buttons explain each number.</li>
+        </ol>
+      </section>
+      <section>
+        <p class="wl-note">This is a public data project, not an official City of Houston website. You can reopen this guide from <b>How to use</b> at the top of the page.</p>
+      </section>
+      <div class="wl-go"><button type="button" class="rc-btn rc-primary" id="welcome-go">Get started</button></div>
+    </div>
+  </div>
+</div>
 
 <div id="modal" role="dialog" aria-modal="true" aria-label="Data and methods">
   <div class="sheet">
@@ -2696,6 +2731,18 @@ async function _rcGenerate(){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && ov.classList.contains('show')) closeReportModal(); });
 })();
 document.getElementById('report-btn').onclick=openReportModal;
+// welcome guide: shown once per browser (a flag in this browser's local storage; no cookies,
+// nothing leaves the browser) and any time from "How to use" in the header
+const WELCOME_KEY='hsd-welcomed-v1';
+function openWelcome(){ const w=document.getElementById('welcome'); w.classList.add('show'); document.getElementById('welcome-go').focus(); }
+function closeWelcome(){ document.getElementById('welcome').classList.remove('show'); try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} }
+(()=>{ const w=document.getElementById('welcome');
+  document.getElementById('welcome-x').onclick=closeWelcome; document.getElementById('welcome-go').onclick=closeWelcome;
+  w.addEventListener('click',e=>{ if(e.target===w) closeWelcome(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape' && w.classList.contains('show')) closeWelcome(); });
+  let seen=false; try{ seen=localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){ seen=true; }   // storage blocked: don't show it on every visit
+  if(!seen) openWelcome();
+})();
 window.addEventListener('beforeprint', ()=>{ const R=document.getElementById('report'); if(R && !R.dataset.built) R.innerHTML='<div class="r-foot">Use the Create report button to build a printable report.</div>'; });
 window.addEventListener('afterprint', ()=>{ const R=document.getElementById('report'); R.innerHTML=''; R.removeAttribute('data-built'); });
 // keyboard activation for clickable panel rows and table rows (Enter/Space)
