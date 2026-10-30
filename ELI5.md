@@ -278,7 +278,8 @@ actually sees and can do:
 - **Filters down the left:** search for a street by name, pick a council
   district, choose who to look at (everyone / driving / walking / biking),
   filter by who owns the road (city vs. TxDOT/state), switch between
-  deaths-and-serious-injuries vs. all crashes, and toggle two overlay maps on
+  deaths-and-serious-injuries vs. all crashes, flip a **Freeways** switch (off
+  by default) that adds crashes on freeways and toll roads, and toggle two overlay maps on
   top for comparison: the City's official **High Injury Network** (solid
   purple, built from past crashes) and this project's **concept Proactive
   Safety Network** (dashed blue, built by the research model from street

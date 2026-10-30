@@ -321,6 +321,8 @@ def decode_crashes(pk):
              None if seg[i] == -1 else f"H-{seg[i]:05d}",
              None if c["sn"][i] == -1 else c["sn"][i],
              c["k"][i], c["a"][i], c["b"][i], c["c"][i], c["o"][i]]
+        if "road" in c:
+            r.append(c["road"][i])
         for b, f in enumerate(pk["flagFields"]):
             r[f] = (c["flags"][i] >> b) & 1
         rows.append(r)
@@ -371,6 +373,19 @@ def check_packed(pts, seg):
             err(f"crashes.packed.json: does not decode to crash_points.json ({diff} rows differ); rerun src/pack_webmap_data.py")
         else:
             print(f"  crashes.packed.json: decodes to all {len(pts):,} crash rows exactly")
+    fw = load("freeway_crash_points.json")
+    fk = load("freeway_crashes.packed.json")
+    if fw is not None and fk is not None:
+        bad = [r for r in fw if len(r) != 22 or r[14] is not None or r[12] != 0
+               or r[21] not in (1, 2) or r[13] != (1 if r[21] == 1 else 0)]
+        if bad:
+            err(f"freeway_crash_points.json: {len(bad)} rows break the freeway contract (22 fields, no street, not on HIN, road_type 1/2 with matching TxDOT flag)")
+        key = lambda r: json.dumps(r)
+        if sorted(map(key, decode_crashes(fk))) != sorted(map(key, fw)):
+            err("freeway_crashes.packed.json: does not decode to freeway_crash_points.json; rerun src/pack_webmap_data.py")
+        else:
+            print(f"  freeway_crashes.packed.json: decodes to all {len(fw):,} freeway crash rows exactly "
+                  f"({sum(r[3] for r in fw):,} fatal crashes)")
     ps = load("segments.packed.json")
     if ps is not None and seg is not None:
         got = decode_segments(ps)

@@ -23,3 +23,4 @@ data/external/.mapillary_token
 data/external/*_mapillary_points.parquet
 data/raw/CRIS_staging/
 data/raw/CRIS_backup_*/
+data/processed/*_freeway_crashes.gpkg

@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Dashboard: optional Freeways toggle (off by default)
+
+Visitors can now include crashes on freeways, toll roads, ramps and frontage roads. About a third of Houston's traffic deaths happen there, and the City-street-only totals were being compared against citywide all-roads figures (e.g. 202 vs 331).
+
+- **Data:** `build_crashes.py` no longer discards the limited-access crashes. It writes them separately to `freeway_crashes.gpkg` (gitignored) with `road_type` 1 (TxDOT freeway/ramp/frontage) or 2 (toll-road main lanes and ramps, classes 6/8; county toll authority). They never enter segments, segment counts, or the model. Non-trafficway crashes (class 9, parking lots and private property; 1,683) are now dropped outright rather than lumped with freeways. Freeway YLL reuses the city-street imputation mean, so no city value moves. `export_webmap_data.py`'s crash tagging became a `crash_rows()` function applied to both sets (freeway rows: no street, not on HIN, TxDOT unless toll) and writes `docs/freeway_crash_points.json`; `pack_webmap_data.py` packs it to `freeway_crashes.packed.json` (1.9 MB in transit).
+- **City outputs verified byte-identical:** `crash_points.json`, `segments_vz.geojson`, `vz_summary.json`, and both packed city files have the same checksums as before the change; the build report differs only by the added freeway lines. (A first export run without rerunning `assign_crashes.py` lost the segment assignment; caught by the checksum, rerun in order.)
+- **Freeway set:** 261,976 crashes, 5,522 KSI, 1,064 fatal (70 on toll roads).
+- **Page:** a "Freeways" checkbox under Road owner. Off by default, and the freeway file is not downloaded until a visitor turns it on (default load unchanged). When on, freeway crashes join every KPI, chart, and filter; KPI subtitles read "on city streets and freeways"; in street views freeway crashes draw as dots (freeways aren't in the shaded network) with a legend key; the ownership card adds a "Toll road" bucket; toll crashes count only under Road owner: All; the crash popup says "Freeway, ramp or frontage road" / "Toll road" instead of describing the nearest city street. Street rankings and the concentration measure stay city-street-only (stated in the toggle's info tip). Shareable links carry `fwy=1`; Reset turns it off; the printed report's footer notes when freeways are included; Data & Methods explains the toggle.
+- **Verified in the browser** against independent counts from the JSON: freeways on, killed 2,793 (1,729 + 1,064) and KSI 15,733; TxDOT filter 1,285; City filter 1,438; shared link with District C 169 (89 + 80); Reset back to 1,729 with the freeway rows removed; no console errors. Redraw with freeways on and all crashes is 1.6 to 2.2 s, comparable to the existing all-crashes Points view (1.5 s).
+- **Validator:** checks the freeway contract (22 fields, no street, not on HIN, road_type 1/2 with matching TxDOT flag) and that the packed file decodes exactly.
+
 ## 2026-10-29 — Dashboard loads ~64% less data (column-packed exports)
 
 First-visit download was about 10.5 MB in transit (GitHub Pages gzips): crash_points.json 8.0 MB, segments_vz.geojson 2.0 MB, the rest 0.4 MB. The browser then had to parse 68 MB of JSON text.

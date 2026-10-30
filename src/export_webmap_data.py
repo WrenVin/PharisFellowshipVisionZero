@@ -309,109 +309,130 @@ print(f"Wrote boundary -> {bpath}")
 # [lat, lon, sev, fatal, ped, bike, year, date, hour, yll, district, inc_tier, on_hin, on_txdot, seg_id, sn, n_k, n_a, n_b, n_c, n_noinj]
 # fields 16-20 are the per-crash person counts by KABCO injury severity (killed K, serious A,
 # minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
-cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes").to_crs(seg.crs)
-cr = cr[cr.within(_bnd)].copy()   # clip crashes to the full-purpose boundary (drops limited-purpose slivers)
-# Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
-# gpkg drops them); pull them and match by Crash_ID. CRIS person DETAIL is suppressed on some
-# crashes, but these crash-level COUNT fields are complete. Needs the raw CRIS extracts present.
-_ccols = ["Crash_ID", "Death_Cnt", "Sus_Serious_Injry_Cnt", "Nonincap_Injry_Cnt", "Poss_Injry_Cnt", "Non_Injry_Cnt"]
-_cfiles = glob.glob(str(cfg.CRIS / "Houston_Crash_*" / "*crash_*.csv"))
-if _cfiles:
-    _raw = pd.concat([pd.read_csv(f, usecols=lambda c: c in _ccols, low_memory=False) for f in _cfiles],
-                     ignore_index=True).drop_duplicates("Crash_ID").set_index("Crash_ID")
-    for _c in _ccols[1:]:
-        _raw[_c] = pd.to_numeric(_raw[_c], errors="coerce").fillna(0).astype(int)
-    for _dst, _src in [("n_k", "Death_Cnt"), ("n_a", "Sus_Serious_Injry_Cnt"), ("n_b", "Nonincap_Injry_Cnt"),
-                       ("n_c", "Poss_Injry_Cnt"), ("n_noinj", "Non_Injry_Cnt")]:
-        cr[_dst] = cr["Crash_ID"].map(_raw[_src]).fillna(0).astype(int)
-else:
-    print("WARNING: no raw CRIS crash files found; crash-cost person counts will be 0")
-    for _dst in ("n_k", "n_a", "n_b", "n_c", "n_noinj"):
-        cr[_dst] = 0
-# Each crash's street (seg_id, for cross-filtering), on-HIN flag, and road
-# ownership come from the PIPELINE's assignment (assign_crashes.py: single
-# nearest segment within 200 ft, merged-away halves credited to their rep) —
-# not re-derived here — so per-crash counting in the dashboard reconciles
-# exactly with the per-segment n_* columns. Crashes with no street within
-# 200 ft (or whose street isn't in the published subset) get a null seg_id:
-# they still count in KPIs/points, they just don't attach to a street.
-# on_txdot is a LABEL (for the ownership view), not an exclusion.
-if "seg_id" in cr.columns:
-    _pub = set(seg["seg_id"])
-    cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].isin(_pub))
-    _lut = seg.set_index("seg_id")[["on_hin", "on_txdot"]]
-    cr["on_hin"] = cr["seg_id"].map(_lut["on_hin"]).fillna(False).astype(bool)
-    cr["on_txdot"] = cr["seg_id"].map(_lut["on_txdot"]).fillna(False).astype(bool)
-    print(f"Crash streets from pipeline assignment: {int(cr['seg_id'].notna().sum()):,} of {len(cr):,} attach to a published street")
-else:  # legacy crashes.gpkg without the persisted assignment: nearest published segment
-    print("WARNING: crashes.gpkg has no seg_id (rerun assign_crashes.py); falling back to unbounded nearest-join")
-    nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "on_hin", "on_txdot", "geometry"]], how="left")
-    nj = nj[~nj.index.duplicated()]
-    cr["seg_id"] = nj["seg_id"].values
-    cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
-    cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
-print(f"Crash points: {int(cr['on_txdot'].sum()):,} on TxDOT-owned (state) roads (kept, labeled)")
+def crash_rows(cr, freeway=False):
+    """Tag crash points and build dashboard rows (21 fields; freeway rows add road_type)."""
+    cr = cr.to_crs(seg.crs)
+    cr = cr[cr.within(_bnd)].copy()   # clip crashes to the full-purpose boundary (drops limited-purpose slivers)
+    # Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
+    # gpkg drops them); pull them and match by Crash_ID. CRIS person DETAIL is suppressed on some
+    # crashes, but these crash-level COUNT fields are complete. Needs the raw CRIS extracts present.
+    _ccols = ["Crash_ID", "Death_Cnt", "Sus_Serious_Injry_Cnt", "Nonincap_Injry_Cnt", "Poss_Injry_Cnt", "Non_Injry_Cnt"]
+    _cfiles = glob.glob(str(cfg.CRIS / "Houston_Crash_*" / "*crash_*.csv"))
+    if _cfiles:
+        _raw = pd.concat([pd.read_csv(f, usecols=lambda c: c in _ccols, low_memory=False) for f in _cfiles],
+                         ignore_index=True).drop_duplicates("Crash_ID").set_index("Crash_ID")
+        for _c in _ccols[1:]:
+            _raw[_c] = pd.to_numeric(_raw[_c], errors="coerce").fillna(0).astype(int)
+        for _dst, _src in [("n_k", "Death_Cnt"), ("n_a", "Sus_Serious_Injry_Cnt"), ("n_b", "Nonincap_Injry_Cnt"),
+                           ("n_c", "Poss_Injry_Cnt"), ("n_noinj", "Non_Injry_Cnt")]:
+            cr[_dst] = cr["Crash_ID"].map(_raw[_src]).fillna(0).astype(int)
+    else:
+        print("WARNING: no raw CRIS crash files found; crash-cost person counts will be 0")
+        for _dst in ("n_k", "n_a", "n_b", "n_c", "n_noinj"):
+            cr[_dst] = 0
+    # Each crash's street (seg_id, for cross-filtering), on-HIN flag, and road
+    # ownership come from the PIPELINE's assignment (assign_crashes.py: single
+    # nearest segment within 200 ft, merged-away halves credited to their rep) —
+    # not re-derived here — so per-crash counting in the dashboard reconciles
+    # exactly with the per-segment n_* columns. Crashes with no street within
+    # 200 ft (or whose street isn't in the published subset) get a null seg_id:
+    # they still count in KPIs/points, they just don't attach to a street.
+    # on_txdot is a LABEL (for the ownership view), not an exclusion.
+    if freeway:   # not part of the street network: no street, never on the HIN; TxDOT unless a toll road
+        cr["seg_id"] = None
+        cr["on_hin"] = False
+        cr["on_txdot"] = cr["road_type"].eq(1)
+    elif "seg_id" in cr.columns:
+        _pub = set(seg["seg_id"])
+        cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].isin(_pub))
+        _lut = seg.set_index("seg_id")[["on_hin", "on_txdot"]]
+        cr["on_hin"] = cr["seg_id"].map(_lut["on_hin"]).fillna(False).astype(bool)
+        cr["on_txdot"] = cr["seg_id"].map(_lut["on_txdot"]).fillna(False).astype(bool)
+        print(f"Crash streets from pipeline assignment: {int(cr['seg_id'].notna().sum()):,} of {len(cr):,} attach to a published street")
+    else:  # legacy crashes.gpkg without the persisted assignment: nearest published segment
+        print("WARNING: crashes.gpkg has no seg_id (rerun assign_crashes.py); falling back to unbounded nearest-join")
+        nj = gpd.sjoin_nearest(cr[["geometry"]], seg[["seg_id", "on_hin", "on_txdot", "geometry"]], how="left")
+        nj = nj[~nj.index.duplicated()]
+        cr["seg_id"] = nj["seg_id"].values
+        cr["on_hin"] = pd.Series(nj["on_hin"].values).fillna(False).astype(bool).values
+        cr["on_txdot"] = pd.Series(nj["on_txdot"].values).fillna(False).astype(bool).values
+    print(f"Crash points: {int(cr['on_txdot'].sum()):,} on TxDOT-owned (state) roads (kept, labeled)")
 
-# Neighborhood income (-> inc_tier for the equity panel) comes from the block
-# group the crash POINT falls in, NOT the nearest street. Census draws block-
-# group lines down the middle of major roads, so nearest-street inheritance
-# mislabels ~14% of crashes near a boundary (5% across the $100k line); a crash
-# is a point and sits unambiguously inside one block group. (cr is still in the
-# projected segment CRS here; the to_crs(4326) happens just below.)
-_bgcache = cfg.external("census_bg.gpkg")
-if _bgcache.exists():
-    bg_inc = gpd.read_file(_bgcache)[["GEOID", "geometry"]].to_crs(seg.crs)
-    bg_inc["GEOID"] = bg_inc["GEOID"].astype(str)
-    _bg2inc = (seg.dropna(subset=["bg_geoid"])
-                  .assign(bg_geoid=lambda d: d["bg_geoid"].astype(str))
-                  .groupby("bg_geoid")["median_hh_income"].first())
-    bg_inc["median_hh_income"] = bg_inc["GEOID"].map(_bg2inc)
-    ij = gpd.sjoin(cr[["geometry"]], bg_inc[["median_hh_income", "geometry"]],
-                   how="left", predicate="within")
-    inc_src = ij[~ij.index.duplicated()]["median_hh_income"].values
-else:  # fallback to nearest-street income if the block-group cache is absent
-    print("WARNING: block-group cache missing; inc_tier falls back to nearest-street income")
-    _ni = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "geometry"]], how="left")
-    inc_src = _ni[~_ni.index.duplicated()]["median_hh_income"].values
-cr["inc_tier"] = pd.Series(pd.to_numeric(inc_src, errors="coerce")).map(inc_tier).values
-cr = cr.to_crs(4326)
-if districts_4326 is not None:  # council district per crash, for the per-district filter
-    cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
-                   how="left", predicate="within")
-    cj = cj[~cj.index.duplicated()]
-    cr["district"] = cj["DISTRICT"].values
-else:
-    cr["district"] = None
-if sn_4326 is not None:  # Super Neighborhood per crash (point-in-polygon; NA if in none)
-    sj2 = gpd.sjoin(cr[["geometry"]], sn_4326[["POLYID", "geometry"]],
-                    how="left", predicate="within")
-    sj2 = sj2[~sj2.index.duplicated()]
-    cr["sn"] = pd.to_numeric(sj2["POLYID"].values, errors="coerce")
-    print(f"Crash points tagged with a Super Neighborhood: {cr['sn'].notna().sum():,}/{len(cr):,}")
-else:
-    cr["sn"] = None
-pts = []
-for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn in zip(
-        cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
-        cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn,
-        cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj):
-    if g is None or g.is_empty:
-        continue
-    pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
-                int(bool(pd_)), int(bool(bk)), int(yr) if pd.notna(yr) else None,
-                dt if isinstance(dt, str) else None,
-                int(hr) if pd.notna(hr) else None,
-                round(float(yl), 1) if pd.notna(yl) and yl else 0,
-                dist if isinstance(dist, str) else None,
-                int(it) if pd.notna(it) else None,
-                1 if oh else 0,
-                1 if otx else 0,
-                sid if isinstance(sid, str) else None,
-                int(snv) if pd.notna(snv) else None,
-                int(nk), int(na), int(nb), int(nc), int(nn)])
+    # Neighborhood income (-> inc_tier for the equity panel) comes from the block
+    # group the crash POINT falls in, NOT the nearest street. Census draws block-
+    # group lines down the middle of major roads, so nearest-street inheritance
+    # mislabels ~14% of crashes near a boundary (5% across the $100k line); a crash
+    # is a point and sits unambiguously inside one block group. (cr is still in the
+    # projected segment CRS here; the to_crs(4326) happens just below.)
+    _bgcache = cfg.external("census_bg.gpkg")
+    if _bgcache.exists():
+        bg_inc = gpd.read_file(_bgcache)[["GEOID", "geometry"]].to_crs(seg.crs)
+        bg_inc["GEOID"] = bg_inc["GEOID"].astype(str)
+        _bg2inc = (seg.dropna(subset=["bg_geoid"])
+                      .assign(bg_geoid=lambda d: d["bg_geoid"].astype(str))
+                      .groupby("bg_geoid")["median_hh_income"].first())
+        bg_inc["median_hh_income"] = bg_inc["GEOID"].map(_bg2inc)
+        ij = gpd.sjoin(cr[["geometry"]], bg_inc[["median_hh_income", "geometry"]],
+                       how="left", predicate="within")
+        inc_src = ij[~ij.index.duplicated()]["median_hh_income"].values
+    else:  # fallback to nearest-street income if the block-group cache is absent
+        print("WARNING: block-group cache missing; inc_tier falls back to nearest-street income")
+        _ni = gpd.sjoin_nearest(cr[["geometry"]], seg[["median_hh_income", "geometry"]], how="left")
+        inc_src = _ni[~_ni.index.duplicated()]["median_hh_income"].values
+    cr["inc_tier"] = pd.Series(pd.to_numeric(inc_src, errors="coerce")).map(inc_tier).values
+    cr = cr.to_crs(4326)
+    if districts_4326 is not None:  # council district per crash, for the per-district filter
+        cj = gpd.sjoin(cr[["geometry"]], districts_4326[["DISTRICT", "geometry"]],
+                       how="left", predicate="within")
+        cj = cj[~cj.index.duplicated()]
+        cr["district"] = cj["DISTRICT"].values
+    else:
+        cr["district"] = None
+    if sn_4326 is not None:  # Super Neighborhood per crash (point-in-polygon; NA if in none)
+        sj2 = gpd.sjoin(cr[["geometry"]], sn_4326[["POLYID", "geometry"]],
+                        how="left", predicate="within")
+        sj2 = sj2[~sj2.index.duplicated()]
+        cr["sn"] = pd.to_numeric(sj2["POLYID"].values, errors="coerce")
+        print(f"Crash points tagged with a Super Neighborhood: {cr['sn'].notna().sum():,}/{len(cr):,}")
+    else:
+        cr["sn"] = None
+    pts = []
+    for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn, rt in zip(
+            cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
+            cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn,
+            cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj, cr.road_type if freeway else [None] * len(cr)):
+        if g is None or g.is_empty:
+            continue
+        pts.append([round(g.y, 5), round(g.x, 5), int(bool(sv)), int(bool(ft)),
+                    int(bool(pd_)), int(bool(bk)), int(yr) if pd.notna(yr) else None,
+                    dt if isinstance(dt, str) else None,
+                    int(hr) if pd.notna(hr) else None,
+                    round(float(yl), 1) if pd.notna(yl) and yl else 0,
+                    dist if isinstance(dist, str) else None,
+                    int(it) if pd.notna(it) else None,
+                    1 if oh else 0,
+                    1 if otx else 0,
+                    sid if isinstance(sid, str) else None,
+                    int(snv) if pd.notna(snv) else None,
+                    int(nk), int(na), int(nb), int(nc), int(nn)] + ([int(rt)] if freeway else []))
+    return pts
+
+
+pts = crash_rows(gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes"))
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
+# freeway / tollway / ramp / frontage crashes for the dashboard's optional toggle
+# (off by default; loaded only when a visitor turns it on). Same 21 fields plus
+# road_type (1 = TxDOT freeway/ramp/frontage, 2 = toll-road main lanes or ramps).
+_fpath = cfg.processed("freeway_crashes.gpkg")
+if _fpath.exists():
+    fpts = crash_rows(gpd.read_file(_fpath, layer="crashes"), freeway=True)
+    fcp = DOCS / "freeway_crash_points.json"
+    fcp.write_text(json.dumps(fpts, separators=(",", ":")))
+    print(f"Wrote {len(fpts):,} freeway crash points -> {fcp} ({fcp.stat().st_size/1e6:.1f} MB)")
+else:
+    print("WARNING: freeway_crashes.gpkg missing (rerun build_crashes.py); freeway toggle data not written")
 
 # council district polygons for the dashboard dropdown + outline + zoom (city build)
 if districts_4326 is not None:

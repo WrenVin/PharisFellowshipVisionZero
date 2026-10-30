@@ -5,6 +5,8 @@ canonical, human-readable exports. This step writes column-oriented versions:
 
     docs/crashes.packed.json    every crash, same 21 fields, lossless
     docs/segments.packed.json   every street segment, same properties + geometry
+    docs/freeway_crashes.packed.json   freeway/tollway/ramp/frontage crashes for the
+                                optional toggle (21 fields + road_type), lossless
 
 Compaction: values are stored per column instead of per row; coordinates become
 integers (1e-5 degrees, the exports' existing precision) stored as differences
@@ -64,6 +66,8 @@ def pack_crashes(rows):
     }
     for i, k in zip(range(16, 21), ("k", "a", "b", "c", "o")):
         c[k] = [r[i] for r in rows]
+    if rows and len(rows[0]) > 21:          # freeway rows carry road_type as field 21
+        c["road"] = [r[21] for r in rows]
     return {"format": "vz-crashes", "version": 1, "day0": D0.isoformat(),
             "flagFields": list(FLAG_FIELDS), "districts": dists,
             "n": len(rows), "cols": c}
@@ -102,6 +106,11 @@ def main():
     crashes = json.loads((DOCS / "crash_points.json").read_text())
     n = dump(pack_crashes(crashes), DOCS / "crashes.packed.json")
     print(f"Wrote {len(crashes):,} crashes -> crashes.packed.json ({n/1e6:.1f} MB)")
+    fp = DOCS / "freeway_crash_points.json"
+    if fp.exists():
+        fw = json.loads(fp.read_text())
+        n = dump(pack_crashes(fw), DOCS / "freeway_crashes.packed.json")
+        print(f"Wrote {len(fw):,} freeway crashes -> freeway_crashes.packed.json ({n/1e6:.1f} MB)")
     segs = json.loads((DOCS / "segments_vz.geojson").read_text())
     n = dump(pack_segments(segs), DOCS / "segments.packed.json")
     print(f"Wrote {len(segs['features']):,} segments -> segments.packed.json ({n/1e6:.1f} MB)")
