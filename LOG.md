@@ -4,6 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Restyle toward a plain civic look
+
+Vincent's picks from a review of common generic-template tells: Public Sans replaces Inter; corners squared to 2px (25 rules) and soft drop shadows removed (cards, tips, popups, modals, Leaflet controls); sentence-case labels instead of small all-caps eyebrows; rectangular mode buttons instead of pills; darker secondary text (muted #5b6672 to #434e59, light grays darkened); a dark masthead line ("Public data project, not an official City of Houston website") and a footer adding a source-code link and a note that figures may differ from official City counts. Motion kept by request. No data or logic changes; totals unchanged (1,729); no console errors in a fresh load. A fuller redesign toward how other city dashboards look is a later item.
+
 ## 2026-10-29 — Schools and Parks overlays (part 1 of SCHOOLS_PARKS_PLAN.md)
 
 From form feedback. New `src/export_schools_parks.py`: 572 active public schools (129 charter) inside the official city limits from the City GIS copy of TEA's directory (2022-23), and 351 City parks at least 95% inside the limits (7 crossing the city line left out, e.g. Lake Houston Wilderness Park; esplanade "Spaceway" slivers dropped). Overlay checkboxes under the HIN, loaded on first use; schools are clickable (name, grades, district, charter) and draw on the shared canvas so the printed report captures them; parks fill in their own pane under the street shading (not in the report capture yet). Legend keys, Reset, Data sources updated. Overlays show citywide (not clipped to the selected area yet). Federal check: FHWA SRTS guidance puts infrastructure projects in the public right of way within about 2 miles of a school (originally K-8; newer state programs cite K-12 under the 2021 infrastructure law); the submitter's "3 miles" may be a local program. Parts 2 to 4 (radius selection, report, citywide filter) not started.

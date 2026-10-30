@@ -21,10 +21,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--ink:#15212b;--muted:#5b6672;--line:#d7dce2;--panel:#f7f8fa;--accent:#b4232a;
-    --sans:'Inter',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color-scheme:light}
+  :root{--ink:#15212b;--muted:#434e59;--line:#d7dce2;--panel:#f7f8fa;--accent:#b4232a;
+    --sans:'Public Sans',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color-scheme:light}
   body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .barhit{fill:transparent;transition:fill .1s}
   .barhit:hover{fill:rgba(122,20,25,.16);stroke:var(--accent);stroke-width:1.5;rx:2}
@@ -47,9 +47,15 @@
   .wrap{max-width:1360px;margin:0 auto;padding:10px 18px 10px}
   .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
   h1{font-size:21px;margin:0;font-weight:700}
+  .mast{background:#15212b;color:#e8ecf0;font-size:12px;padding:6px 18px;margin:-10px -18px 12px;line-height:1.4}
+  .foot .foot-note{flex-basis:100%;font-size:11px}
+  .leaflet-bar,.leaflet-control-layers{box-shadow:none!important;border:1px solid var(--line)!important;border-radius:2px!important}
+  .leaflet-bar a{border-radius:0!important}
+  .leaflet-popup-content-wrapper{border-radius:2px!important;box-shadow:none!important;border:1px solid var(--line)}
+  .leaflet-popup-tip{box-shadow:none!important}
   .tag{font-size:13px;color:var(--muted);margin-top:3px}
   .lens{display:flex;gap:6px;flex-wrap:wrap}
-  .pill{font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);
+  .pill{font-size:12.5px;padding:5px 11px;border-radius:2px;border:1px solid var(--line);
     background:#fff;color:var(--muted);cursor:pointer;user-select:none}
   .pill.on{background:#fbe9ea;color:#7a1419;border-color:var(--accent)}
   /* visible keyboard focus for all interactive controls */
@@ -59,12 +65,12 @@
     font:italic 700 10px/1 Georgia,serif;cursor:pointer;margin-left:5px;vertical-align:middle;padding:0}
   .info:hover{border-color:var(--accent);color:var(--accent)}
   .tip{display:none;font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;
-    background:var(--panel);border-radius:6px;padding:7px 9px}
+    background:var(--panel);border-radius:2px;padding:7px 9px}
   .tip.show{display:block}
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
-    box-shadow:0 6px 18px rgba(16,24,40,.18);border:1px solid var(--line)}
+    box-shadow:none;border:1px solid var(--line)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:10px 0 8px}
-  .kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 14px;position:relative}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:2px;padding:7px 14px;position:relative}
   .kpi .ic{position:absolute;top:10px;right:12px}
   .kpi .ic svg{width:20px;height:20px;display:block}
   .kpi .l{font-size:12.5px;color:var(--muted);padding-right:24px}
@@ -76,48 +82,48 @@
   .bleg{display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
   .bleg span{display:flex;align-items:center;gap:5px}
   .main{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
-  .ctrl{flex:0 0 210px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px}
-  .ctrl h3{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;font-weight:700}
+  .ctrl{flex:0 0 210px;background:#fff;border:1px solid var(--line);border-radius:2px;padding:11px 13px}
+  .ctrl h3{font-size:12.5px;color:var(--ink);margin:0 0 4px;font-weight:600}
   .ctrl .grp{margin-bottom:10px}
-  .ctrl select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
+  .ctrl select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:2px;
     font-size:13px;background:#fff;color:var(--ink);font-family:inherit;cursor:pointer;color-scheme:light}
   .ctrl select option{background:#fff;color:var(--ink)}
-  .ctrl input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
+  .ctrl input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:2px;
     font-size:13px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
   .ctrl input[type=text]:focus{outline:none;border-color:var(--accent)}
   .ctrl .note{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.3}
   .opt,.toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer}
   .opt input,.toggle input{margin:0}
-  #mapwrap{flex:1 1 420px;min-width:300px;min-height:460px;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  #mapwrap{flex:1 1 420px;min-width:300px;min-height:460px;position:relative;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   #map{height:100%}
   /* compact segmented control (Show / Display as) in the sidebar */
-  .seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   .seg label{flex:1;text-align:center;padding:5px 6px;cursor:pointer;background:#fff;color:var(--muted);font-size:12.5px;white-space:nowrap}
   .seg label:has(input:checked){background:#fbe9ea;color:#7a1419;font-weight:600}
   .seg input{position:absolute;opacity:0;width:0;height:0}
   #viewing{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;
-    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;
-    padding:5px 13px;font-size:12px;box-shadow:0 1px 4px rgba(16,24,40,.12)}
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:2px;
+    padding:5px 13px;font-size:12px;box-shadow:none}
   #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
-    border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;min-width:188px;max-width:250px}
+    border:1px solid var(--line);border-radius:2px;padding:8px 11px;font-size:12px;min-width:188px;max-width:250px}
   #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px;width:100%}
   .area-sub{margin-top:6px}
   #legend .ends{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
   #legend .key{display:flex;align-items:center;gap:6px;margin-top:7px}
   #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
-    background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(16,24,40,.16);display:none;animation:panelFade .28s ease}
+    background:#fff;border:1px solid var(--line);border-radius:2px;box-shadow:none;display:none;animation:panelFade .28s ease}
   #info .hd{padding:11px 13px 8px;border-bottom:1px solid var(--line)}
   #info .hd .n{font-size:15px;font-weight:700}
   #info .hd .c{font-size:11px;color:var(--muted);margin-top:2px}
   #info .x{position:absolute;top:7px;right:10px;border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer}
   #info .g{padding:8px 13px}
-  #info .g h4{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:6px 0 4px}
+  #info .g h4{font-size:12px;color:var(--ink);margin:6px 0 4px;font-weight:600}
   #info .kv{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0}
   #info .kv .k{color:var(--muted)}
   #info .kv .v{font-weight:600;text-align:right}
   #info .kv .v.bad{color:#7a1419}
   .below{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;align-items:start}
-  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:2px;padding:9px 12px}
   .card h3{font-size:13.5px;margin:0 0 1px;font-weight:700;display:flex;align-items:center;gap:6px}
   .grip{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;margin:0;border:none;background:none;color:var(--muted);opacity:.55;cursor:grab;border-radius:4px;-webkit-user-select:none;user-select:none}
   .grip:hover{opacity:1;color:var(--accent);background:var(--panel)}
@@ -127,12 +133,12 @@
   .card.drop-before{box-shadow:-3px 0 0 0 var(--accent)}
   .card.drop-after{box-shadow:3px 0 0 0 var(--accent)}
   .card .sub{font-size:12px;color:var(--muted);margin-bottom:9px;min-height:15px}
-  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer;animation:rowIn .32s ease both}
+  .worst-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;padding:5px 6px;border-radius:2px;cursor:pointer;animation:rowIn .32s ease both}
   .worst-row:hover{background:#f3f4f6}
   .worst-name{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:5px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
+  .worst-rank{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:2px;background:#eef0f3;color:#5b6672;font-size:11px;font-weight:700}
   .worst-n{font-weight:700;color:#a50f15;font-variant-numeric:tabular-nums;flex:none}
-  .stack{display:flex;height:30px;border-radius:7px;overflow:hidden;font-size:11.5px}
+  .stack{display:flex;height:30px;border-radius:2px;overflow:hidden;font-size:11.5px}
   .stack div{white-space:nowrap;overflow:hidden;transition:width .55s cubic-bezier(.4,0,.2,1)}
   .stack div{display:flex;align-items:center;justify-content:center;color:#fff}
   .legrow{display:flex;gap:14px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
@@ -152,34 +158,34 @@
   .blink{width:11px;height:11px;border-radius:50%;background:#c0151a;animation:blinkBurst .75s ease-out 5}
   .blink.oth{background:#f0884c}
   @keyframes blinkBurst{0%{box-shadow:0 0 0 0 rgba(192,21,26,.75);opacity:1}60%{box-shadow:0 0 0 20px rgba(192,21,26,0);opacity:.55}100%{box-shadow:0 0 0 0 rgba(192,21,26,0);opacity:1}}
-  .blinkbtn{width:100%;padding:8px 10px;border:1px solid var(--accent);border-radius:8px;background:#fbe9ea;
+  .blinkbtn{width:100%;padding:8px 10px;border:1px solid var(--accent);border-radius:2px;background:#fbe9ea;
     color:#7a1419;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
   .blinkbtn:hover:not(:disabled){background:#f7d9db}
   .blinkbtn:disabled{border-color:var(--line);background:var(--panel);color:var(--muted);cursor:default}
   /* share-this-view button (copies the URL, which already encodes the current filters/selection) */
-  .sharebtn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid var(--line);border-radius:8px;
+  .sharebtn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid var(--line);border-radius:2px;
     background:#fff;color:var(--ink);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;
     transition:border-color .2s,color .2s,background .2s}
   .sharebtn svg{width:15px;height:15px}
   .sharebtn:hover{border-color:var(--accent);color:#7a1419}
   .sharebtn.ok{background:#e7f4ec;border-color:#3a9e78;color:#2e7d52}
   .topbtns{display:flex;gap:8px;align-items:center}
-  .topbtn{padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);
+  .topbtn{padding:7px 13px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--muted);
     font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
   .topbtn:hover{border-color:var(--accent);color:#7a1419}
   /* Data & methods modal */
   #modal,#fbmodal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.45);padding:40px 16px;overflow-y:auto}
   #modal.show,#fbmodal.show{display:flex}
-  #fbmodal .fbframe{width:100%;height:600px;max-height:68vh;border:0;border-radius:8px;background:var(--panel)}
-  .sheet{background:#fff;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(16,24,40,.3)}
+  #fbmodal .fbframe{width:100%;height:600px;max-height:68vh;border:0;border-radius:2px;background:var(--panel)}
+  .sheet{background:#fff;border-radius:2px;max-width:640px;width:100%;box-shadow:none}
   .sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--line)}
   .sheet .shd h2{font-size:18px;margin:0;font-weight:700}
   .sheet .shd .x{border:none;background:none;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;padding:0 2px}
   .sheet .sbody{padding:6px 22px 20px}
   .sheet section{padding:13px 0;border-bottom:1px solid var(--panel)}
   .sheet section:last-child{border-bottom:none}
-  .sheet section h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 5px;font-weight:700}
+  .sheet section h3{font-size:13.5px;color:var(--ink);margin:0 0 5px;font-weight:700}
   .sheet section p{font-size:13px;line-height:1.55;color:var(--ink);margin:0 0 6px}
   .sheet section p:last-child{margin-bottom:0}
   .sheet section .lbl{font-weight:600}
@@ -188,7 +194,7 @@
   #rcfg{position:fixed;inset:0;z-index:2100;display:none;align-items:flex-start;justify-content:center;
     background:rgba(16,24,40,.5);padding:32px 16px;overflow-y:auto}
   #rcfg.show{display:flex}
-  .rc-sheet{background:#fff;border-radius:14px;max-width:720px;width:100%;box-shadow:0 18px 50px rgba(16,24,40,.3);
+  .rc-sheet{background:#fff;border-radius:2px;max-width:720px;width:100%;box-shadow:none;
     display:flex;flex-direction:column;max-height:calc(100vh - 64px)}
   .rc-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
     padding:18px 22px 14px;border-bottom:1px solid var(--line)}
@@ -198,12 +204,12 @@
   .rc-body{padding:6px 22px 8px;overflow-y:auto}
   .rc-sec{padding:13px 0;border-bottom:1px solid var(--panel)}
   .rc-sec:last-child{border-bottom:none}
-  .rc-sec h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 9px;font-weight:700}
+  .rc-sec h3{font-size:13.5px;color:var(--ink);margin:0 0 9px;font-weight:700}
   .rc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px 14px}
   .rc-field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
   .rc-field>span{font-weight:600;color:var(--ink)}
   .rc-field select,.rc-field input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);
-    border-radius:7px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
+    border-radius:2px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit;color-scheme:light}
   .rc-field select{cursor:pointer}
   .rc-field select:focus,.rc-field input[type=text]:focus{outline:none;border-color:var(--accent)}
   .rc-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px}
@@ -213,7 +219,7 @@
   .rc-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
   .rc-always{margin-top:0;margin-bottom:9px}
   .rc-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 18px;border-top:1px solid var(--line)}
-  .rc-btn{padding:8px 16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+  .rc-btn{padding:8px 16px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);
     font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
   .rc-btn:hover{border-color:var(--accent);color:#7a1419}
   .rc-primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -230,23 +236,23 @@
   @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
   /* ---- printable report (council-ready PDF via the browser's Save as PDF) ---- */
   #report{display:none}
-  #report .r-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  #report .r-eyebrow{font-size:12px;color:var(--accent);font-weight:700}
   #report h1.r-title{font-size:25px;font-weight:700;margin:2px 0 2px}
   #report .r-sub{font-size:13.5px;color:var(--muted)}
   #report .r-hd{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:14px;
     display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
   #report .r-date{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
   #report .r-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-stat{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+  #report .r-stat{border:1px solid var(--line);border-radius:2px;padding:8px 12px}
   #report .r-statv{font-size:23px;font-weight:700;color:#7a1419;line-height:1.1}
   #report .r-statl{font-size:11px;color:var(--muted);margin-top:2px}
   #report .r-synth{font-size:13px;line-height:1.55;margin:0 0 14px}
   #report .r-map{margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-map img{width:100%;border:1px solid var(--line);border-radius:6px;display:block}
+  #report .r-map img{width:100%;border:1px solid var(--line);border-radius:2px;display:block}
   #report .r-mapcap{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   #report .r-mapcap .grad{height:9px;border-radius:3px;width:150px}
   #report .r-mapcap .ends{display:flex;justify-content:space-between;width:150px}
-  #report h2.r-sec{font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);
+  #report h2.r-sec{font-size:14px;color:var(--accent);
     margin:16px 0 8px;border-top:1px solid var(--line);padding-top:10px;break-after:avoid;page-break-after:avoid}
   /* print-reliable: inline-block (not grid) so each chart is its own break unit and never clips across a page */
   #report .r-charts{font-size:0}
@@ -277,6 +283,7 @@
 <div class="wrap">
   <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
+  <div class="mast" role="note">Public data project, not an official City of Houston website. Crash data from TxDOT; methods and sources below.</div>
   <div class="top">
     <div>
       <h1>Vision Zero · Houston</h1>
@@ -389,7 +396,7 @@
 
   <div class="below">
     <div class="card" data-card="trend">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="trend-title">Killed or seriously injured, by year</span></h3>
       <div class="sub" id="trend-sub"></div>
       <div id="trend"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="yr-fill"></div><div class="fill" id="yr-fill2" style="display:none"></div><input type="range" id="yr-from" min="0" step="1" aria-label="From year"><input type="range" id="yr-to" min="0" step="1" aria-label="To year"></div></div>
@@ -397,7 +404,7 @@
       <div style="font-size:11px;color:var(--muted);margin-top:5px" id="trend-note"></div>
     </div>
     <div class="card" data-card="month">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="month-title">Killed or seriously injured, by month</span> <button class="info" onclick="toggleTip(this)" aria-label="About the month chart">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="month-title">Killed or seriously injured, by month</span> <button class="info" onclick="toggleTip(this)" aria-label="About the month chart">i</button></h3>
       <div class="sub" id="month-sub"></div>
       <div id="month"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="mo-fill"></div><div class="fill" id="mo-fill2" style="display:none"></div><input type="range" id="mo-from" min="0" step="1" aria-label="From month"><input type="range" id="mo-to" min="0" step="1" aria-label="To month"></div></div>
@@ -405,7 +412,7 @@
       <div class="tip">Each bar totals the people killed or seriously injured in that calendar month across every year shown (seasonality), not a single year. Click a month, or drag across a range, to filter.</div>
     </div>
     <div class="card" data-card="tod">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span id="tod-title">By time of day</span> <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><span id="tod-title">By time of day</span> <button class="info" onclick="toggleTip(this)" aria-label="About the time-of-day chart">i</button></h3>
       <div class="sub" id="tod-sub"></div>
       <div id="tod"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="hr-fill"></div><div class="fill" id="hr-fill2" style="display:none"></div><input type="range" id="hr-from" min="0" step="1" aria-label="From hour"><input type="range" id="hr-to" min="0" step="1" aria-label="To hour"></div></div>
@@ -413,7 +420,7 @@
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured during that clock hour, added up across every year shown (not an average day). For example, the 5 PM bar counts everyone hurt between 5 and 6 PM over the whole period. It shows the hours of day when severe crashes are most frequent.</div>
     </div>
     <div class="card" data-card="dow">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="dow-title">By day of week</span> <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></span><span id="dow-title">By day of week</span> <button class="info" onclick="toggleTip(this)" aria-label="About the day-of-week chart">i</button></h3>
       <div class="sub" id="dow-sub"></div>
       <div id="dow"></div>
       <div class="rng"><div class="dual"><div class="track"></div><div class="fill" id="dw-fill"></div><div class="fill" id="dw-fill2" style="display:none"></div><input type="range" id="dw-from" min="0" step="1" aria-label="From day"><input type="range" id="dw-to" min="0" step="1" aria-label="To day"></div></div>
@@ -421,14 +428,14 @@
       <div class="tip">Each bar is the <b>total</b> number of people killed or seriously injured on that weekday, added up across every year shown (not an average week). Weekends sit together on the right. It shows the days of week when severe crashes are most frequent.</div>
     </div>
     <div class="card" data-card="mode">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>By travel mode</h3>
       <div class="sub" id="mode-sub">Killed or seriously injured</div>
       <div class="stack" id="modebar"></div>
       <div class="legrow" id="modeleg"></div>
       <div style="font-size:12.5px;color:var(--muted);margin-top:11px" id="modedeaths"></div>
     </div>
     <div class="card" data-card="eq">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>By neighborhood income <button class="info" onclick="toggleTip(this)" aria-label="About neighborhood income">i</button></h3>
       <div class="sub" id="eq-sub">Killed or seriously injured</div>
       <div class="stack" id="eqbar"></div>
       <div class="legrow" id="eqleg"></div>
@@ -436,19 +443,19 @@
       <div class="tip">By the median income of the neighborhood (Census block group) around each crash; it is a property of the area, not the individual.</div>
     </div>
     <div class="card" data-card="own">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5"/></svg></span>By road owner <button class="info" onclick="toggleTip(this)" aria-label="About road ownership">i</button></h3>
       <div class="sub" id="own-sub">Killed or seriously injured</div>
       <div class="stack" id="ownbar"></div>
       <div class="legrow" id="ownleg"></div>
       <div class="tip">Who owns each road, from TxDOT's roadway inventory. The TxDOT-owned (state) share is the part of this harm on state highways and FM roads: the City can redesign its own streets directly, but must partner with the state to redesign those. Limited-access freeways are excluded entirely.</div>
     </div>
     <div class="card" data-card="worst">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Most dangerous streets</h3>
       <div class="sub" id="worst-sub">Killed or seriously injured</div>
       <div id="worst-list"></div>
     </div>
     <div class="card" data-card="conc">
-      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8a939c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">&middot; Lorenz curve</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
+      <h3><button type="button" class="grip" draggable="true" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></button><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#5b6672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 8c-4 0-5 9-9 9s-4-5-7-5"/></svg></span>Where the harm is concentrated <span style="font-weight:400;color:var(--muted)">&middot; Lorenz curve</span> <button class="info" onclick="toggleTip(this)" aria-label="About the concentration curve">i</button></h3>
       <div class="sub" id="conc-sub"></div>
       <div id="conc"></div>
       <div class="tip">This is a <b>Lorenz curve</b> (a concentration curve, also used to measure income inequality). Streets are ranked from most to least dangerous, left to right; the curve shows what cumulative share of the harm (vertical) sits on what cumulative share of street-miles (horizontal). The dashed line marks a perfectly even spread. The <b>Gini coefficient</b> (0 = even, 1 = all harm on one street) summarizes the full curve in a single value, independent of any cutoff. The purple <b>6%</b> marker is the size of the City's High Injury Network, shown for comparison. The metric counts where harm occurs, not crashes per mile driven, so part of the concentration reflects that traffic is also concentrated. On the streets with traffic counts, the harm remains about as concentrated after adjusting for vehicle-miles traveled, which indicates specific dangerous roads rather than traffic volume alone.</div>
@@ -458,7 +465,9 @@
   <div class="foot">
     <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
     <span><a href="#" id="feedback-link">Send feedback</a> · report a problem or suggest an improvement</span>
-    <span id="data-asof" style="flex-basis:100%;font-size:11px;opacity:.85"></span>
+    <span><a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">Source code and data</a> · open, with full methods</span>
+    <span id="data-asof" style="flex-basis:100%;font-size:11px"></span>
+    <span class="foot-note">Not an official City of Houston website. Figures are estimates from public crash reports and may differ from official City counts; see Data &amp; methods.</span>
   </div>
 </div>
 
@@ -956,8 +965,8 @@ function drawConcentration(){
   ax+='<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#cdd3da" stroke-width="1"/>';   // x-axis
   T.forEach((t,i)=>{ const ty=Y(t), tx=X(t);
     if(t>0&&t<1) ax+='<line x1="'+x0+'" y1="'+ty.toFixed(1)+'" x2="'+x1+'" y2="'+ty.toFixed(1)+'" stroke="#eef0f3" stroke-width="1"/>';   // y gridline
-    ax+='<text x="'+(x0-5)+'" y="'+(ty+3).toFixed(1)+'" font-size="9" fill="#8a939c" text-anchor="end">'+lab[i]+'</text>';                // y tick label
-    ax+='<text x="'+tx.toFixed(1)+'" y="'+(y0+12)+'" font-size="9" fill="#8a939c" text-anchor="middle">'+lab[i]+'</text>'; });             // x tick label
+    ax+='<text x="'+(x0-5)+'" y="'+(ty+3).toFixed(1)+'" font-size="9" fill="#5b6672" text-anchor="end">'+lab[i]+'</text>';                // y tick label
+    ax+='<text x="'+tx.toFixed(1)+'" y="'+(y0+12)+'" font-size="9" fill="#5b6672" text-anchor="middle">'+lab[i]+'</text>'; });             // x tick label
   ax+='<text x="'+(x0+pw/2).toFixed(1)+'" y="'+(H-4)+'" font-size="9.5" fill="#5b6672" text-anchor="middle">% of street-miles (most dangerous first)</text>';
   el.innerHTML='<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'
     + ax
@@ -1959,13 +1968,13 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   }
   const kv=(k,v)=>'<div style="display:flex;justify-content:space-between;gap:16px">'
     +'<span style="color:#5b6672">'+k+'</span><span style="font-weight:600;text-align:right">'+v+'</span></div>';
-  let h='<div style="font:13px/1.55 Inter,sans-serif;min-width:195px">'
+  let h='<div style="font:13px/1.55 var(--sans);min-width:195px">'
     +'<div style="font-weight:700;font-size:14px;color:'+sevCol+';margin-bottom:5px">'+sevTxt+'</div>';
   if(sp) h+='<div style="font-weight:600;margin-bottom:4px">'+(sp.name||'(unnamed street)')
     +' <span style="color:#5b6672;font-weight:400">· '+sp.road_class+'</span></div>';
   for(const [k,v] of rows) h+=kv(k,v);
   if(street.length){
-    h+='<div style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#8a939c;margin:7px 0 3px">Street design</div>';
+    h+='<div style="font-size:12px;font-weight:600;color:#15212b;margin:7px 0 3px">Street design</div>';
     for(const [k,v] of street) h+=kv(k,v);
   }
   h+='</div>';
@@ -2070,7 +2079,7 @@ function setOverlay(kind, on){
     _spLoad(kind+'.geojson').then(g=>{
       if(kind==='schools'){
         schoolsLayer=L.geoJSON(g,{pointToLayer:(f,ll)=>L.circleMarker(ll,{renderer,radius:4.5,color:'#fff',weight:1.2,fillColor:SCHOOL_C,fillOpacity:.95}),
-          onEachFeature:(f,l)=>{ const p=f.properties; l.bindPopup('<div style="font:13px/1.5 Inter,sans-serif"><div style="font-weight:700">'+p.name+'</div>'
+          onEachFeature:(f,l)=>{ const p=f.properties; l.bindPopup('<div style="font:13px/1.5 var(--sans)"><div style="font-weight:700">'+p.name+'</div>'
             +'<div style="color:#5b6672">Grades '+p.grades+' · '+p.district+(p.charter?' (charter)':'')+'</div></div>'); }});
       } else {
         parksLayer=L.geoJSON(g,{renderer:parksRenderer,interactive:false,style:{color:PARK_C,weight:1,opacity:.8,fillColor:PARK_C,fillOpacity:.22}});
