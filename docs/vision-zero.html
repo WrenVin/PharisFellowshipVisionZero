@@ -277,17 +277,100 @@
     #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
     a{color:var(--ink);text-decoration:none}
   }
+
+  /* ---- civic layout: header, key-figure band, form panel, ruled sections, footer ---- */
+  :root{--ink:#1b1b1b;--muted:#565c65;--line:#dfe1e2;--panel:#f0f0f0;--act:#005ea2;--act-dk:#1a4480;--act-lt:#e7f2f8;--navy:#162e51}
+  html,body{background:#fff}
+  a{color:var(--act)}
+  :focus-visible{outline:2px solid #2491ff;outline-offset:2px;border-radius:0}
+  .sitehead{background:var(--navy);color:#fff}
+  .sh-in{max-width:1360px;margin:0 auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:4px 16px;flex-wrap:wrap}
+  .sitehead .sh-in{min-height:56px}
+  .sh-name{color:#fff;text-decoration:none;font-weight:700;font-size:18px;white-space:nowrap}
+  .sh-name span{font-weight:400;font-size:14px;color:#c9d3df;margin-left:10px;padding-left:10px;border-left:1px solid #4a5f7a}
+  .sh-nav{display:flex;flex-wrap:wrap}
+  .sh-nav a{color:#fff;text-decoration:none;font-size:14px;padding:18px 12px 15px;border-bottom:3px solid transparent}
+  .sh-nav a:hover{border-bottom-color:#73b3e7}
+  .sh-nav a[aria-current]{border-bottom-color:#fff;font-weight:600}
+  .provenance{background:var(--panel);border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .provenance .sh-in{min-height:32px}
+  .wrap{padding:20px 18px 10px}
+  .top{align-items:flex-end;margin-bottom:16px}
+  h1{font-size:26px;font-weight:700;line-height:1.2}
+  .tag{font-size:15px;color:var(--muted);margin-top:6px;max-width:760px}
+  .topbtn,.sharebtn{border:1px solid var(--act);color:var(--act);background:#fff}
+  .topbtn:hover,.sharebtn:hover{background:var(--act-lt);color:var(--act-dk);border-color:var(--act-dk)}
+  #report-btn{background:var(--act);color:#fff}
+  #report-btn:hover{background:var(--act-dk);color:#fff}
+  #reset{border-color:#a9aeb1;color:var(--ink)}
+  .kpis{gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 20px}
+  .kpi{border:none;border-left:1px solid var(--line);padding:12px 18px;background:#fff}
+  .kpi:first-child{border-left:none;padding-left:0}
+  .kpi .ic,.card h3 .ic{display:none}
+  .kpi .l{padding-right:0;font-size:13px}
+  .kpi .v,.kpi.neutral .v{color:var(--ink);font-size:30px;font-variant-numeric:tabular-nums}
+  .main{gap:18px}
+  .ctrl{background:var(--panel);border:none;padding:14px}
+  .ctrl h3{font-size:13.5px;font-weight:700}
+  .ctrl .grp{margin-bottom:14px}
+  .ctrl select,.ctrl input[type=text]{border-color:#71767a}
+  .ctrl input[type=text]:focus{border-color:var(--act)}
+  .pill{color:var(--ink);border-color:#a9aeb1}
+  .pill.on{background:var(--act);color:#fff;border-color:var(--act)}
+  .seg{border-color:#a9aeb1;background:#fff}
+  .seg label{color:var(--ink)}
+  .seg label+label{border-left:1px solid #a9aeb1}
+  .seg label:has(input:checked){background:var(--act);color:#fff}
+  .info{border-color:#a9aeb1;color:var(--act)}
+  .info:hover{border-color:var(--act);color:var(--act-dk)}
+  .tip{background:#fff;border:1px solid var(--line)}
+  .blinkbtn{background:#fff;border-color:var(--act);color:var(--act)}
+  .blinkbtn:hover:not(:disabled){background:var(--act-lt)}
+  .dual input[type=range]::-webkit-slider-thumb{background:var(--act);box-shadow:none}
+  .dual input[type=range]::-moz-range-thumb{background:var(--act)}
+  .dual .fill{background:var(--act)}
+  .below{gap:28px;margin-top:24px}
+  .card{border:none;border-top:2px solid var(--ink);padding:12px 0 0;background:transparent}
+  .card h3{font-size:15px}
+  .grip:hover{color:var(--act)}
+  .card.drop-before{box-shadow:-3px 0 0 0 var(--act)}
+  .card.drop-after{box-shadow:3px 0 0 0 var(--act)}
+  .worst-row:hover{background:var(--panel)}
+  .sitefoot{margin-top:40px;background:var(--panel);border-top:1px solid var(--line)}
+  .sf-cols{max-width:1360px;margin:0 auto;padding:24px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px;font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .sf-cols h2{font-size:15px;margin:0 0 6px}
+  .sf-cols p{margin:0}
+  .sf-bottom{background:var(--navy);color:#dfe5ec;font-size:12.5px}
+  .sf-bottom .sh-in{min-height:44px}
+  @media(max-width:780px){.sf-cols{grid-template-columns:1fr}.kpi{border-left:none;border-top:1px solid var(--line);padding-left:0}.sh-name span{display:none}.sh-nav a{padding:10px 10px 8px}}
+  .rc-btn:hover{border-color:var(--act);color:var(--act-dk)}
+  .rc-primary,.rc-primary:hover{background:var(--act);border-color:var(--act);color:#fff}
+  .rc-primary:hover{background:var(--act-dk)}
+  .rc-check input,.toggle input{accent-color:var(--act)}
+  .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
+  @media print{.sitehead,.provenance,.sitefoot{display:none!important}}
 </style>
 </head>
 <body>
+<header class="sitehead">
+  <div class="sh-in">
+    <a class="sh-name" href="vision-zero.html">Houston Vision Zero<span>Traffic safety data</span></a>
+    <nav class="sh-nav" aria-label="Site">
+      <a href="vision-zero.html" aria-current="page">Dashboard</a>
+      <a href="#" onclick="document.getElementById('about').click();return false">Data &amp; methods</a>
+      <a href="#" onclick="document.getElementById('feedback-link').click();return false">Feedback</a>
+      <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">Source data</a>
+    </nav>
+  </div>
+</header>
+<div class="provenance"><div class="sh-in">Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation.</div></div>
 <div class="wrap">
   <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
-  <div class="mast" role="note">Public data project, not an official City of Houston website. Crash data from TxDOT; methods and sources below.</div>
   <div class="top">
     <div>
-      <h1>Vision Zero · Houston</h1>
-      <div class="tag">Traffic deaths and serious injuries on city streets in the City of Houston.</div>
+      <h1>Traffic deaths and serious injuries on Houston streets</h1>
+      <div class="tag">Where people are killed and seriously injured in crashes, from state crash records. Use the filters to focus on an area, a way of traveling, or a time period.</div>
     </div>
     <div class="topbtns">
       <button id="reset" class="topbtn" style="display:none" aria-label="Reset all filters to the default view">Reset</button>
@@ -462,14 +545,15 @@
     </div>
   </div>
 
-  <div class="foot">
-    <span><a href="#" id="about">Data &amp; methods</a> · surface streets citywide; limited-access freeways excluded</span>
-    <span><a href="#" id="feedback-link">Send feedback</a> · report a problem or suggest an improvement</span>
-    <span><a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">Source code and data</a> · open, with full methods</span>
-    <span id="data-asof" style="flex-basis:100%;font-size:11px"></span>
-    <span class="foot-note">Not an official City of Houston website. Figures are estimates from public crash reports and may differ from official City counts; see Data &amp; methods.</span>
-  </div>
 </div>
+<footer class="sitefoot">
+  <div class="sf-cols">
+    <div><h2>About this dashboard</h2><p>Maps where people are killed and seriously injured in traffic crashes on Houston's city streets, in support of Vision Zero, the goal of ending traffic deaths and serious injuries. <a href="#" id="about">Data &amp; methods</a></p></div>
+    <div><h2>Data</h2><p>Crash records from the Texas Department of Transportation (CRIS). Street network from OpenStreetMap; street design, boundaries and the High Injury Network from City of Houston GIS. <span id="data-asof"></span></p></div>
+    <div><h2>Feedback and source</h2><p><a href="#" id="feedback-link">Send feedback</a> to report a problem or suggest an improvement. The <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">source code and data</a> are open, with full methods.</p></div>
+  </div>
+  <div class="sf-bottom"><div class="sh-in">Not an official City of Houston website. Figures are estimates from public crash reports and may differ from official City counts.</div></div>
+</footer>
 
 <div id="modal" role="dialog" aria-modal="true" aria-label="Data and methods">
   <div class="sheet">

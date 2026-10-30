@@ -4,6 +4,18 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Full page redesign in the style of city data dashboards
+
+Follows the restyle above. References studied: Austin's and Los Angeles's Vision Zero dashboards (Bootstrap: system or plain sans fonts, square corners, almost no shadows, blue for anything clickable, red only for data) and the U.S. Web Design System (Public Sans, its blue and navy palette). Changes to `docs/vision-zero.html`, layout and styling only:
+
+- **Header:** a full-width navy bar with the site name ("Houston Vision Zero, Traffic safety data") and links (Dashboard, Data & methods, Feedback, Source data), then a gray line: "Public data project, not an official City of Houston website. Crash records from the Texas Department of Transportation." No City seal or branding.
+- **Title:** plain descriptive H1, "Traffic deaths and serious injuries on Houston streets", with a one-sentence explanation of how to use the filters.
+- **Color roles:** blue (#005ea2) for every interactive control (selected toggles, sliders, links, info buttons, Create report, Generate PDF); red kept only for crash data on the map and charts; KPI numbers in near-black instead of red.
+- **KPI band:** one ruled row with thin dividers instead of separate cards; icons removed.
+- **Sidebar:** flat light-gray form panel. **Chart panels:** ruled sections (dark top rule, no card border or icon).
+- **Footer:** three columns (About this dashboard, Data, Feedback and source) above a navy bar repeating that the site is not an official City website and that figures may differ from official City counts. Header and footer are hidden in print.
+- Motion (count-up, fades) kept. No data or logic changes: killed total still 1,729; header links open the Data & methods and Feedback windows; report dialog works; no console errors on a fresh load; no sideways scrolling at phone width (375 px).
+
 ## 2026-10-29 — Restyle toward a plain civic look
 
 Vincent's picks from a review of common generic-template tells: Public Sans replaces Inter; corners squared to 2px (25 rules) and soft drop shadows removed (cards, tips, popups, modals, Leaflet controls); sentence-case labels instead of small all-caps eyebrows; rectangular mode buttons instead of pills; darker secondary text (muted #5b6672 to #434e59, light grays darkened); a dark masthead line ("Public data project, not an official City of Houston website") and a footer adding a source-code link and a note that figures may differ from official City counts. Motion kept by request. No data or logic changes; totals unchanged (1,729); no console errors in a fresh load. A fuller redesign toward how other city dashboards look is a later item.
