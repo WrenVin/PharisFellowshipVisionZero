@@ -5,7 +5,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 ## Open
 
 - [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Plan under discussion: split freeways into ramp-to-ramp sections (plus major interchanges) so they shade and click like streets. See the 2026-10-29 discussion; not started.
-- [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py` and `src/export_hin.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
+- [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
 - [ ] **More ways to cut the city (proposed).** Management districts, ZIP codes, HPD patrol divisions, Census tracts, school districts, state House/Senate districts. Each is a GeoJSON plus one line in the page's POLY_TYPES.
 - [ ] **Decide on frontage roads.** Frontage ("SER") roads currently count as freeways: hidden by default, included by the Freeways toggle. They have driveways, bus stops, and people walking (at least 15 deaths in 2024). Judgment call: keep them with freeways, or move them onto the default city-street view.
 - [ ] **Visitor analytics.** No way to see usage. Add a privacy-friendly, cookie-free counter (e.g. GoatCounter).
