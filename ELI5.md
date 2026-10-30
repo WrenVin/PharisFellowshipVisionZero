@@ -282,7 +282,7 @@ actually sees and can do:
   by default) that adds crashes on freeways and toll roads, and toggle the City's
   official **High Injury Network** (solid purple, built from past crashes) on top
   for comparison. One **Area** menu narrows everything to a council district,
-  super neighborhood, county commissioner precinct, or TIRZ.
+  super neighborhood, Harris County precinct, or TIRZ.
 - **Click any street** (or one block) and the *whole* dashboard updates to just
   that street; a popup shows the road's design (lanes, width, speed, sidewalks,
   traffic, owner), and you can expand a single block to the whole street.

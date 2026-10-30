@@ -4,9 +4,9 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Open
 
-- [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Plan under discussion: split freeways into ramp-to-ramp sections (plus major interchanges) so they shade and click like streets. See the 2026-10-29 discussion; not started.
+- [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Written plan in [FREEWAY_PLAN.md](FREEWAY_PLAN.md): ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as streets, crashes placed by TxDOT milepost. Two decisions open (color scale, direction display). Not started.
 - [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
-- [ ] **More ways to cut the city (proposed).** Management districts, ZIP codes, HPD patrol divisions, Census tracts, school districts, state House/Senate districts. Each is a GeoJSON plus one line in the page's POLY_TYPES.
+- [ ] **More ways to cut the city (proposed).** Management districts (candidates fully or nearly fully inside the city: Downtown, Midtown, East Downtown, East End, Greater Northside, Greater Southeast, Montrose, Westchase, Sharpstown, Brays Oaks, Upper Kirby, Uptown, Memorial City, St. George Place, Five Corners, Spring Branch 97%, Energy Corridor 93%), ZIP codes, HPD patrol divisions, Census tracts, school districts, state House/Senate districts. Each is a GeoJSON plus one line in the page's POLY_TYPES.
 - [ ] **Decide on frontage roads.** Frontage ("SER") roads currently count as freeways: hidden by default, included by the Freeways toggle. They have driveways, bus stops, and people walking (at least 15 deaths in 2024). Judgment call: keep them with freeways, or move them onto the default city-street view.
 - [ ] **Visitor analytics.** No way to see usage. Add a privacy-friendly, cookie-free counter (e.g. GoatCounter).
 - [ ] **Link-preview image.** The og:image tag is commented out, so shared links show no picture. Make a 1200x630 preview image and enable the tag.

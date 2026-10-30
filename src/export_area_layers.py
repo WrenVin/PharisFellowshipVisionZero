@@ -7,9 +7,12 @@ the city only needs a GeoJSON in docs/ and an entry in the page's AREA_TYPES.
 
 Writes (clipped to the full-purpose city boundary, simplified ~50 ft, lon/lat):
 
-    docs/areas_precinct.geojson   county commissioner precincts (Harris, Fort Bend,
-                                  Montgomery: Houston spans all three counties)
-    docs/areas_tirz.geojson       Tax Increment Reinvestment Zones (27)
+    docs/areas_precinct.geojson   Harris County commissioner precincts (the part of
+                                  each inside the city). Fort Bend and Montgomery
+                                  precincts are left out: only slivers of them fall
+                                  inside Houston, so a "precinct" view would mislead.
+    docs/areas_tirz.geojson       the 27 active Tax Increment Reinvestment Zones,
+                                  labeled with their City TIRZ number
 
 Each feature carries {id, name}. Pieces smaller than MIN_SQMI inside the city
 (slivers along a county line) are dropped.
@@ -27,6 +30,19 @@ COH = "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administr
 HC_PCT = "https://www.gis.hctx.net/arcgis/rest/services/CommPrecinct/MapServer/0"   # Harris County GIS, 2022 plan
 MIN_SQMI = 0.05
 SIMPLIFY_FT = 50
+# City TIRZ number for each zone name in the COH layer (which carries no number).
+# Sources: City of Houston board listing and houstontx.gov/ecodev/tirz/<n>.html;
+# TIRZ 4 (Village Enclaves) was terminated in 2013; 28 (Medical Center) created 2022.
+TIRZ_NUMBER = {
+    "St. George Place": 1, "Midtown": 2, "Market Square": 3, "Memorial Heights": 5,
+    "Eastside": 6, "O.S.T./Almeda": 7, "Gulfgate": 8, "South Post Oak": 9,
+    "Lake Houston": 10, "Greenspoint": 11, "City Park": 12, "Old Sixth Ward": 13,
+    "Fourth Ward": 14, "East Downtown": 15, "Uptown": 16, "Memorial City": 17,
+    "Fifth Ward": 18, "Upper Kirby": 19, "Southwest Houston": 20,
+    "Hardy/Near Northside": 21, "Leland Woods": 22, "Harrisburg": 23,
+    "Greater Houston": 24, "Hiram Clarke/Fort Bend Houston": 25, "Sunnyside": 26,
+    "Montrose": 27, "Medical Center Area": 28,
+}
 
 
 def clip(gdf, boundary):
@@ -58,26 +74,19 @@ def main():
                   + " (" + hc["COMMISSION"].str.split().str[-1] + ")")
     hc["sort"] = "1-" + hc["PCT_NO"].astype(int).astype(str)
     parts.append(hc)
-    fb = fetch_layer(f"{COH}/13", out_fields="PRECINCT", out_sr=cfg.CRS_FT)
-    fb["id"] = "fortbend-" + fb["PRECINCT"].astype(str)
-    fb["name"] = "Fort Bend County Precinct " + fb["PRECINCT"].astype(str)
-    fb["sort"] = "2-" + fb["PRECINCT"].astype(str)
-    parts.append(fb)
-    mc = fetch_layer(f"{COH}/12", out_fields="PRECINCT", out_sr=cfg.CRS_FT)
-    mc = mc[mc["PRECINCT"].astype(str).isin(["1", "2", "3", "4"])]   # '100' is not a commissioner precinct
-    mc["id"] = "montgomery-" + mc["PRECINCT"].astype(str)
-    mc["name"] = "Montgomery County Precinct " + mc["PRECINCT"].astype(str)
-    mc["sort"] = "3-" + mc["PRECINCT"].astype(str)
-    parts.append(mc)
     pct = pd.concat([p[["id", "name", "sort", "geometry"]].to_crs(cfg.CRS_FT) for p in parts],
                     ignore_index=True)
     write(clip(gpd.GeoDataFrame(pct, crs=cfg.CRS_FT), boundary), "areas_precinct.geojson")
 
     tz = fetch_layer(f"{COH}/5", out_fields="OBJECTID,NAME", out_sr=cfg.CRS_FT)
-    tz["id"] = "tirz-" + tz["OBJECTID"].astype(int).astype(str)
-    tz["name"] = tz["NAME"].astype(str).str.title()
-    tz["name"] = tz["name"].str.replace("/Fb ", "/Fort Bend ", regex=False)
-    tz["sort"] = tz["name"]
+    nm = tz["NAME"].astype(str).str.title().str.replace("/Fb ", "/Fort Bend ", regex=False)
+    missing = sorted(set(nm) - set(TIRZ_NUMBER))
+    if missing:
+        raise SystemExit(f"TIRZ names with no known number (update TIRZ_NUMBER): {missing}")
+    num = nm.map(TIRZ_NUMBER)
+    tz["id"] = "tirz-" + num.astype(str)
+    tz["name"] = "TIRZ " + num.astype(str) + " · " + nm
+    tz["sort"] = num
     write(clip(tz, boundary), "areas_tirz.geojson")
 
 

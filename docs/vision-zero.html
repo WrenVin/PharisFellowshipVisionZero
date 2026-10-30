@@ -309,12 +309,12 @@
           <option value="">Whole city</option>
           <option value="district">Council district</option>
           <option value="sn">Super neighborhood</option>
-          <option value="precinct">County commissioner precinct</option>
+          <option value="precinct">Harris County precinct</option>
           <option value="tirz">TIRZ (tax increment zone)</option>
         </select>
         <select id="areasel" aria-label="Area" class="area-sub" disabled><option value="">Pick a kind above</option></select>
         <div class="note" id="area-note" aria-live="polite"></div>
-        <div class="tip">Focus the whole dashboard on one part of Houston. <b>Council districts</b> (A to K) and <b>Super Neighborhoods</b> (88 named planning areas like Montrose or Second Ward) are City geographies. <b>County commissioner precincts</b> cover the parts of Harris, Fort Bend and Montgomery counties inside the city. <b>TIRZs</b> are the City's 27 Tax Increment Reinvestment Zones, which fund local infrastructure. One area at a time; boundaries are clipped to the city limits.</div>
+        <div class="tip">Focus the whole dashboard on one part of Houston. <b>Council districts</b> (A to K) and <b>Super Neighborhoods</b> (88 named planning areas like Montrose or Second Ward) are City geographies. <b>Harris County precincts</b> are the four commissioner precincts, showing the part of each inside the city (Houston's small pieces of Fort Bend and Montgomery counties are not offered as precincts). <b>TIRZs</b> are the City's 27 active Tax Increment Reinvestment Zones, listed by number, which fund local infrastructure. One area at a time; boundaries are clipped to the city limits.</div>
         <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
         <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
@@ -504,7 +504,7 @@
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
         <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
         <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
-        <p><span class="lbl">County commissioner precincts</span> &middot; Harris County GIS (2022 precinct plan); Fort Bend and Montgomery County precincts via City of Houston GIS. <a href="https://www.gis.hctx.net/arcgis/rest/services/CommPrecinct/MapServer" target="_blank" rel="noopener">gis.hctx.net</a></p>
+        <p><span class="lbl">County commissioner precincts</span> &middot; Harris County GIS (2022 precinct plan), the part of each precinct inside the city. <a href="https://www.gis.hctx.net/arcgis/rest/services/CommPrecinct/MapServer" target="_blank" rel="noopener">gis.hctx.net</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
@@ -551,7 +551,7 @@
               <option value="">Whole city</option>
               <option value="district">Council district</option>
               <option value="sn">Super neighborhood</option>
-              <option value="precinct">County commissioner precinct</option>
+              <option value="precinct">Harris County precinct</option>
               <option value="tirz">TIRZ (tax increment zone)</option>
             </select>
           </label>
@@ -698,7 +698,7 @@ const snOk=s=>sn===null || s===sn;
 // segments by their midpoint. Results are cached per selection (poly.key), so the
 // ~0.3 s grid-accelerated pass happens once per area, lazily, on first render.
 const POLY_TYPES={
-  precinct:{file:'areas_precinct.geojson', label:'County commissioner precinct', pick:'Choose a precinct'},
+  precinct:{file:'areas_precinct.geojson', label:'Harris County precinct', pick:'Choose a precinct'},
   tirz:{file:'areas_tirz.geojson', label:'TIRZ', pick:'Choose a TIRZ'}};
 let poly=null, polyLayer=null, polyKey=0, wantArea=null, _segIn={}, _areaPicking=false;   // _areaPicking: a kind is chosen, no area yet
 const _polyFeats={}, seg2mid={};

@@ -4,6 +4,13 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Area filter: Harris precincts only; TIRZs numbered; freeway plan written
+
+- **Fort Bend and Montgomery precincts removed.** All precincts are clipped to the city limits; Houston holds only slivers of those counties' precincts, so offering them as "a precinct" would mislead (Vincent's call). The option is now "Harris County precinct" (4, each the part inside the city; the tip says so).
+- **TIRZ numbers.** The City's TIRZ layer has names but no numbers. Mapped all 27 active zones to their City TIRZ numbers in `export_area_layers.py` (`TIRZ_NUMBER`; the script stops if the City adds a name it doesn't know). Sources: the City's board listing for 1 to 27, the City's TIRZ 6 page (Eastside), and TIRZ 28 budget documents (Medical Center Area, created December 2022); TIRZ 4 (Village Enclaves) was terminated in 2013, which matches the City guidebook's "28 created, 27 active". Labels read "TIRZ 2 · Midtown", sorted by number; ids are now `tirz-<number>` (no public links used the old ids). Verified: Midtown still 10 killed.
+- **Management districts** checked for the roadmap: the City's layer mixes ~75 special districts (MUDs, PIDs, improvement districts, proposed districts). 17 named management districts sit fully or nearly fully inside the city; listed on the roadmap as candidates.
+- **`FREEWAY_PLAN.md`** written: ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as ordinary streets, crashes placed by TxDOT milepost (DFO on 87% of 2025 freeway crashes, highway number 92%, road part 100%). Two decisions open (color scale; direction display). Not started.
+
 ## 2026-10-29 — Dashboard: one Area filter (adds county precincts + TIRZs), PSN overlay removed, Freeways toggle restyled
 
 Three changes Vincent asked for.
