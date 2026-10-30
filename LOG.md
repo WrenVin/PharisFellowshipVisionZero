@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Dashboard loads ~64% less data (column-packed exports)
+
+First-visit download was about 10.5 MB in transit (GitHub Pages gzips): crash_points.json 8.0 MB, segments_vz.geojson 2.0 MB, the rest 0.4 MB. The browser then had to parse 68 MB of JSON text.
+
+- **New `src/pack_webmap_data.py`** writes `docs/crashes.packed.json` and `docs/segments.packed.json`: the same data stored column by column, coordinates as integer differences (same 1e-5 precision), dates as day numbers, the six yes/no crash flags in one bit-packed number, repeated strings as dictionary indexes. Crashes are sorted by segment then date (row order has no meaning on the page). All 21 crash fields are used by the page, so nothing was dropped; the savings are pure encoding.
+- **Result in transit:** crashes 8.0 MB to 2.37 MB, segments 2.0 MB to 0.97 MB; whole first visit about 10.5 MB to about 3.8 MB. Text to parse: 36.7 MB to 15.4 MB and 31.1 MB to 4.9 MB. Parse-plus-decode time in the browser is about the same as before (desktop: crashes ~110 ms vs ~130 ms, segments ~85 ms either way), so the gain is the download, which dominates on phones and slow connections.
+- **Page:** `unpackCrashes` / `unpackSegments` in vision-zero.html rebuild the exact original rows and GeoJSON features right after fetch, so no other dashboard code changed.
+- **Safety net:** `tests/validate_exports.py` decodes both packed files with a Python mirror of the browser decoder and fails unless they match the canonical exports value for value (CI runs this on every push). Negative-tested: altering one number in either packed file fails the check.
+- **Verified in the browser:** decoded data identical to the canonical files (all 432,920 crash rows, all 66,922 segments, properties and coordinates); the old and new page versions give identical KPIs for District C with points view and for District F, biking, all crashes, 2024 to 2025; report map capture works; no console errors. (During scripted testing the KPI count-up showed a stale number on both versions; that came from the automated test pane pausing animations, and a real dropdown selection displayed the correct values.)
+- The canonical files stay in `docs/` (readable open data, validator reference) but the page no longer fetches them.
+
 ## 2026-10-29 — Data refresh: crashes now through 2026-10-01 (from a statewide CRIS pull)
 
 The dashboard's crash data ended 2026-06-11. Refreshed it from a statewide TxDOT CRIS public pull Vincent made on 2026-10-10 for a separate project (`~/Desktop/FarmandCity/CRIS/<year>/*Texas.zip`, 2016 through 2026-10-01), instead of re-requesting Houston extracts.

@@ -42,6 +42,7 @@ src/
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
   export_webmap_data.py        # export GeoJSON for the web apps (docs/)
   export_vz_summary.py         # export docs/vz_summary.json (a static snapshot; the dashboard reads only its `years` list)
+  pack_webmap_data.py          # pack crash_points.json + segments_vz.geojson into the compact files the page loads (~70% smaller downloads)
   export_hin.py                # export the City's official HIN, clipped to the area (docs/hin.geojson)
   export_psn.py                # export the concept Proactive Safety Network overlay (docs/psn.geojson)
   fetch_superneighborhoods.py  # pull Houston's 88 Super Neighborhood boundaries (data/raw/)
@@ -51,14 +52,16 @@ src/
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # redirect to vision-zero.html (Street Explorer retired)
-  segments_vz.geojson          # slim per-street data (VZ dashboard; only the 20 fields it uses, incl. sn)
+  segments_vz.geojson          # slim per-street data (the 20 fields the dashboard uses, incl. sn); canonical export, not loaded by the page
+  segments.packed.json         # column-packed segments_vz.geojson; what the page loads (decoded in the browser)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)
   superneighborhoods.geojson   # the 88 Super Neighborhood outlines (SN filter + zoom)
   vz_summary.json              # static snapshot (toll/trend/equity); dashboard reads only its `years` list, recomputing the rest live
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   psn.geojson                  # concept Proactive Safety Network (this project's design-based model; 605 mi)
-  crash_points.json            # one row per crash; powers the points view, KPIs, charts, and all time/area filtering
+  crash_points.json            # one row per crash (points view, KPIs, charts, filtering); canonical export, not loaded by the page
+  crashes.packed.json          # column-packed crash_points.json; what the page loads (decoded in the browser)
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
   dual_merge_report.md      # divided-road merge report (generated)
@@ -103,9 +106,10 @@ python3 -m venv .venv
 .venv/bin/python src/fetch_superneighborhoods.py # pull Super Neighborhood boundaries (once; feeds the export below)
 .venv/bin/python src/export_webmap_data.py       # refresh docs/ GeoJSON + crash points (tags segments/crashes by district + SN)
 .venv/bin/python src/export_vz_summary.py        # refresh docs/vz_summary.json (static snapshot; dashboard uses only its years list)
+.venv/bin/python src/pack_webmap_data.py         # rebuild the packed files the page loads (always after export_webmap_data)
 .venv/bin/python src/export_hin.py               # refresh docs/hin.geojson (official HIN overlay)
 .venv/bin/python src/export_psn.py               # refresh docs/psn.geojson (concept PSN overlay)
-python3 tests/validate_exports.py                # sanity-check the refreshed docs/ files before committing
+python3 tests/validate_exports.py                # sanity-check the refreshed docs/ files (incl. packed files decode exactly) before committing
 ```
 
 The web app is static Leaflet (`docs/vision-zero.html`; `docs/index.html` redirects to it; no build step). Preview locally with `python3 -m http.server --directory docs`; GitHub Pages serves them live.
@@ -144,7 +148,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 - **Economic cost:** applying FHWA per-person costs by KABCO injury severity (FHWA-SA-25-021, 2024 dollars) to the people hurt in each crash, the citywide crashes carry an estimated **~$15.3B in economic cost** (~$64.8B comprehensive, which additionally values lost quality/length of life and overlaps the YLL figure). The dashboard recomputes this live for any filter; it is a conservative floor (unknown-severity injuries excluded, reported crashes undercount).
 - **Equity:** neighborhoods under $100k median household income account for ~81% of KSI; the citywide block-group median is ~$71k.
 - The dashboard is live and citywide; it overlays the City's official HIN 2022 (1,261 segments).
-- **Web-app note:** the dashboard loads all features client-side — the slim `segments_vz.geojson` (~31 MB) plus `crash_points.json` (~36 MB), `hin.geojson`, `psn.geojson`, and the boundary/district outlines (~68 MB total). It works but first load is heavy — vector tiles or per-area pages are the scalable next step.
+- **Web-app note:** the page loads column-packed data (`crashes.packed.json`, `segments.packed.json`; `src/pack_webmap_data.py`) plus `hin.geojson`, `psn.geojson`, and the boundary/district outlines: about 3.8 MB downloaded (GitHub Pages gzips in transit), down from about 10.5 MB before packing (2026-10-29). The canonical `crash_points.json` / `segments_vz.geojson` stay in `docs/` as readable exports and the validator's reference, but the page no longer fetches them. Vector tiles or per-area loading remain the next step if the data grows much further.
 - **Modeling (in progress):** step 1, the spatial baseline, is done — severe crashes cluster (Moran's I 0.18, p=0.001); Gi* hotspots (4,567 segments / 546 mi) capture 54% of severe crashes vs the official HIN's 52% on 589 mi, and the two lists only partially overlap (see `reports/spatial_baseline_report.md`). Next: the negative-binomial feature model → divergence analysis. Modeled universe = the 66,922 full-purpose segments (outside the boundary CRIS coverage is ~zero, so those segments' zeros are missing data, not safety).
 
 Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `data/external/.census_api_key`, gitignored).

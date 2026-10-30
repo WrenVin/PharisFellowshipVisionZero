@@ -924,13 +924,51 @@ const bases={Light:L.layerGroup([
 bases.Light.addTo(map);
 L.control.layers(bases,null,{position:'topleft',collapsed:true}).addTo(map);
 
+// ---- packed data (src/pack_webmap_data.py) ----------------------------------
+// The two large exports ship column-packed (~70% smaller downloads, far less to
+// parse). These rebuild the exact crash_points.json rows and segments_vz.geojson
+// features, so the rest of the page is unchanged. tests/validate_exports.py runs
+// the same decode and checks it against the canonical exports.
+function _undelta(a){ const o=new Array(a.length); let s=0; for(let i=0;i<a.length;i++){ s+=a[i]; o[i]=s; } return o; }
+const _segId=n=>'H-'+String(n).padStart(5,'0');
+function unpackCrashes(pk){
+  const c=pk.cols, n=pk.n, lat=_undelta(c.lat), lon=_undelta(c.lon), day=_undelta(c.day), seg=_undelta(c.seg);
+  const d0=Date.parse(pk.day0+'T00:00:00Z'), F=pk.flagFields, D=pk.districts, rows=new Array(n), dcache=new Map();
+  for(let i=0;i<n;i++){
+    let ds=dcache.get(day[i]); if(ds===undefined){ ds=new Date(d0+day[i]*86400000).toISOString().slice(0,10); dcache.set(day[i],ds); }
+    const r=[lat[i]/1e5, lon[i]/1e5, 0,0,0,0, +ds.slice(0,4), ds,
+      c.hour[i]===-1?null:c.hour[i], c.yll[i], c.dist[i]===-1?null:D[c.dist[i]],
+      c.inc[i]===-1?null:c.inc[i], 0,0, seg[i]===-1?null:_segId(seg[i]), c.sn[i]===-1?null:c.sn[i],
+      c.k[i], c.a[i], c.b[i], c.c[i], c.o[i]];
+    const fl=c.flags[i]; for(let b=0;b<F.length;b++) r[F[b]]=(fl>>b)&1;
+    rows[i]=r;
+  }
+  return rows;
+}
+function unpackSegments(pk){
+  const c=pk.cols, K=pk.keys, sid=_undelta(c.seg_id), xy=pk.xy, feats=new Array(pk.n);
+  let x=0, y=0, j=0;
+  for(let i=0;i<pk.n;i++){
+    const props={};
+    for(const k of K){ let v=c[k][i];
+      if(k==='seg_id') v=_segId(sid[i]);
+      else if(pk.dicts[k]) v= v===-1?null:pk.dicts[k][v];
+      else if(k==='on_txdot'||k==='on_hin') v=!!v;
+      props[k]=v; }
+    const m=pk.npts[i], coords=new Array(m);
+    for(let t=0;t<m;t++){ x+=xy[j++]; y+=xy[j++]; coords[t]=[x/1e5, y/1e5]; }
+    feats[i]={type:'Feature', properties:props, geometry:{type:'LineString', coordinates:coords}};
+  }
+  return {type:'FeatureCollection', features:feats};
+}
+
 Promise.all([
   fetch('vz_summary.json').then(r=>r.json()),
   fetch('boundary.geojson').then(r=>r.json()),
-  fetch('segments_vz.geojson').then(r=>r.json()),
+  fetch('segments.packed.json').then(r=>r.json()).then(unpackSegments),
   fetch('hin.geojson').then(r=>r.json()),
   fetch('psn.geojson').then(r=>r.json()),
-  fetch('crash_points.json').then(r=>r.json()),
+  fetch('crashes.packed.json').then(r=>r.json()).then(unpackCrashes),
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,psn,points,dists,sns])=>{

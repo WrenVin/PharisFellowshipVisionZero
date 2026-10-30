@@ -295,6 +295,95 @@ def check_aux_geojson():
 
 
 # ---------------------------------------------------------------------------
+# Packed files (what the page actually loads; see src/pack_webmap_data.py)
+# ---------------------------------------------------------------------------
+def _undelta(a):
+    out, acc = [], 0
+    for v in a:
+        acc += v
+        out.append(acc)
+    return out
+
+
+def decode_crashes(pk):
+    """Mirror of the decoder in vision-zero.html: rebuild the 21-field rows."""
+    import datetime as dt
+    c, n = pk["cols"], pk["n"]
+    lat, lon, day, seg = (_undelta(c[k]) for k in ("lat", "lon", "day", "seg"))
+    d0 = dt.date.fromisoformat(pk["day0"])
+    rows = []
+    for i in range(n):
+        date = (d0 + dt.timedelta(days=day[i])).isoformat()
+        r = [lat[i] / 1e5, lon[i] / 1e5, 0, 0, 0, 0, int(date[:4]), date,
+             None if c["hour"][i] == -1 else c["hour"][i], c["yll"][i],
+             None if c["dist"][i] == -1 else pk["districts"][c["dist"][i]],
+             None if c["inc"][i] == -1 else c["inc"][i], 0, 0,
+             None if seg[i] == -1 else f"H-{seg[i]:05d}",
+             None if c["sn"][i] == -1 else c["sn"][i],
+             c["k"][i], c["a"][i], c["b"][i], c["c"][i], c["o"][i]]
+        for b, f in enumerate(pk["flagFields"]):
+            r[f] = (c["flags"][i] >> b) & 1
+        rows.append(r)
+    return rows
+
+
+def decode_segments(pk):
+    """Mirror of the decoder in vision-zero.html: rebuild GeoJSON features."""
+    c, xy = pk["cols"], _undelta_xy(pk["xy"])
+    sid = _undelta(c["seg_id"])
+    feats, j = [], 0
+    for i in range(pk["n"]):
+        props = {}
+        for k in pk["keys"]:
+            v = c[k][i]
+            if k == "seg_id":
+                v = f"H-{sid[i]:05d}"
+            elif k in pk["dicts"]:
+                v = None if v == -1 else pk["dicts"][k][v]
+            elif k in ("on_txdot", "on_hin"):
+                v = bool(v)
+            props[k] = v
+        m = pk["npts"][i]
+        coords = [[xy[2 * (j + t)] / 1e5, xy[2 * (j + t) + 1] / 1e5] for t in range(m)]
+        j += m
+        feats.append({"type": "Feature", "properties": props,
+                      "geometry": {"type": "LineString", "coordinates": coords}})
+    return feats
+
+
+def _undelta_xy(a):
+    out, x, y = [], 0, 0
+    for i in range(0, len(a), 2):
+        x += a[i]; y += a[i + 1]
+        out += [x, y]
+    return out
+
+
+def check_packed(pts, seg):
+    """The packed files must decode to exactly the canonical exports."""
+    pk = load("crashes.packed.json")
+    if pk is not None and pts is not None:
+        key = lambda r: json.dumps(r)
+        got = sorted(map(key, decode_crashes(pk)))
+        want = sorted(map(key, pts))
+        if got != want:
+            diff = len(set(got) ^ set(want))
+            err(f"crashes.packed.json: does not decode to crash_points.json ({diff} rows differ); rerun src/pack_webmap_data.py")
+        else:
+            print(f"  crashes.packed.json: decodes to all {len(pts):,} crash rows exactly")
+    ps = load("segments.packed.json")
+    if ps is not None and seg is not None:
+        got = decode_segments(ps)
+        want = [{"type": "Feature", "properties": f["properties"],
+                 "geometry": f["geometry"]} for f in seg["features"]]
+        if got != want:
+            bad = sum(1 for a, b in zip(got, want) if a != b) + abs(len(got) - len(want))
+            err(f"segments.packed.json: does not decode to segments_vz.geojson ({bad} features differ); rerun src/pack_webmap_data.py")
+        else:
+            print(f"  segments.packed.json: decodes to all {len(got):,} segments exactly")
+
+
+# ---------------------------------------------------------------------------
 def main():
     print(f"Validating dashboard exports in {DOCS} ...")
     pts = load("crash_points.json")
@@ -309,6 +398,7 @@ def main():
     if pts is not None:
         check_equity(pts)
     check_aux_geojson()
+    check_packed(pts, seg)
 
     print()
     for w in warnings:

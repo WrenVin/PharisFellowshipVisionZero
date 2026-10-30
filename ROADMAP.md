@@ -6,13 +6,14 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 - [ ] **Label the freeway exclusion.** KPI tiles say "on city streets" but nothing on the main view says freeways, tollways, ramps, and frontage roads are excluded (about a third of Houston traffic deaths; e.g. 2024: 201 shown vs 338 citywide). Add "(freeways excluded)" to the tiles and one line to Data & Methods.
 - [ ] **Decide on frontage roads.** The freeway filter drops frontage ("SER") roads, which have driveways, bus stops, and people walking (at least 15 deaths in 2024). Judgment call: keep excluding, or move them onto the dashboard.
-- [ ] **Faster first load.** About 68 MB downloads on first visit (crash_points.json ~36 MB, segments_vz.geojson ~31 MB). Slow on phones. Options: trim fields and coordinate precision, compress, split by year, or vector tiles.
 - [ ] **Visitor analytics.** No way to see usage. Add a privacy-friendly, cookie-free counter (e.g. GoatCounter).
 - [ ] **Link-preview image.** The og:image tag is commented out, so shared links show no picture. Make a 1200x630 preview image and enable the tag.
+- [ ] **Repo size.** `data/processed/houston_crashes.gpkg` is 66 MB and committed; GitHub warns above 50 MB and blocks pushes above 100 MB. It grows with every data refresh. Options: stop committing it (it regenerates from raw CRIS) or move it to Git LFS.
 - [ ] **Custom domain (optional).** Site lives on a personal github.io address. A custom domain can be added later without breaking existing links.
 
 ## Done
 
+- [x] 2026-10-29 Faster first load: column-packed data files cut the first-visit download from about 10.5 MB to about 3.8 MB (`src/pack_webmap_data.py`). Further option if data grows: vector tiles or per-area loading.
 - [x] 2026-10-29 Data refresh: crashes now through 2026-10-01, from a statewide CRIS pull (`src/extract_cris_houston.py`); also fixed the KPI span label to include the partial year.
 - [x] 2026-10-15 Basemap: CARTO began requiring an API key; switched to keyless Esri Light Gray Canvas (`4e9cb67`).
 - [x] 2026-07-28 Concept Proactive Safety Network overlay (`cb41510`).
