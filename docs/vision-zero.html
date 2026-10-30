@@ -217,6 +217,13 @@
   .rc-overlay{margin-top:11px}
   .rc-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
   .rc-always{margin-top:0;margin-bottom:9px}
+  .rc-dates{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .rc-dates select{padding:6px 8px;border:1px solid #71767a;border-radius:2px;font:inherit;font-size:13.5px;background:#fff;color:var(--ink)}
+  .rc-dl{font-size:13px;color:var(--ink);font-weight:600}
+  .rc-sum{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:5px 16px;margin:0;font-size:13.5px}
+  .rc-sum dt{color:var(--muted)}.rc-sum dd{margin:0;color:var(--ink);font-weight:600}
+  .rc-link{border:none;background:none;padding:0;font:inherit;color:var(--act);text-decoration:underline;cursor:pointer}
+  .rc-sec h3{font-size:15px}
   .rc-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 18px;border-top:1px solid var(--line)}
   .rc-btn{padding:8px 16px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);
     font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
@@ -745,96 +752,54 @@
   <div class="rc-sheet">
     <div class="rc-hd">
       <div>
-        <h2 id="rcfg-title">Build your report</h2>
-        <div class="rc-lede">Filters start from your current view.</div>
+        <h2 id="rcfg-title">Create a report</h2>
+        <div class="rc-lede">A printable PDF of the dashboard with the filters below.</div>
       </div>
       <button class="x" id="rcfg-x" type="button" aria-label="Close">&times;</button>
     </div>
     <div class="rc-body">
 
       <section class="rc-sec">
-        <h3>Filters</h3>
+        <h3>Title and area</h3>
         <div class="rc-grid">
-          <label class="rc-field">
-            <span>Report title</span>
-            <input type="text" id="rc-title" autocomplete="off" />
-          </label>
-          <label class="rc-field">
-            <span>Kind of area</span>
+          <label class="rc-field"><span>Report title</span><input type="text" id="rc-title" autocomplete="off" /></label>
+          <label class="rc-field"><span>Kind of area</span>
             <select id="rc-areatype">
-              <option value="">Whole city</option>
-              <option value="district">Council district</option>
-              <option value="sn">Super neighborhood</option>
-              <option value="mgmt">Management district</option>
-              <option value="tirz">TIRZ (tax increment zone)</option>
-              <option value="hpd">HPD patrol division</option>
-              <option value="zip">ZIP code</option>
-              <option value="tract">Census tract</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>Area</span>
-            <select id="rc-area"></select>
-          </label>
-          <label class="rc-field">
-            <span>Travel mode</span>
-            <select id="rc-mode">
-              <option value="all">Everyone</option>
-              <option value="veh">Driving</option>
-              <option value="ped">Walking</option>
-              <option value="bike">Biking</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>Road owner</span>
-            <select id="rc-owner">
-              <option value="all">All</option>
-              <option value="city">City</option>
-              <option value="txdot">TxDOT</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>Show</span>
-            <select id="rc-sev">
-              <option value="ksi">Killed or seriously injured</option>
-              <option value="all">All crashes</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>From month</span>
-            <select id="rc-from-mo">
-              <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>From year</span>
-            <select id="rc-from-yr"></select>
-          </label>
-          <label class="rc-field">
-            <span>To month</span>
-            <select id="rc-to-mo">
-              <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
-            </select>
-          </label>
-          <label class="rc-field">
-            <span>To year</span>
-            <select id="rc-to-yr"></select>
-          </label>
-          <label class="rc-field">
-            <span>Display map as</span>
-            <select id="rc-view">
-              <option value="corridor">Streets</option>
-              <option value="streets">Segments</option>
-              <option value="points">Points</option>
-            </select>
-          </label>
+              <option value="">Whole city</option><option value="district">Council district</option><option value="sn">Super neighborhood</option>
+              <option value="mgmt">Management district</option><option value="tirz">TIRZ (tax increment zone)</option><option value="hpd">HPD patrol division</option>
+              <option value="zip">ZIP code</option><option value="tract">Census tract</option>
+            </select></label>
+          <label class="rc-field"><span>Area</span><select id="rc-area"></select></label>
         </div>
-        <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City High Injury Network overlay</span></label>
       </section>
 
       <section class="rc-sec">
-        <h3>Include in report</h3>
-        <div class="rc-note rc-always">Headline stats (people killed, seriously injured, years of life lost) are always included.</div>
+        <h3>Dates</h3>
+        <div class="rc-dates">
+          <span class="rc-dl">From</span><select id="rc-from-mo" aria-label="From month"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><select id="rc-from-yr" aria-label="From year"></select>
+          <span class="rc-dl">to</span><select id="rc-to-mo" aria-label="To month"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><select id="rc-to-yr" aria-label="To year"></select>
+        </div>
+        <div class="rc-note" id="rc-date-note"></div>
+      </section>
+
+      <section class="rc-sec">
+        <h3>Other filters in this report</h3>
+        <dl class="rc-sum" id="rc-sum"></dl>
+        <div class="rc-note">These come from the dashboard. To change them, <button type="button" class="rc-link" id="rc-change">close this window and use the filters on the left</button>; your report settings will be here when you come back.</div>
+      </section>
+
+      <section class="rc-sec">
+        <h3>Map</h3>
+        <div class="rc-grid">
+          <label class="rc-field"><span>Show the map as</span>
+            <select id="rc-view"><option value="corridor">Whole streets</option><option value="streets">Street segments</option><option value="points">Crash points</option></select></label>
+        </div>
+        <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City's High Injury Network</span></label>
+      </section>
+
+      <section class="rc-sec">
+        <h3>Sections</h3>
+        <div class="rc-note rc-always">The headline numbers (people killed, seriously injured, years of life lost, economic cost) are always included.</div>
         <div class="rc-checks">
 <label class="rc-check"><input type="checkbox" id="rc-s-summary" checked> <span>Summary sentence</span></label>
           <label class="rc-check"><input type="checkbox" id="rc-s-map" checked> <span>Map</span></label>
@@ -2517,6 +2482,8 @@ function viewDesc(){
   const extras=[];
   if(hrNarrow()) extras.push(hourLabel(hrLo)+'–'+hourLabel(hrHi));
   if(dowNarrow()) extras.push(DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]);
+  if(owner!=='all') extras.push(owner==='city'?'City-owned roads':'TxDOT-owned roads');
+  if(fwyOn) extras.push('Freeways included');
   if(lightSel) extras.push(lightName(lightSel));
   if(facSel) extras.push(FACTORS.find(f=>f[0]===facSel)[1]);
   if(ageSel) extras.push('Age '+AGE_LAB[ageSel].toLowerCase());
@@ -2627,29 +2594,54 @@ function _rcFillSelects(){
     lo.innerHTML=opts; hi.innerHTML=opts;
   }
 }
+let _rcKeep=null, _rcAreaFill=Promise.resolve();   // _rcAreaFill: the area list may still be loading   // the dialog's own settings (title, sections) kept while the visitor changes filters
+// summary rows for the filters the dialog does not edit
+function _rcSummaryRows(){
+  const rows=[], add=(k,v)=>rows.push([k,v]);
+  if(selStreet!==null) add('Street', selStreet.startsWith('__seg__')?'Selected block':selStreet);
+  else if(selSeg!==null) add('Street', (selSeg.name||'Selected block')+' (one block)');
+  add('Show', sev==='all'?'All crashes':'People killed or seriously injured');
+  add('Travel mode', mode==='all'?'Everyone':MODE_LAB[mode]);
+  if(ageSel) add('Age of person hurt', AGE_LAB[ageSel]);
+  if(sexSel) add('Sex of person hurt', SEX_LAB[sexSel]);
+  if(selD.size){ const o=DOW_OPTS.find(x=>_sameSet(selD,x[2])); add('Day of week', o?o[1]:facetLabel('dow')); }
+  if(selH.size){ const o=HOUR_BANDS.find(x=>_sameSet(selH,x[2])); add('Time of day', o?o[1]:facetLabel('hour')); }
+  if(lightSel) add('Lighting', lightName(lightSel));
+  if(facSel) add('Contributing factor', FACTORS.find(f=>f[0]===facSel)[1]);
+  add('Road owner', owner==='all'?'All':owner==='city'?'City-owned':'TxDOT-owned');
+  add('Freeways', fwyOn?'Included':'Not included');
+  return rows;
+}
+function _rcDateNote(){
+  const fy=+_rcEl('rc-from-yr').value, fm=+_rcEl('rc-from-mo').value, ty=+_rcEl('rc-to-yr').value, tm=+_rcEl('rc-to-mo').value;
+  const lo=fy*12+fm-1, hi=ty*12+tm-1, end=DATA_END?(+DATA_END.slice(0,4)*12+(+DATA_END.slice(5,7))-1):hi;
+  let n='';
+  if(lo>hi) n='The start is after the end; the dates will be swapped.';
+  else if(hi>end) n='Data runs through '+MONTHS[end%12]+' '+Math.floor(end/12)+'.';
+  if(selM.size===1 && !mrActive()) n=(n?n+' ':'')+'The dashboard is showing '+MONTHS[[...selM][0]-1]+' only; the report will use the full date range above.';
+  _rcEl('rc-date-note').textContent=n;
+}
 function openReportModal(){
   const ov=_rcEl('rcfg'); if(!ov) return;
   _rcFillSelects();
-  // pre-fill filters from the current globals
-  _rcEl('rc-title').value='Traffic deaths & serious injuries';
+  _rcEl('rc-title').value = _rcKeep ? _rcKeep.title : 'Traffic deaths and serious injuries';
   _rcEl('rc-areatype').value = activeAreaType();
-  fillAreaSelect(_rcEl('rc-area'), activeAreaType(), activeAreaId());
-  _rcEl('rc-mode').value = mode;
-  _rcEl('rc-owner').value = owner;
-  _rcEl('rc-sev').value = sev;
+  _rcAreaFill=fillAreaSelect(_rcEl('rc-area'), activeAreaType(), activeAreaId());
   _rcEl('rc-view').value = view;
-  if(vz && vz.years){
-    // pre-fill the From/To month+year from the current view
-    let fy, fm, ty, tm;
-    if(mrActive()){ fy=Math.floor(ymLo/12); fm=(ymLo%12)+1; ty=Math.floor(ymHi/12); tm=(ymHi%12)+1; }
-    else { fy=yrLo!==null?yrLo:vz.years[0]; ty=yrHi!==null?yrHi:vz.years[vz.years.length-1];
-      if(year!==null && month!==null){ fm=month; tm=month; } else { fm=1; tm=12; } }
-    _rcEl('rc-from-yr').value=String(fy); _rcEl('rc-from-mo').value=String(fm);
-    _rcEl('rc-to-yr').value=String(ty); _rcEl('rc-to-mo').value=String(tm);
+  if(vz && vz.years){   // dates from the current view; the last data month when the view runs to the end
+    const endYM=DATA_END?(+DATA_END.slice(0,4)*12+(+DATA_END.slice(5,7))-1):null;
+    let lo, hi;
+    if(mrActive()){ lo=ymLo; hi=ymHi; }
+    else { const fy=yrLo!==null?yrLo:vz.years[0], ty=yrHi!==null?yrHi:vz.years[vz.years.length-1];
+      lo=fy*12; hi=ty*12+11; if(endYM!=null && hi>endYM) hi=endYM; }
+    _rcEl('rc-from-yr').value=String(Math.floor(lo/12)); _rcEl('rc-from-mo').value=String(lo%12+1);
+    _rcEl('rc-to-yr').value=String(Math.floor(hi/12)); _rcEl('rc-to-mo').value=String(hi%12+1);
   }
-  const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
-  // sections: all checked by default each time the modal opens
-  RSECT_KEYS.forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
+  _rcDateNote();
+  _rcEl('rc-sum').innerHTML=_rcSummaryRows().map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd>').join('');
+  _rcEl('rc-hin').checked=!!(_rcEl('hin')||{}).checked;
+  RSECT_KEYS.forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked = _rcKeep ? _rcKeep.sections[k]!==false : true; });
+  _rcKeep=null;
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
   _rcLastFocus=document.activeElement;
   const first=_rcEl('rc-title'); if(first) first.focus();
@@ -2659,29 +2651,24 @@ function closeReportModal(){
   ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
   if(_rcLastFocus && _rcLastFocus.focus){ try{ _rcLastFocus.focus(); }catch(e){} }
 }
-_rcEl('rc-areatype').addEventListener('change',()=>fillAreaSelect(_rcEl('rc-area'), _rcEl('rc-areatype').value, ''));
+_rcEl('rc-areatype').addEventListener('change',()=>{ _rcAreaFill=fillAreaSelect(_rcEl('rc-area'), _rcEl('rc-areatype').value, ''); });
+['rc-from-mo','rc-from-yr','rc-to-mo','rc-to-yr'].forEach(id=>_rcEl(id).addEventListener('change',_rcDateNote));
+_rcEl('rc-change').onclick=()=>{ _rcKeep={title:_rcEl('rc-title').value, sections:Object.fromEntries(RSECT_KEYS.map(k=>[k,_rcEl('rc-s-'+k).checked]))};
+  closeReportModal(); const d=document.querySelector('.secd[data-sec=who]'); if(d) d.open=true; document.querySelector('.ctrl').scrollIntoView({behavior:'smooth',block:'start'}); };
 // apply the chosen filters to the live dashboard, then build cfg and print
 async function _rcGenerate(){
-  // mode: set the global + reflect the sidebar pills (no extra render; render() runs once at the end)
-  const m=_rcEl('rc-mode').value;
-  if(['all','veh','ped','bike'].includes(m)){
-    mode=m;
-    document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode===m; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); });
-  }
-  // sev / owner / view: set the global + check the matching sidebar radio
-  const setRadio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
-  const sv=_rcEl('rc-sev').value; if(sv==='ksi'||sv==='all'){ sev=sv; setRadio('sev',sv); }
-  const ow=_rcEl('rc-owner').value; if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
-  const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
-  // year range: set globals + sync the sidebar slider, resolve year/month
-  // time window: From (month + year) to To (month + year), at month granularity
+  // the dialog edits only the map style, the dates, the overlay and the area; every other
+  // filter is whatever the dashboard shows (listed read-only in the dialog)
+  const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; const el=document.querySelector('input[name=view][value="'+vw+'"]'); if(el) el.checked=true; }
+  // dates at month granularity; whole years become the plain year filter, the full span clears it
   const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
   if(!isNaN(fy) && !isNaN(ty)){
     let lo=fy*12+(fm-1), hi=ty*12+(tm-1); if(lo>hi){ const t=lo; lo=hi; hi=t; }
+    const endYM=DATA_END?(+DATA_END.slice(0,4)*12+(+DATA_END.slice(5,7))-1):hi, y0=vz.years[0]*12;
     const yLo=Math.floor(lo/12), yHi=Math.floor(hi/12);
-    selM.clear(); selY.clear();
-    // a January–December span is a plain year facet; anything finer is the continuous month-range override
-    if(lo===yLo*12 && hi===yHi*12+11){ ymLo=ymHi=null; for(let y=yLo;y<=yHi;y++) selY.add(y); }
+    selM.clear(); selY.clear(); ymLo=ymHi=null;
+    if(lo<=y0 && hi>=endYM){ /* everything: no date filter */ }
+    else if(lo===yLo*12 && (hi===yHi*12+11 || hi>=endYM)) for(let y=yLo;y<=yHi;y++) selY.add(y);
     else { ymLo=lo; ymHi=hi; }
     syncDerived();
   }
@@ -2691,11 +2678,12 @@ async function _rcGenerate(){
     if(wantHin){ if(!map.hasLayer(hinLayer)) hinLayer.addTo(map); }
     else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); } }
   // area: one kind at a time; selectArea clears the others and renders (polygon kinds load first)
+  await _rcAreaFill;   // read the area only once its list has loaded
   { const t=_rcEl('rc-areatype').value, v=_rcEl('rc-area').value;
     await selectArea(t && v ? t : '', t && v ? v : ''); }
   render();   // final recompute so the cloned charts + captured map reflect every chosen filter
   // gather the config: headline stats are always on; a section renders only if its box is checked
-  const cfg={ title:(_rcEl('rc-title').value||'').trim()||'Traffic deaths & serious injuries',
+  const cfg={ title:(_rcEl('rc-title').value||'').trim()||'Traffic deaths and serious injuries',
     sections:Object.fromEntries(RSECT_KEYS.map(k=>[k, !!(_rcEl('rc-s-'+k)||{}).checked])) };
   closeReportModal();   // remove the overlay before printing so it is not in the PDF
   await generateReport(cfg);

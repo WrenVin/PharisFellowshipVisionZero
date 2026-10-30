@@ -4,6 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Report dialog rebuilt for the new filters
+
+The "Build your report" dialog repeated only some filters (area, mode, owner, show, dates, map style) and none of the new ones (age, sex, day, time of day, lighting, contributing factor, freeways, selected street). Now titled **Create a report**, it edits only what is report-specific: title, area, dates to the month, map style, the High Injury Network overlay, and the sections. Every other active filter is listed read-only under "Other filters in this report", with a link that closes the dialog so the visitor can change them in the sidebar; the title and section choices are kept when they come back. Dates default to the current view ending at the last month of data (September 2026), with a note if the range runs past the data or the dashboard is showing a single month. The full date range clears the date filter; whole years become the year filter; anything else is the month range. The printed subtitle now also names road owner and freeways when set. Fixed a race where generating before the area list loaded dropped the area. Verified: District C report with a March 2023 to August 2025 range and walking, 65+, weekends, dark filters; switching to TIRZ 2 in the dialog.
+
 ## 2026-10-30 — Layout holds still: scrolling sidebar, floating tips, 5 streets per page
 
 - **Sidebar scrolls inside itself.** On screens wider than 680 px the sidebar and map share one fixed height (between 520 and 760 px, from the window height); opening sections scrolls the sidebar instead of lengthening the page. Checked: page height unchanged (2,951 px) with every section open. Phones keep the natural page flow.
