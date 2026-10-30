@@ -19,6 +19,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-30 Sidebar scrolls inside a fixed height beside the map; info tips float beside their button; street table shows 5 per page.
 - [x] 2026-10-30 Collapsible sidebar sections with filter badges; map matches sidebar height; lighting split into defined categories (street lights or not); contributing-factor filter; Previous/Next pager for the street table.
 - [x] 2026-10-30 Lower-half rebuild: street table first, year with year-to-date, travel mode donut, day-and-time heatmap, contributing factors, age and sex, lighting, income as a rate per resident; Who / When filters in the sidebar; drag-to-reorder removed. Fixed the person-record dedupe bug (years of life lost now 59,461 from actual ages).
 - [x] 2026-10-30 Rewrote page copy in plainer, shorter language; removed the Source data header link.

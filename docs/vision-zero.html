@@ -68,7 +68,11 @@
   .info:hover{border-color:var(--accent);color:var(--accent)}
   .tip{display:none;font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;
     background:var(--panel);border-radius:2px;padding:7px 9px}
-  .tip.show{display:block}
+  .tip.show{display:none}   /* tip text is shown in the floating #tipbox instead */
+  #tipbox{position:absolute;z-index:1300;width:290px;max-width:calc(100vw - 24px);background:#fff;border:1px solid #a9aeb1;box-shadow:0 2px 8px rgba(0,0,0,.18);padding:10px 30px 10px 12px;font-size:13px;line-height:1.5;color:var(--ink);display:none}
+  #tipbox.show{display:block}
+  #tipbox .tx{position:absolute;top:4px;right:6px;border:none;background:none;font-size:18px;line-height:1;cursor:pointer;color:var(--muted);padding:2px}
+  .info[aria-expanded=true]{background:var(--act);color:#fff;border-color:var(--act)}
   .kpi .ktip{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:1200;background:#fff;
     box-shadow:none;border:1px solid var(--line)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:10px 0 8px}
@@ -343,7 +347,11 @@
   .rc-check input,.toggle input{accent-color:var(--act)}
   .ctrl select:focus,.rc-field select:focus,.rc-field input[type=text]:focus{border-color:var(--act)}
   .sitehead{position:sticky;top:0;z-index:1150}
-  #mapwrap{min-height:560px}   /* stretches to the sidebar's height (.main align-items:stretch) */
+  @media(min-width:681px){   /* sidebar and map share one fixed height; opening a section scrolls the sidebar, not the page */
+    .main{--panelH:clamp(520px, calc(100vh - 230px), 760px)}
+    #mapwrap{height:var(--panelH);min-height:0}
+    .ctrl{height:var(--panelH);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+  }
   .secd{border-top:1px solid #c9cdd1}.secd:first-child{border-top:none}
   .secd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink);padding:11px 0}
   .secd:first-child>summary{padding-top:0}
@@ -593,7 +601,7 @@
       <h3>Most dangerous streets <button class="info" onclick="toggleTip(this)" aria-label="About the street ranking">i</button></h3>
       <div class="sub" id="worst-sub"></div>
       <div class="tblwrap"><table class="wtbl" id="worst-tbl"></table></div>
-      <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 10</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 10</button></div><span id="roadfacts"></span></div>
+      <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 5</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 5</button></div><span id="roadfacts"></span></div>
       <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view. Click a street to select it on the map. Per mile divides by the street's length in the current area. The High Injury Network column shows how much of the street is on the City's 2022 network.</div>
     </div>
     <div class="card span2" data-card="trend">
@@ -1747,7 +1755,27 @@ function kpi(ic,l,v,s,neutral,tip,key,num,money){
   const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"'+(money?' data-money="1"':'') : '';   // numeric KPIs count up on filter change (money ones format as $)
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
-function toggleTip(btn){ const box=btn.closest('.grp,.card,.kpi'); const t=box&&box.querySelector('.tip'); if(t) t.classList.toggle('show'); }
+// info tips open in one floating box beside the button, so the page layout never shifts
+let _tipBtn=null;
+function closeTip(){ const b=document.getElementById('tipbox'); if(b) b.classList.remove('show'); if(_tipBtn) _tipBtn.setAttribute('aria-expanded','false'); _tipBtn=null; }
+function toggleTip(btn){
+  if(_tipBtn===btn){ closeTip(); return; }
+  const box=btn.closest('.grp,.card,.kpi'), t=box&&box.querySelector('.tip'); if(!t) return;
+  closeTip();
+  let tb=document.getElementById('tipbox');
+  if(!tb){ tb=document.createElement('div'); tb.id='tipbox'; tb.setAttribute('role','dialog'); document.body.appendChild(tb); }
+  tb.innerHTML='<button class="tx" aria-label="Close">×</button>'+t.innerHTML;
+  tb.querySelector('.tx').onclick=closeTip;
+  tb.classList.add('show'); _tipBtn=btn; btn.setAttribute('aria-expanded','true');
+  const r=btn.getBoundingClientRect(), w=tb.offsetWidth, h=tb.offsetHeight, vw=document.documentElement.clientWidth;
+  let left = r.right+10+w <= vw-8 ? r.right+10 : (r.left-10-w >= 8 ? r.left-10-w : Math.max(8, Math.min(vw-w-8, r.left-w/2)));
+  let top = (left===r.right+10 || left===r.left-10-w) ? r.top-8 : r.bottom+8;   // beside the button, or below it on narrow screens
+  top=Math.max(72, Math.min(top, window.innerHeight-h-8));
+  tb.style.left=(left+scrollX)+'px'; tb.style.top=(top+scrollY)+'px';
+}
+document.addEventListener('click',e=>{ if(_tipBtn && !e.target.closest('#tipbox') && !e.target.closest('.info')) closeTip(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeTip(); });
+document.addEventListener('scroll',e=>{ if(_tipBtn && e.target!==document && e.target.contains && e.target.contains(_tipBtn)) closeTip(); }, true);   // the sidebar scrolled under the box
 function yllTotal(){ let s=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOkP(p)&&selOk(p)&&timeOk(p)) s+=p[9]||0; } return s; }
 // FHWA-SA-25-021 (Oct 2025) per-PERSON KABCO costs, 2024 dollars: [economic, comprehensive].
 // Applied to each crash's person counts pts[16..20] = [killed K, serious A, minor B, possible C, no-injury].
@@ -1954,7 +1982,7 @@ function drawEquity(){
 }
 
 // --- most dangerous streets (table) ---
-let _worstPage=0, _worstSig='', _lenCache={key:null, v:null};
+let _worstPage=0, _worstSize=5, _worstSig='', _lenCache={key:null, v:null};
 function streetLengths(){   // street name -> {ft, tx, hin} over segments in the current area and owner filter
   const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner;
   if(_lenCache.key===key) return _lenCache.v; const o={};
@@ -2010,14 +2038,14 @@ function drawWorstStreets(){
   // back to the first page whenever a filter changes (but not when a street is selected from the table)
   const sig=[mode,sev,owner,district,sn,poly?poly.key:'',[...selY],[...selM],[...selD],[...selH],ymLo,ymHi,lightSel,ageSel,sexSel,facSel,fwyOn].join('|');
   if(sig!==_worstSig){ _worstSig=sig; _worstPage=0; }
-  const pages=Math.max(1,Math.ceil(rows.length/10)); if(_worstPage>=pages) _worstPage=pages-1;
-  const first=_worstPage*10;
+  const pages=Math.max(1,Math.ceil(rows.length/_worstSize)); if(_worstPage>=pages) _worstPage=pages-1;
+  const first=_worstPage*_worstSize;
   document.getElementById('worst-prev').disabled=_worstPage===0; document.getElementById('worst-next').disabled=_worstPage>=pages-1;
-  document.getElementById('worst-range').textContent=rows.length ? ((first+1)+' to '+Math.min(rows.length,first+10)+' of '+fmt(rows.length)) : '';
+  document.getElementById('worst-range').textContent=rows.length ? ((first+1)+' to '+Math.min(rows.length,first+_worstSize)+' of '+fmt(rows.length)) : '';
   if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="9" style="text-align:left;color:var(--muted)">No streets in this view.</td></tr></tbody>'; }
   else {
     const head='<thead><tr><th>#</th><th>Street</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Miles</th><th>Per mile</th><th>Owner</th><th>High Injury Network</th></tr></thead>';
-    const body=rows.slice(first,first+10).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
+    const body=rows.slice(first,first+_worstSize).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
       const own=txs>=.9?'TxDOT':txs<=.1?'City':'City and TxDOT', hin=hs>=.5?'Yes':hs>=.05?'Part':'No';
       return '<tr'+(selStreet===r.nm?' class="on"':'')+' tabindex="0" role="button" onclick="selectStreet('+esc(JSON.stringify(r.nm))+',true)">'
         +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
@@ -2561,11 +2589,11 @@ async function generateReport(cfg){
   // worst-streets table (gated)
   let worstHTML='';
   if(S.worst){
-    const keepPage=_worstPage; _worstPage=0; drawWorstStreets();
+    const keepPage=_worstPage; _worstPage=0; _worstSize=10; drawWorstStreets();   // the report prints the top 10
     const t_=document.getElementById('worst-tbl'), hd=t_.querySelector('thead');
     const rws=[...t_.querySelectorAll('tbody tr')].slice(0,10).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
     worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>') : '';
-    _worstPage=keepPage; drawWorstStreets();
+    _worstPage=keepPage; _worstSize=5; drawWorstStreets();
   }
   const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});

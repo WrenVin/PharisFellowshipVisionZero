@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Layout holds still: scrolling sidebar, floating tips, 5 streets per page
+
+- **Sidebar scrolls inside itself.** On screens wider than 680 px the sidebar and map share one fixed height (between 520 and 760 px, from the window height); opening sections scrolls the sidebar instead of lengthening the page. Checked: page height unchanged (2,951 px) with every section open. Phones keep the natural page flow.
+- **Info tips float.** Every "i" button (sidebar, KPIs, panels) now opens one floating box beside the button (to the right, or the left near the screen edge, or below on phones) with a close button; Escape or a click elsewhere closes it. The page layout no longer shifts. Checked: page height unchanged with a tip open.
+- **Street table shows 5 per page** (Previous 5 / Next 5); the report still prints the top 10.
+
 ## 2026-10-30 — Collapsible sidebar, lighting definitions, factor filter, table pager
 
 Vincent's follow-ups.
