@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-30 — Printed report redone: two pages, civic style, current panels
+
+Vincent's sample PDF (District A) ran to three pages, kept the old red styling, stranded the "Breakdowns" and "Most affected streets" headings at page bottoms, clipped chart labels and values, and shrank the year chart's text.
+
+- **Fixed two-page layout (US letter).** Page 1: title, filters line, the five headline numbers (ink, ruled band), one summary sentence in plain words (no Gini), the map, and the top 10 streets table with the TxDOT and High Injury Network shares. Page 2 (forced page break): every chart in a three-column grid (year and day-and-time span two columns), then the notes. Measured at print width for District A, the whole city, TIRZ 2, all crashes and a selected street: page 1 is 8.3 to 8.6 in and page 2 6.8 to 7.1 in, inside the 10 in printable height.
+- **Map captured at the report's shape** (about 2 to 1): the map is resized for the capture, fit to the area, captured, and restored, so the area fills the frame instead of a small square with gray bars.
+- Year chart redrawn at print width; donut, heatmap and bar charts sized for print; labels wrap instead of clipping.
+- Navy title rule and headings, matching the site. The notes now name contributing factors, lighting and the income rate, and end with "Public data project, not an official City of Houston website; figures may differ from official City counts."
+
 ## 2026-10-30 — Welcome guide on first visit; buttons in the header; title row removed
 
 - **Welcome guide** opens on a visitor's first visit: what the dashboard shows and five steps for using it (filters, click a street, scroll for charts, report and share, the i buttons). "First visit" is per browser: a flag in the browser's local storage (`hsd-welcomed-v1`), set when the guide is closed. No cookies and nothing is sent anywhere; a new device, private window or cleared browser data shows it again. If storage is blocked the guide is not shown automatically. A **How to use** link in the header reopens it.

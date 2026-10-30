@@ -241,47 +241,54 @@
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:680px){.ctrl{flex-basis:100%}.below{grid-template-columns:1fr}}
   /* ---- printable report (council-ready PDF via the browser's Save as PDF) ---- */
+  /* ---- printed report: two US-letter pages. Page 1: summary, map, top streets. Page 2: charts. ---- */
   #report{display:none}
-  #report .r-eyebrow{font-size:12px;color:var(--accent);font-weight:700}
-  #report h1.r-title{font-size:25px;font-weight:700;margin:2px 0 2px}
-  #report .r-sub{font-size:13.5px;color:var(--muted)}
-  #report .r-hd{border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:14px;
-    display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
-  #report .r-date{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
-  #report .r-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-stat{border:1px solid var(--line);border-radius:2px;padding:8px 12px}
-  #report .r-statv{font-size:23px;font-weight:700;color:#7a1419;line-height:1.1}
-  #report .r-statl{font-size:11px;color:var(--muted);margin-top:2px}
-  #report .r-synth{font-size:13px;line-height:1.55;margin:0 0 14px}
-  #report .r-map{margin:0 0 14px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-map img{width:100%;border:1px solid var(--line);border-radius:2px;display:block}
-  #report .r-mapcap{font-size:11px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  #report .r-mapcap .grad{height:9px;border-radius:3px;width:150px}
-  #report .r-mapcap .ends{display:flex;justify-content:space-between;width:150px}
-  #report h2.r-sec{font-size:14px;color:var(--accent);
-    margin:16px 0 8px;border-top:1px solid var(--line);padding-top:10px;break-after:avoid;page-break-after:avoid}
-  /* print-reliable: inline-block (not grid) so each chart is its own break unit and never clips across a page */
-  #report .r-charts{font-size:0}
-  #report .r-chart{display:inline-block;width:49%;vertical-align:top;margin:0 0 14px;font-size:13px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-chart:nth-child(odd){margin-right:2%}
-  #report .r-chart h3{font-size:13px;font-weight:700;margin:0 0 2px}
-  #report .r-chart .bleg,#report .r-chart .legrow{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:5px}
-  #report .r-chart .bleg span,#report .r-chart .legrow span{display:flex;align-items:center;gap:4px}
-  #report .r-chart .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
-  #report .r-note{font-size:11px;color:var(--muted);margin-top:5px}
-  #report .r-worst{width:100%;border-collapse:collapse;font-size:12.5px;break-inside:avoid;page-break-inside:avoid}
-  #report .r-worst td{padding:4px 6px;border-bottom:1px solid var(--line)}
-  #report .r-worst th,#report .r-worst td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  #report .r-worst th{font-size:11px;color:var(--muted);padding:4px 6px;border-bottom:1.5px solid var(--ink)}
+  #report .r-page{width:7.5in}
+  #report .r-p2{break-before:page;page-break-before:always}
+  #report .r-hd{border-bottom:3px solid var(--navy);padding-bottom:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  #report .r-eyebrow{font-size:11px;color:var(--navy);font-weight:700}
+  #report h1.r-title{font-size:22px;font-weight:700;margin:1px 0 2px;line-height:1.15}
+  #report .r-sub{font-size:11.5px;color:var(--muted)}
+  #report .r-date{font-size:10px;color:var(--muted);text-align:right;white-space:nowrap;line-height:1.4}
+  #report .r-stats{display:grid;grid-template-columns:repeat(5,1fr);margin:0 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  #report .r-stat{padding:7px 10px;border-left:1px solid var(--line)}#report .r-stat:first-child{border-left:none;padding-left:0}
+  #report .r-statv{font-size:20px;font-weight:700;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  #report .r-statl{font-size:9.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+  #report .r-synth{font-size:11.5px;line-height:1.5;margin:0 0 8px}
+  #report .r-map{margin:0 0 10px;break-inside:avoid;page-break-inside:avoid}
+  #report .r-map img{width:100%;height:3.7in;object-fit:cover;border:1px solid var(--line);display:block}
+  #report .r-mapcap{font-size:9.5px;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  #report h2.r-sec{font-size:13px;color:var(--navy);margin:0 0 6px;padding-top:0;break-after:avoid;page-break-after:avoid}
+  #report .r-worst{width:100%;border-collapse:collapse;font-size:10.5px;break-inside:avoid;page-break-inside:avoid}
+  #report .r-worst th,#report .r-worst td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 5px}
+  #report .r-worst td{border-bottom:1px solid var(--line)}
+  #report .r-worst th{font-size:9.5px;color:var(--muted);border-bottom:1.5px solid var(--ink)}
   #report .r-worst th:nth-child(2),#report .r-worst td:nth-child(2){text-align:left}
-  #report .r-worst td:first-child{color:var(--muted);width:26px}
-  #report .r-foot{font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);
-    margin-top:16px;padding-top:10px}
+  #report .r-worst td:first-child{color:var(--muted);width:20px}
+  #report .r-facts{font-size:10px;color:var(--muted);margin-top:5px}
+  #report .r-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}
+  #report .r-chart{min-width:0;break-inside:avoid;page-break-inside:avoid;border-top:1.5px solid var(--ink);padding-top:5px}
+  #report .r-chart.s2{grid-column:span 2}
+  #report .r-chart h3{font-size:11.5px;font-weight:700;margin:0 0 4px;line-height:1.25}
+  #report .r-chart .bleg{display:flex;gap:10px;flex-wrap:wrap;font-size:9px;color:var(--muted);margin-top:4px}
+  #report .r-chart .bleg span{display:flex;align-items:center;gap:4px}
+  #report .r-chart .dot{width:8px;height:8px;display:inline-block}
+  #report .r-note{font-size:9.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+  #report .hb{grid-template-columns:50% 1fr 34px;gap:5px;margin:0;padding:1px 0;font-size:9px}
+  #report .hb-l{line-height:1.2}
+  #report .hb-t{height:8px}#report .hb-v{min-width:0;font-size:9.5px}
+  #report .hbh{font-size:9.5px;margin:2px 0}
+  #report .hb-off{opacity:.42}
+  #report .donutwrap{gap:10px;flex-wrap:nowrap}#report .donutwrap svg{width:92px;height:92px}
+  #report .dleg{min-width:0}#report .dleg .hb{grid-template-columns:1fr 0 30px}#report .dsw{width:8px;height:8px;margin-right:4px}
+  #report .heat{grid-template-columns:24px repeat(24,minmax(0,1fr));gap:1px;font-size:8px}#report .heat .hc{height:11px}#report .heat .hl{line-height:11px}
+  #report .heatleg{font-size:8.5px;margin-top:4px}#report .heatleg span.ramp i{width:12px;height:7px}
+  #report .r-foot{font-size:9px;color:var(--muted);line-height:1.45;border-top:1px solid var(--line);margin-top:12px;padding-top:7px}
   #report .r-foot b{color:var(--ink)}
   @media print{
     @page{size:letter;margin:0.5in}
     html,body{background:#fff !important}
-    .wrap,#modal,#fbmodal,#rcfg,#welcome{display:none !important}
+    .wrap,#modal,#fbmodal,#rcfg,#welcome,#tipbox{display:none !important}
     #report{display:block !important;color:var(--ink);font-family:var(--sans);-webkit-print-color-adjust:exact;print-color-adjust:exact}
     a{color:var(--ink);text-decoration:none}
   }
@@ -419,7 +426,6 @@
   .morebtn{border:1px solid var(--act);color:var(--act);background:#fff;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;border-radius:2px}
   .morebtn:hover{background:var(--act-lt)}
   .card .note{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
-  #report .hb{font-size:10px;padding:1px 0}#report .hb-t{height:9px}#report .heat .hc{height:10px}#report .heat{font-size:8px}
   @media(max-width:1100px){.below{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .below>.card{min-width:0}
   @media(max-width:680px){.below{grid-template-columns:minmax(0,1fr)}.below .span2{grid-column:auto}}
@@ -1982,7 +1988,7 @@ function drawEquity(){
 }
 
 // --- most dangerous streets (table) ---
-let _worstPage=0, _worstSize=5, _worstSig='', _lenCache={key:null, v:null};
+let _trendW=null, _worstPage=0, _worstSize=5, _worstSig='', _lenCache={key:null, v:null};
 function streetLengths(){   // street name -> {ft, tx, hin} over segments in the current area and owner filter
   const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner;
   if(_lenCache.key===key) return _lenCache.v; const o={};
@@ -2204,7 +2210,7 @@ function drawTrend(){
       const up=pct>0, col=up?'#b4232a':(pct<0?'#2e7d52':'var(--muted)'), dir=up?'up '+pct+'%':(pct<0?'down '+Math.abs(pct)+'%':'flat');
       headline='<b style="color:'+col+'">'+(sev==='all'?'Crashes':'KSI')+' are '+dir+' vs '+base+'</b>'; } }
   const tEl=document.getElementById('trend');   // draw at the card's real width so text stays at its true size
-  drawBarChart(tEl,labels,fatal,serious,{fadeIdx,line,w:Math.max(300,Math.round(tEl.clientWidth||340)),h:170,unit:(sev==='all'?'crashes':'KSI')});
+  drawBarChart(tEl,labels,fatal,serious,{fadeIdx,line,w:_trendW||Math.max(300,Math.round(tEl.clientWidth||340)),h:_trendW?118:170,unit:(sev==='all'?'crashes':'KSI')});
   drawYTD();
   document.getElementById('trend-title').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', by year';
   document.getElementById('trend-sub').textContent=selY.size||mrActive() ? 'Showing '+timeSpan(false)+'. Change years in the sidebar.' : 'Years are set in the sidebar.';
@@ -2549,7 +2555,8 @@ async function generateReport(cfg){
       const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
       const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return null;
       const ch=(r-b)/b; return ch>0.05?'rising':ch<-0.05?'falling':'roughly flat'; })();
-    const conPhrase = (con && con.totK>0) ? ('The harm is concentrated on a small share of streets'+(con.gini!=null?' (Gini '+con.gini.toFixed(2)+')':'')) : 'The harm is spread across this view';
+    const half = (con && con.pctForHalf!=null) ? (con.pctForHalf*100<10?(con.pctForHalf*100).toFixed(1):Math.round(con.pctForHalf*100))+'%' : null;
+    const conPhrase = half ? ('Half of the '+metric+' in this view were on '+half+' of its street miles') : 'This view covers a single street';
     const trPhrase = trDir ? (', and the yearly trend is '+trDir+' against the 2016–2018 baseline') : '';
     synthHTML='<p class="r-synth">'+conPhrase+trPhrase+'.</p>';
   }
@@ -2558,12 +2565,16 @@ async function generateReport(cfg){
   const conHalf = (con && con.pctForHalf!=null) ? ((con.pctForHalf*100<10?(con.pctForHalf*100).toFixed(1):Math.round(con.pctForHalf*100))+'%') : '–';
   const statsHTML = stat(fmt(t.killed),'People killed')+stat(fmt(serious),'Seriously injured')+stat(fmt(yll),'Years of life lost')
     +stat(fmtMoney(cost.econ),'Economic cost')
-    +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(conHalf,'of streets carry half the '+(sev==='all'?'crashes':'KSI')));
+    +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(conHalf,'of street miles carry half the harm'));
   // map (gated)
   let mapHTML='';
   if(S.map){
+    // capture at the report's shape (7.5 x 3.7 in) so the area fills the frame, then put the map back
+    const mw=document.getElementById('mapwrap'), keepStyle=mw.getAttribute('style')||'';
+    mw.style.cssText=keepStyle+';flex:none;width:960px;height:474px;min-height:0'; map.invalidateSize(false);
     await settleMap();   // zoom to the active area + let tiles load before capturing
     const mapURL=captureMap();
+    mw.setAttribute('style',keepStyle); map.invalidateSize(false);
     const grad = view==='points' ? '' : '<span style="display:inline-block;width:96px;height:9px;border-radius:3px;vertical-align:middle;background:linear-gradient(90deg,'+ZERO+' 0 14%,'+REDS.join(',')+')"></span>';
     const capLeft = view==='points' ? 'Each dot is one crash location.'
       : view==='corridor' ? ('Whole streets shaded by '+metric+' (darker = more).')
@@ -2571,45 +2582,46 @@ async function generateReport(cfg){
     mapHTML = mapURL ? ('<div class="r-map"><img src="'+mapURL+'" alt="Map of '+metric+' '+where+'"><div class="r-mapcap"><span>'+capLeft+'</span><span>'+grad+'&nbsp;&nbsp;'+d.region+', '+d.when+'</span></div></div>') : '';
   }
   // charts (clone the live SVG/bars so they reflect the current filter; SVG prints as vector). title + chart + legend only.
-  const chart=(title,bodyHTML,legHtml,noteHtml)=>'<div class="r-chart"><h3>'+title+'</h3>'+bodyHTML+(legHtml?('<div class="bleg">'+legHtml+'</div>'):'')+(noteHtml||'')+'</div>';
-  const stackBody=id=>'<div class="stack">'+_ih(id)+'</div>';
-  // the ONE kept takeaway: trend direction vs the 2016-2018 baseline + the zero-by-2030 goal (not shown elsewhere)
+  const chart=(title,bodyHTML,legHtml,noteHtml,wide)=>'<div class="r-chart'+(wide?' s2':'')+'"><h3>'+title+'</h3>'+bodyHTML+(legHtml?('<div class="bleg">'+legHtml+'</div>'):'')+(noteHtml||'')+'</div>';
+  // the trend versus the 2016-2018 baseline (the one takeaway not shown elsewhere)
   const trendNote=(()=>{ const ys=vz.years.slice(0,-1); if(ys.length<4) return '';
     const base=ys.slice(0,3), recent=ys.slice(-3);
     const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
     const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return '';
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
-    return '<div class="r-note">Recent years run '+dir+' the 2016–2018 baseline.</div>'; })();
+    return '<div class="r-note">Recent years run '+dir+' the 2016 to 2018 baseline. '+_ih('ytd-note')+'</div>'; })();
+  _trendW=470; drawTrend(); const trendHTML=_ih('trend'); _trendW=null; drawTrend();   // redraw the year chart at print size
+  const note=id=>{ const v=_ih(id); return v?'<div class="r-note">'+v+'</div>':''; };
   let chartsHTML='';
-  if(S.trend)   chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', _ih('trend'), _ih('trend-leg'), trendNote);
-  if(S.mode)    chartsHTML += chart('By travel mode', _ih('donut'));
-  if(S.when)    chartsHTML += chart('By day and time', _ih('heat'));
-  if(S.factors) chartsHTML += chart('Contributing factors', _ih('facbars'));
-  if(S.people)  chartsHTML += chart('Age and sex of people killed or seriously injured', _ih('agebars')+_ih('sexbars'), _ih('ppl-leg'));
-  if(S.light)   chartsHTML += chart('Lighting', _ih('lightbars'), _ih('light-leg'));
-  if(S.eq)      chartsHTML += chart('By neighborhood income, per 100,000 residents per year', _ih('eqbars'), '', '<div class="r-note">'+_ih('eqnote')+'</div>');
+  if(S.trend)   chartsHTML += chart((sev==='all'?'All crashes':'Killed or seriously injured')+', by year', trendHTML, _ih('trend-leg'), trendNote, true);
+  if(S.mode)    chartsHTML += chart('By travel mode', _ih('donut'), '', note('modedeaths'));
+  if(S.when)    chartsHTML += chart('By day and time', _ih('heat'), '', note('when-note'), true);
+  if(S.factors) chartsHTML += chart('Contributing factors', _ih('facbars'), '', '<div class="r-note">Share of crashes where police recorded each factor.</div>');
+  if(S.people)  chartsHTML += chart('Age and sex of people hurt', _ih('agebars')+_ih('sexbars'), _ih('ppl-leg'));
+  if(S.light)   chartsHTML += chart('Lighting', _ih('lightbars'), _ih('light-leg'), note('light-note'));
+  if(S.eq)      chartsHTML += chart('Per 100,000 residents per year, by neighborhood income', _ih('eqbars'), '', note('eqnote'));
   // worst-streets table (gated)
   let worstHTML='';
   if(S.worst){
     const keepPage=_worstPage; _worstPage=0; _worstSize=10; drawWorstStreets();   // the report prints the top 10
     const t_=document.getElementById('worst-tbl'), hd=t_.querySelector('thead');
     const rws=[...t_.querySelectorAll('tbody tr')].slice(0,10).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
-    worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>') : '';
+    worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>'+note('roadfacts').replace('r-note','r-facts')) : '';
     _worstPage=keepPage; _worstSize=5; drawWorstStreets();
   }
-  const rTitle = (cfg.title||'Traffic deaths & serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const rTitle = (cfg.title||'Traffic deaths and serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  R.innerHTML =
+  const p1 =
     '<div class="r-hd"><div><div class="r-eyebrow">Houston Street Safety Dashboard</div>'
       +'<h1 class="r-title">'+rTitle+'</h1>'
       +'<div class="r-sub">'+subtitle+'</div></div>'
       +'<div class="r-date">Prepared '+today+'<br>wrenvin.github.io/PharisFellowshipVisionZero</div></div>'
     +'<div class="r-stats">'+statsHTML+'</div>'
-    +synthHTML
-    +mapHTML
-    +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
-    +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+' to '+vz.years[vz.years.length-2]+' and part of '+vz.years[vz.years.length-1]+', from TxDOT crash records (CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads, shown as dots. Street shading and rankings cover city streets only.':' Freeways are not included.')+' Streets are ranked by count, not adjusted for traffic volume. Economic cost uses FHWA per-person costs by injury level (FHWA-SA-25-021, 2024 dollars). The comprehensive cost ('+fmtMoney(cost.comp)+' for this view) also values lost quality of life and overlaps with years of life lost. Costs are a minimum because some crashes are never reported. The purple overlay, if shown, is the City&rsquo;s 2022 High Injury Network. Sources: TxDOT CRIS and Roadway Inventory, OpenStreetMap, City of Houston GIS, U.S. Census (TIGER tracts, ACS 2023 income), FHWA. Full methods are in the project CODEBOOK on GitHub.</div>';
+    +synthHTML+mapHTML
+    +(worstHTML?('<h2 class="r-sec">Most dangerous streets</h2>'+worstHTML):'');
+  const about='<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+' to '+vz.years[vz.years.length-2]+' and part of '+vz.years[vz.years.length-1]+', from TxDOT crash records (CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads, shown as dots. Street shading and rankings cover city streets only.':' Freeways are not included.')+' Streets are ranked by count, not adjusted for traffic volume. Economic cost uses FHWA per-person costs by injury level (FHWA-SA-25-021, 2024 dollars); the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) also values lost quality of life and overlaps with years of life lost. Costs are a minimum because some crashes are never reported. Contributing factors and lighting are as recorded by police. Income rates use 2023 American Community Survey population. The purple overlay, if shown, is the City&rsquo;s 2022 High Injury Network. Sources: TxDOT CRIS and Roadway Inventory, OpenStreetMap, City of Houston GIS, U.S. Census, FHWA. Methods: the project CODEBOOK on GitHub. <b>Public data project, not an official City of Houston website;</b> figures may differ from official City counts.</div>';
+  R.innerHTML = '<div class="r-page r-p1">'+p1+(chartsHTML?'':about)+'</div>'
+    + (chartsHTML ? ('<div class="r-page r-p2"><h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'+about+'</div>') : '');
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }
