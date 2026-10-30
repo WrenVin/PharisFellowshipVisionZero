@@ -309,12 +309,15 @@
           <option value="">Whole city</option>
           <option value="district">Council district</option>
           <option value="sn">Super neighborhood</option>
-          <option value="precinct">Harris County precinct</option>
+          <option value="mgmt">Management district</option>
           <option value="tirz">TIRZ (tax increment zone)</option>
+          <option value="hpd">HPD patrol division</option>
+          <option value="zip">ZIP code</option>
+          <option value="tract">Census tract</option>
         </select>
         <select id="areasel" aria-label="Area" class="area-sub" disabled><option value="">Pick a kind above</option></select>
         <div class="note" id="area-note" aria-live="polite"></div>
-        <div class="tip">Focus the whole dashboard on one part of Houston. <b>Council districts</b> (A to K) and <b>Super Neighborhoods</b> (88 named planning areas like Montrose or Second Ward) are City geographies. <b>Harris County precincts</b> are the four commissioner precincts, showing the part of each inside the city (Houston's small pieces of Fort Bend and Montgomery counties are not offered as precincts). <b>TIRZs</b> are the City's 27 active Tax Increment Reinvestment Zones, listed by number, which fund local infrastructure. One area at a time; boundaries are clipped to the city limits.</div>
+        <div class="tip">Focus the whole dashboard on one part of Houston: a <b>council district</b> (A to K), a <b>Super Neighborhood</b> (88 named City planning areas), a <b>management district</b>, a <b>TIRZ</b> (the City's Tax Increment Reinvestment Zones, by number), an <b>HPD patrol division</b>, a <b>ZIP code</b>, or a <b>Census tract</b>. Only areas that lie within the city limits are offered (at least 95% inside); areas that cross the city line, such as school districts, county precincts, and many ZIP codes and tracts, are left out rather than shown as a partial piece. One area at a time.</div>
         <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
         <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
@@ -503,8 +506,8 @@
         <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
         <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
-        <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
-        <p><span class="lbl">County commissioner precincts</span> &middot; Harris County GIS (2022 precinct plan), the part of each precinct inside the city. <a href="https://www.gis.hctx.net/arcgis/rest/services/CommPrecinct/MapServer" target="_blank" rel="noopener">gis.hctx.net</a></p>
+        <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">Census tracts</span> &middot; U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
@@ -551,8 +554,11 @@
               <option value="">Whole city</option>
               <option value="district">Council district</option>
               <option value="sn">Super neighborhood</option>
-              <option value="precinct">Harris County precinct</option>
+              <option value="mgmt">Management district</option>
               <option value="tirz">TIRZ (tax increment zone)</option>
+              <option value="hpd">HPD patrol division</option>
+              <option value="zip">ZIP code</option>
+              <option value="tract">Census tract</option>
             </select>
           </label>
           <label class="rc-field">
@@ -693,13 +699,16 @@ const inDist=d=>district===null || d===district;   // is this segment/crash in t
 // when an SN is active.
 const snOk=s=>sn===null || s===sn;
 // combined "area" tests (district AND super-neighborhood), by data shape:
-// Polygon areas (county precincts, TIRZs, ...) are not tagged on the data; they are
+// Polygon areas (TIRZs, management districts, HPD divisions, ZIPs, tracts) are not tagged on the data; they are
 // tested in the browser against the selected boundary: crashes by their point,
 // segments by their midpoint. Results are cached per selection (poly.key), so the
 // ~0.3 s grid-accelerated pass happens once per area, lazily, on first render.
 const POLY_TYPES={
-  precinct:{file:'areas_precinct.geojson', label:'Harris County precinct', pick:'Choose a precinct'},
-  tirz:{file:'areas_tirz.geojson', label:'TIRZ', pick:'Choose a TIRZ'}};
+  mgmt:{file:'areas_mgmt.geojson', label:'Management district', pick:'Choose a district'},
+  tirz:{file:'areas_tirz.geojson', label:'TIRZ', pick:'Choose a TIRZ'},
+  hpd:{file:'areas_hpd.geojson', label:'HPD patrol division', pick:'Choose a division'},
+  zip:{file:'areas_zip.geojson', label:'ZIP code', pick:'Choose a ZIP code'},
+  tract:{file:'areas_tract.geojson', label:'Census tract', pick:'Choose a tract'}};
 let poly=null, polyLayer=null, polyKey=0, wantArea=null, _segIn={}, _areaPicking=false;   // _areaPicking: a kind is chosen, no area yet
 const _polyFeats={}, seg2mid={};
 const inPoly=p=>{ if(!poly) return true; if(p._pk!==poly.key){ p._pk=poly.key; p._pin=poly.test(p[1],p[0]); } return p._pin; };
@@ -1092,7 +1101,7 @@ Promise.all([
   render();
   if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
   if(wantFwy) setFwy(true);        // shared link with freeways on: load them after the first render
-  if(wantArea) selectPoly(wantArea[0], wantArea[1]);   // shared link to a precinct / TIRZ
+  if(wantArea) selectPoly(wantArea[0], wantArea[1]);   // shared link to a polygon area (TIRZ, ZIP, tract, ...)
 }).catch(err=>{   // a data file failed to load: show a message instead of hanging on the spinner forever
   console.error('Dashboard data failed to load', err);
   const l=document.getElementById('loading');
@@ -2194,7 +2203,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads (dots on the map; street shading and rankings cover city streets only).':'')+' Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, TIRZs, High Injury Network), Harris County GIS (commissioner precincts), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads (dots on the map; street shading and rankings cover city streets only).':'')+' Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, TIRZs, management districts, HPD divisions, ZIP codes, High Injury Network), U.S. Census TIGER (tracts), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }

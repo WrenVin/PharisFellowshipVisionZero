@@ -6,7 +6,8 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 - [ ] **Freeway segments.** Freeway crashes currently show as dots on top of the street shading. Written plan in [FREEWAY_PLAN.md](FREEWAY_PLAN.md): ramp-to-ramp main-lane sections, ramps, interchanges as units, frontage roads as streets, crashes placed by TxDOT milepost. Two decisions open (color scale, direction display). Not started.
 - [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
-- [ ] **More ways to cut the city (proposed).** Management districts (candidates fully or nearly fully inside the city: Downtown, Midtown, East Downtown, East End, Greater Northside, Greater Southeast, Montrose, Westchase, Sharpstown, Brays Oaks, Upper Kirby, Uptown, Memorial City, St. George Place, Five Corners, Spring Branch 97%, Energy Corridor 93%), ZIP codes, HPD patrol divisions, Census tracts, school districts, state House/Senate districts. Each is a GeoJSON plus one line in the page's POLY_TYPES.
+- [ ] **Name the remaining management districts.** HCID #8, #10-A, #12, #16, #24 and Harris County PID #2 are inside the city but listed only by number in City data; add them once their names are confirmed.
+- [ ] **School districts.** None qualify under the within-the-city rule (Houston ISD is 91% inside). Revisit only if the dashboard expands beyond the city.
 - [ ] **Decide on frontage roads.** Frontage ("SER") roads currently count as freeways: hidden by default, included by the Freeways toggle. They have driveways, bus stops, and people walking (at least 15 deaths in 2024). Judgment call: keep them with freeways, or move them onto the default city-street view.
 - [ ] **Visitor analytics.** No way to see usage. Add a privacy-friendly, cookie-free counter (e.g. GoatCounter).
 - [ ] **Link-preview image.** The og:image tag is commented out, so shared links show no picture. Make a 1200x630 preview image and enable the tag.
@@ -15,6 +16,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-29 Area filter: removed county precincts (partial); added management districts, HPD patrol divisions, ZIP codes and Census tracts, offering only areas at least 95% inside the city limits.
 - [x] 2026-10-29 Area filter: one control for council districts, super neighborhoods, county commissioner precincts and TIRZs; removed the PSN overlay; Freeways toggle restyled to match the other segmented toggles.
 - [x] 2026-10-29 Freeways toggle (off by default): adds freeway, toll-road, ramp and frontage-road crashes to every total and chart; also makes the freeway exclusion visible in the sidebar (replaces the "label the freeway exclusion" item).
 - [x] 2026-10-29 Faster first load: column-packed data files cut the first-visit download from about 10.5 MB to about 3.8 MB (`src/pack_webmap_data.py`). Further option if data grows: vector tiles or per-area loading.

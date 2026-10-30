@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Area filter: precincts removed; management districts, HPD divisions, ZIP codes, Census tracts added (city-only rule)
+
+Vincent's rule: no partial areas. Measured against our boundary, Harris precincts were mostly outside the city (Pct 1 59%, Pct 2 33%, Pct 3 15%, Pct 4 34% of each precinct's land area), so precincts are gone entirely ("maybe if we ever expand to Harris County").
+
+- **Rule, applied to every polygon kind:** keep an area only if at least 95% of it lies inside the **official** City of Houston limits (full- and limited-purpose, COH layer 0). Measuring against the official limits rather than our full-purpose map boundary matters: HPD Clear Lake, Eastside and North Belt looked 92 to 98% inside our map, but 99 to 100% of the "outside" part is limited-purpose city land or water. Against the official limits the layers split cleanly, so 95% is a natural cutoff. Kept areas are then clipped to the full-purpose map for drawing (limited-purpose slivers carry no CRIS crashes).
+- **Result:** TIRZ 26 (TIRZ 10 Lake Houston 92% left out); management districts 18 of 21 named (Greater Greenspoint 67%, International 77%, Near Northwest 69% left out); HPD patrol divisions 16 of 17 (Kingwood 90%); ZIP codes 55 of 134; Census tracts 596 (2020 TIGER). **No school district qualifies** (Houston ISD 91%, Spring Branch ISD 81%, Alief ISD 77%), so none are offered.
+- **Management district names:** the COH layer mixes ~75 special districts. Kept confirmed names only; HCID #9 is the Hobby Area District (City board listing). Left out until named: HCID #8, #10-A (sources conflict on 10-A vs 10-B and a "Sunnyside District"), #12, #16, #24, Harris County PID #2.
+- `export_area_layers.py` rewritten around the rule (prints what it kept and left out); the page's kinds are now Whole city, Council district, Super neighborhood, Management district, TIRZ, HPD patrol division, ZIP code, Census tract. Data sources updated (Census TIGERweb for tracts).
+- **Verified** against independent shapely counts (all crashes): Westchase 28 killed / 218 KSI / 10,049 crashes, exact; Census tract 3110.01, exact; HPD Central 43,746 vs 43,745; ZIP 77002 20,291 vs 20,256. The gaps are crashes lying exactly on the boundary line (ZIP and division lines follow street centerlines, where crashes are geocoded): 131 such crashes on 77002's line, which shapely's strict test counts as outside and the browser assigns to a side. Across all 16 HPD divisions, 280 of 432,920 crashes (0.06%) fall in two adjacent divisions because each boundary is simplified independently; harmless for one-area-at-a-time views, would matter only if areas were summed. Could be reduced by simplifying less.
+
 ## 2026-10-29 — Area filter: Harris precincts only; TIRZs numbered; freeway plan written
 
 - **Fort Bend and Montgomery precincts removed.** All precincts are clipped to the city limits; Houston holds only slivers of those counties' precincts, so offering them as "a precinct" would mislead (Vincent's call). The option is now "Harris County precinct" (4, each the part inside the city; the tip says so).

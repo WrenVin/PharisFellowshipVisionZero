@@ -286,7 +286,8 @@ def check_aux_geojson():
         if g is not None and not (g.get("features") or g.get("type") == "Feature"):
             err(f"{name}: GeoJSON has no features")
     # Area-filter layers the page fetches on demand: each feature needs an id + name.
-    for name in ("areas_precinct.geojson", "areas_tirz.geojson"):
+    for name in ("areas_tirz.geojson", "areas_mgmt.geojson", "areas_hpd.geojson",
+                 "areas_zip.geojson", "areas_tract.geojson"):
         g = load(name)
         if g is not None:
             fs = g.get("features") or []
