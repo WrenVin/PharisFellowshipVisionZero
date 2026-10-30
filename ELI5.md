@@ -212,7 +212,7 @@ its design + context fingerprint: size, speed, traffic, sidewalks, median, and
 neighborhood. The one missing piece is land use (above). The foundation is built.
 
 **The crash data has arrived** — the location-stamped records of where people
-have actually been hurt (state crash files for 2016–2025, plus a partial 2026).
+have actually been hurt (state crash files for 2016–2025, plus 2026 through October).
 We cleaned it up and kept the crashes on **streets** (not freeways). The one
 clear cut: we drop limited-access freeways and tollways (I-610, US-59, the
 Sam Houston Tollway), because those are a different kind of road, the state runs
@@ -222,8 +222,8 @@ them** — like Highway 6, S Main / US-90A, and Westheimer (which out west is
 officially the state's FM 1093). That's deliberate: this is how Austin's Vision
 Zero dashboard and Houston's own High Injury Network do it, because a huge share
 of the deaths happen on exactly those state-owned arterials, and ignoring them
-would hide the problem. The decade's toll on city streets: **1,687 people killed
-and 9,928 killed or seriously injured** (about **69,500 years of life lost**).
+would hide the problem. The decade's toll on city streets: **1,729 people killed
+and 10,211 killed or seriously injured** (about **70,900 years of life lost**).
 
 What we *do* do is **label** every street and crash as city-owned or
 state-owned (TxDOT), so the dashboard can say plainly that about **1 in 9 of the
@@ -270,9 +270,9 @@ actually sees and can do:
 - **The toll, up top.** Headline numbers: how many people have been killed or
   seriously hurt, and **how many years of life that lost** (a powerful way to
   show that a young person's death counts for more than the bare number "1").
-  Citywide that's **1,687 killed, 8,241 seriously injured (9,928 "killed or
-  seriously injured"), and about 69,500 years of life lost** over 2016–2025
-  (plus a partial 2026).
+  Citywide that's **1,729 killed, 8,482 seriously injured (10,211 "killed or
+  seriously injured"), and about 70,900 years of life lost** over 2016–2025
+  (plus 2026 through October).
 - **A big map of Houston** you can shade three ways: whole **streets**,
   individual **blocks** (segments), or every **crash as a dot**.
 - **Filters down the left:** search for a street by name, pick a council

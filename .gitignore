@@ -21,3 +21,5 @@ data/external/.mapillary_token
 *.mapillary_token
 # Mapillary image-point cache — 4.8M rows, re-fetchable via the API
 data/external/*_mapillary_points.parquet
+data/raw/CRIS_staging/
+data/raw/CRIS_backup_*/

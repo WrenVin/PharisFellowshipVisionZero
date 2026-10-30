@@ -36,6 +36,7 @@ src/
   conflate_demographics.py     # join Census ACS neighborhood demographics
   conflate_sidewalks.py        # infer sidewalk presence from OSM footways
   conflate_landuse.py          # join adjacent land use from HCAD parcels
+  extract_cris_houston.py      # cut Houston (City_ID 208) out of statewide CRIS chunk zips -> data/raw/CRIS_staging/
   build_crashes.py             # clean CRIS crashes -> study-area points (severity + mode)
   assign_crashes.py            # assign crashes to segments (200-ft buffer) -> counts
   export_csv.py                # flat CSV of all segments (Excel/Sheets, with map links)
@@ -94,6 +95,8 @@ python3 -m venv .venv
 .venv/bin/python src/conflate_demographics.py    # join ACS demographics (needs CENSUS_API_KEY)
 .venv/bin/python src/conflate_sidewalks.py       # infer sidewalks from OSM footways
 .venv/bin/python src/conflate_landuse.py         # join adjacent land use (HCAD parcels)
+# (crash refresh from a statewide CRIS pull: src/extract_cris_houston.py <statewide CRIS dir>, then swap
+#  data/raw/CRIS_staging/Houston_Crash_* into data/raw/CRIS/ after backing up the old folders)
 .venv/bin/python src/build_crashes.py            # clean CRIS crashes (severity + mode), city streets only
 .venv/bin/python src/assign_crashes.py           # assign crashes to segments -> per-segment counts
 .venv/bin/python src/export_csv.py               # refresh inspection CSV
@@ -136,7 +139,7 @@ Everything follows from there: the clip polygon, the city-data query bounding bo
 
 - **Road network:** an enriched analysis network of **75,260 surface-street segments / ~7,336 centerline miles** across the full-purpose City of Houston (limited-access freeways + frontage roads excluded; at-grade arterials incl. state-owned kept and labeled `on_txdot`; divided roads merged, slivers cleaned, `seg_id`s prefixed `H-`). The dashboard publishes a slimmed **66,922-segment subset** (`segments_vz.geojson`, ~6,421 mi). Of that published set, 6,165 segments (9.2%) carry at least one severe crash; the worst single segment has 16. About 974 segments are labeled TxDOT-owned (state).
 - **Predictor set** (per segment): posted speed (100%), lane count (95.1%), roadway width (95.1%), median type (87.6%), traffic volume/ADT (~25% overall, dense on arterials) and operating speed — City of Houston Public Works; neighborhood demographics — Census ACS (block group on 100% of segments, income on 89%); sidewalk presence — OSM. **Land use (HCAD) is deferred** at city scale (1.5 M parcels; the fetch needs a tiled/bbox approach) — `landuse_*` columns are absent for now.
-- **Crash outcome:** TxDOT CRIS 2016–2025 (plus partial 2026), **surface streets** (limited-access freeways/tollways excluded; at-grade arterials incl. state-owned kept). 421,699 crashes in the analysis build (421,679 published — the full-purpose boundary clip); **9,928 KSI (1,687 fatal crashes, 8,241 serious-injury crashes)**; ~69,500 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98% assigned, median 4 ft — the per-crash `seg_id` is persisted on the crash layer and reused by the web export, so per-crash and per-segment counts reconcile exactly). Each crash is labeled city- vs TxDOT-owned; ~11% (1,090) of KSI are on TxDOT-owned arterials, the rest on city streets. KSI are up ~19% vs 2016–2018.
+- **Crash outcome:** TxDOT CRIS 2016–2025 (plus 2026 through October 1), **surface streets** (limited-access freeways/tollways excluded; at-grade arterials incl. state-owned kept). 432,920 crashes in the analysis build (432,920 published, refreshed 2026-10-29); **10,211 KSI (1,729 fatal crashes, 8,482 serious-injury crashes)**; ~70,900 estimated years of life lost; mode-tagged; assigned to segments (200-ft buffer, 98% assigned, median 4 ft — the per-crash `seg_id` is persisted on the crash layer and reused by the web export, so per-crash and per-segment counts reconcile exactly). Each crash is labeled city- vs TxDOT-owned; ~11% (1,090) of KSI are on TxDOT-owned arterials, the rest on city streets. KSI are up ~19% vs 2016–2018.
 - **Vulnerable road users:** walking and biking are only ~3% of all crashes but ~27% of severe crashes and ~41% of deaths. Walking: 597 killed, 2,226 KSI, 8,772 crashes. Biking: 89 killed, 459 KSI, 3,293 crashes.
 - **Economic cost:** applying FHWA per-person costs by KABCO injury severity (FHWA-SA-25-021, 2024 dollars) to the people hurt in each crash, the citywide crashes carry an estimated **~$15.3B in economic cost** (~$64.8B comprehensive, which additionally values lost quality/length of life and overlaps the YLL figure). The dashboard recomputes this live for any filter; it is a conservative floor (unknown-severity injuries excluded, reported crashes undercount).
 - **Equity:** neighborhoods under $100k median household income account for ~81% of KSI; the citywide block-group median is ~$71k.
@@ -159,6 +162,6 @@ Setup note: demographics need a free Census API key (env `CENSUS_API_KEY` or `da
 | Sidewalk presence | OpenStreetMap footways | done (no official inventory) |
 | Adjacent land use | City of Houston / HCAD parcels | **deferred** — citywide fetch (1.5 M parcels) needs a tiled approach |
 | Roadway ownership (city vs TxDOT) | TxDOT Roadways inventory (on/off-system) | done — labels each street/crash city- vs state-owned (kept, not excluded) |
-| Crashes | TxDOT CRIS public extracts | done — 2016–2025 + partial 2026, surface streets (limited-access freeways excluded; at-grade arterials incl. state-owned kept) |
+| Crashes | TxDOT CRIS public extracts | done — 2016–2025 + 2026 through Oct 1 (refreshed 2026-10-29 from a statewide pull via `src/extract_cris_houston.py`), surface streets (limited-access freeways excluded; at-grade arterials incl. state-owned kept) |
 | Official High Injury Network (2022) | City of Houston GIS (`src/export_hin.py`) | done — `docs/hin.geojson`, on the VZ dashboard |
 | Concept Proactive Safety Network | this project's risk model (`src/build_psn.py` on `trb-revisions`; exported by `src/export_psn.py`) | done — `docs/psn.geojson`, on the VZ dashboard |

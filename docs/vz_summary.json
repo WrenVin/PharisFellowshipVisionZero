@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-02",
+  "generated": "2026-10-29",
   "years": [
     2016,
     2017,
@@ -14,18 +14,18 @@
     2026
   ],
   "toll": {
-    "killed": 1687,
-    "serious": 8241,
-    "ksi": 9928,
-    "crashes": 421699
+    "killed": 1729,
+    "serious": 8482,
+    "ksi": 10211,
+    "crashes": 432920
   },
   "mode": {
-    "ped_killed": 597,
-    "bike_killed": 89,
-    "ped_ksi": 2226,
-    "bike_ksi": 459,
-    "ped_crashes": 8772,
-    "bike_crashes": 3293,
+    "ped_killed": 615,
+    "bike_killed": 90,
+    "ped_ksi": 2295,
+    "bike_ksi": 475,
+    "ped_crashes": 9043,
+    "bike_crashes": 3406,
     "vuln_killed_share": 41
   },
   "ksi_by_year": {
@@ -37,15 +37,15 @@
     "2021": 1096,
     "2022": 1016,
     "2023": 1037,
-    "2024": 1028,
+    "2024": 1029,
     "2025": 949,
-    "2026": 385
+    "2026": 667
   },
   "hin": {
     "pct_streets": 6,
-    "pct_ksi": 71,
+    "pct_ksi": 70,
     "pct_zero_streets": 92,
-    "ksi_on_streets": 9727
+    "ksi_on_streets": 10007
   },
   "equity": {
     "median_income": 71182,

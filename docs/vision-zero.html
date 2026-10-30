@@ -744,7 +744,7 @@ function rangeStr(arr, fmt){ if(!arr.length) return ''; if(arr.length===1) retur
 function timeSpan(short){
   if(mrActive()) return ymLo===ymHi ? ymStr(ymLo,short) : (ymStr(ymLo,short)+'–'+ymStr(ymHi,short));
   const yl=facetLabel('year'), ml=facetLabel('month');   // arc-aware (handles wrap), null when the axis is "all"
-  const yStr = yl!==null ? yl : (vz.years[0]+'–'+vz.years[vz.years.length-2]);
+  const yStr = yl!==null ? yl : (vz.years[0]+'–'+vz.years[vz.years.length-1]);   // all-years totals include the partial current year
   if(ml!==null) return yl!==null ? (ml+' '+yStr) : ml;
   return yStr;
 }

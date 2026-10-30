@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Data refresh: crashes now through 2026-10-01 (from a statewide CRIS pull)
+
+The dashboard's crash data ended 2026-06-11. Refreshed it from a statewide TxDOT CRIS public pull Vincent made on 2026-10-10 for a separate project (`~/Desktop/FarmandCity/CRIS/<year>/*Texas.zip`, 2016 through 2026-10-01), instead of re-requesting Houston extracts.
+
+- **New `src/extract_cris_houston.py`** cuts Houston out of the statewide chunk zips with the same filter the original City = Houston extracts used (`City_ID == 208`; every row of the June extracts carried it) and writes the crash, unit, person, and primaryperson tables in the layout `build_crashes.py` already reads. Values are copied as text, unchanged. The one chunk spanning TxDOT's spring-2023 format change carries both the 2018 and 2023 layouts; both are kept as separate files, as in the June Houston extract. The pipeline itself is unchanged.
+- **Checked before swapping:** column layouts match the June extracts for every year. For 2024, 99.98% of crashes are identical, with the same severity and death counts; 37 crashes added and 14 withdrawn (late and amended reports); about 580 crashes re-geocoded by TxDOT (median shift about 230 ft) and 70 lost their geocode (the pipeline falls back to the officer-reported location).
+- **Swap:** June extracts moved to `data/raw/CRIS_backup_2026-06/` (gitignored); new folders into `data/raw/CRIS/`. Reran build_crashes, assign_crashes, export_csv, export_webmap_data, export_vz_summary; validator green.
+- **Result:** 432,920 surface-street crashes (was 421,679). 2016 to 2023 change by 6 to 15 crashes per year with identical KSI and deaths; 2024 +1 KSI; 2025 +2 deaths (late reports); 2026 grows from 15,055 to 26,215 crashes, 385 to 667 KSI, 65 to 105 deaths. Totals: 1,729 killed, 8,482 seriously injured, 10,211 KSI, about 70,900 years of life lost.
+- **Label fix:** with no year filter, the KPI tiles read "2016–2025" while counting the partial current year too (a pre-existing bug, off by 65 deaths in June, 105 now). `timeSpan` now shows the full span, "2016–2026". The "plus partial 2026" note under the map and in the report footer was already correct.
+- **Not refreshed:** the modeling outputs, PSN, and TRB paper numbers stay on the July analysis vintage; this refresh touches the dashboard only.
+
 ## 2026-10-15 — Dashboard: basemap swapped from CARTO to Esri (CARTO now requires an API key)
 
 The live dashboard's background map disappeared, replaced by tiles reading "API KEY REQUIRED · carto.com/basemaps/apikey". CARTO's previously free `light_all` basemap now serves a watermark tile to keyless requests (verified directly: the tile URL returns HTTP 200 with the watermark image). The crash data, overlays, and charts were unaffected; only the background was lost.
