@@ -367,7 +367,10 @@
       <div class="grp">
         <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <div class="tip">The City's official map of the streets with the most severe crashes (its 2022 "High Injury Network", solid purple). Turn it on to compare the official list with where crashes actually fall.</div>
+        <label class="toggle"><input type="checkbox" id="schools"> Schools</label>
+        <label class="toggle"><input type="checkbox" id="parks"> Parks</label>
+        <div class="note" id="sp-note" aria-live="polite"></div>
+        <div class="tip">The <b>High Injury Network</b> (solid purple) is the City's official 2022 map of the streets with the most severe crashes. <b>Schools</b> (blue dots; click one for its name and grades) are the public district and charter campuses in the Texas Education Agency directory. <b>Parks</b> (green) are City of Houston parks. Federal Safe Routes to School infrastructure funding generally covers the public right of way within about 2 miles of a school.</div>
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
@@ -507,6 +510,7 @@
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
         <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
         <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">Schools</span> &middot; Texas Education Agency school directory (public district and charter campuses), via City of Houston GIS. <span class="lbl">Parks</span> &middot; City of Houston Parks and Recreation, via City of Houston GIS.</p>
         <p><span class="lbl">Census tracts</span> &middot; U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
@@ -1484,6 +1488,7 @@ function resetAll(){
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
   setR('sev','ksi'); setR('view','streets'); setR('owner','all');
   const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
+  ['schools','parks'].forEach(k=>{ const b=document.getElementById(k), L_=k==='schools'?schoolsLayer:parksLayer; if(b) b.checked=false; if(L_ && map.hasLayer(L_)) map.removeLayer(L_); });
   if(fwyOn){ fwyOn=false; setR('fwy','0'); pts=cityPts; rebuildDow(); }
   const ds=document.getElementById('district'); if(ds) ds.value='';
   _clearSN(); _clearPoly();   // also clear any super-neighborhood / polygon area
@@ -1493,7 +1498,7 @@ function resetAll(){
 // the global Reset button only appears when something is off its default
 function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
-  const hinOn=!!(document.getElementById('hin')||{}).checked;
+  const hinOn=!!(document.getElementById('hin')||{}).checked || !!(document.getElementById('schools')||{}).checked || !!(document.getElementById('parks')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
     && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow()
     && district===null && sn===null && !poly && selIds.size===0 && !hinOn && !fwyOn;
@@ -1581,6 +1586,8 @@ function drawLegend(){
     if(fwyOn) h+='<div class="key"><span class="dot" style="background:#c0151a;border-radius:50%;width:8px;height:8px"></span>Freeway crash (freeways are not shaded)</div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
+  if(schoolsLayer && map.hasLayer(schoolsLayer)) h+='<div class="key"><span class="dot" style="background:'+SCHOOL_C+';border-radius:50%;width:9px;height:9px"></span>School</div>';
+  if(parksLayer && map.hasLayer(parksLayer)) h+='<div class="key"><span class="dot" style="background:'+PARK_C+';opacity:.5;width:12px;height:9px"></span>Park</div>';
   el.innerHTML=h;
 }
 
@@ -2047,6 +2054,36 @@ document.getElementById('hin').onchange=e=>{
   drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
 document.querySelectorAll('input[name=fwy]').forEach(r=>r.onchange=()=>setFwy(document.querySelector('input[name=fwy]:checked').value==='1'));
+// ---- Schools / Parks overlays (loaded on first use) ---------------------------
+// Schools draw on the shared canvas renderer (so the printable report captures
+// them); parks fill in their own pane beneath the street shading.
+let schoolsLayer=null, parksLayer=null;
+const SCHOOL_C='#1f5fbf', PARK_C='#2e8b57';
+map.createPane('parksPane'); map.getPane('parksPane').style.zIndex=350;
+const parksRenderer=L.canvas({pane:'parksPane'});
+function _spLoad(file){ return fetch(file).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }); }
+function setOverlay(kind, on){
+  const box=document.getElementById(kind), note=document.getElementById('sp-note');
+  const have = kind==='schools' ? schoolsLayer : parksLayer;
+  if(on && !have){
+    box.disabled=true; note.textContent='Loading '+kind+'…';
+    _spLoad(kind+'.geojson').then(g=>{
+      if(kind==='schools'){
+        schoolsLayer=L.geoJSON(g,{pointToLayer:(f,ll)=>L.circleMarker(ll,{renderer,radius:4.5,color:'#fff',weight:1.2,fillColor:SCHOOL_C,fillOpacity:.95}),
+          onEachFeature:(f,l)=>{ const p=f.properties; l.bindPopup('<div style="font:13px/1.5 Inter,sans-serif"><div style="font-weight:700">'+p.name+'</div>'
+            +'<div style="color:#5b6672">Grades '+p.grades+' · '+p.district+(p.charter?' (charter)':'')+'</div></div>'); }});
+      } else {
+        parksLayer=L.geoJSON(g,{renderer:parksRenderer,interactive:false,style:{color:PARK_C,weight:1,opacity:.8,fillColor:PARK_C,fillOpacity:.22}});
+      }
+      box.disabled=false; note.textContent=''; setOverlay(kind, box.checked);
+    }).catch(()=>{ box.disabled=false; box.checked=false; note.textContent='Could not load '+kind+'. Try again.'; });
+    return;
+  }
+  if(have){ if(on) have.addTo(map); else if(map.hasLayer(have)) map.removeLayer(have); }
+  drawLegend(); updateResetBtn();
+}
+document.getElementById('schools').onchange=e=>setOverlay('schools', e.target.checked);
+document.getElementById('parks').onchange=e=>setOverlay('parks', e.target.checked);
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
 // range-reset links (used by the chart sub text)

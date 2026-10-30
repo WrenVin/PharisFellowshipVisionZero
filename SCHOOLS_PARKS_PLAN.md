@@ -1,10 +1,10 @@
 # Schools and Parks: Plan (not started)
 
-Status: planned 2026-10-29 from form feedback (submitted 2026-07-22, "Feature idea"): put schools and parks on the map, preferably as a toggle, because Safe Routes to Schools and Parks funding is available within 3 miles of each, and overlaying them with the injury network would help justify applications.
+Status: part 1 (overlays) shipped 2026-10-29; parts 2 to 4 not started. Planned 2026-10-29 from form feedback (submitted 2026-07-22, "Feature idea"): put schools and parks on the map, preferably as a toggle, because Safe Routes to Schools and Parks funding is available within 3 miles of each, and overlaying them with the injury network would help justify applications.
 
 ## Check first (before building)
 
-- **The program and its radius.** Confirm which program the submitter means and its actual eligibility rule. Federal Safe Routes to School guidance commonly uses about 2 miles for K-8; "3 miles" may be a specific state or local program. The radius drives the design, so confirm it (Vincent can ask the submitter; a reply draft is easy).
+- **The program and its radius.** Confirm which program the submitter means and its actual eligibility rule. Federal Safe Routes to School guidance (FHWA) puts infrastructure projects in the public right of way within about 2 miles of a school, originally K-8 (newer state programs cite K-12 under the 2021 infrastructure law); "3 miles" may be a specific state or local program. The radius drives the design, so confirm it (Vincent can ask the submitter; a reply draft is easy).
 - **Which schools and parks count.** Public only, or private and charter too? Grade bands? City parks only, or county parks, trails, and greenways too?
 
 ## What to build
