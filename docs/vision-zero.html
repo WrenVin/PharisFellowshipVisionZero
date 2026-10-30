@@ -101,6 +101,7 @@
   #legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(255,255,255,.94);
     border:1px solid var(--line);border-radius:8px;padding:8px 11px;font-size:12px;min-width:188px;max-width:250px}
   #legend .grad{height:9px;border-radius:3px;margin:5px 0 2px;width:100%}
+  .area-sub{margin-top:6px}
   #legend .ends{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
   #legend .key{display:flex;align-items:center;gap:6px;margin-top:7px}
   #info{position:absolute;right:10px;top:10px;width:250px;max-height:calc(100% - 20px);overflow-y:auto;z-index:600;
@@ -274,7 +275,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, this project's concept Proactive Safety Network, and per-street design.</h2>
+  <h2 class="sr-only">Vision Zero dashboard for the City of Houston: people killed or seriously injured on city streets, the city's High Injury Network, and per-street design.</h2>
 
   <div class="top">
     <div>
@@ -302,14 +303,20 @@
         <datalist id="streetnames"></datalist>
         <div class="note" id="searchnote"></div>
       </div>
-      <div class="grp" id="district-grp" style="display:none">
-        <h3>District</h3>
-        <select id="district" aria-label="Filter by council district"></select>
-      </div>
-      <div class="grp" id="sn-grp" style="display:none">
-        <h3>Super neighborhood <button class="info" onclick="toggleTip(this)" aria-label="About super neighborhoods">i</button></h3>
-        <select id="snsel" aria-label="Filter by super neighborhood"></select>
-        <div class="tip">Houston's 88 official Super Neighborhoods (a City planning geography of named areas like Montrose or Second Ward). Pick one to focus the whole dashboard on it. Choosing a Super Neighborhood clears the district filter, and vice versa: you can filter by one or the other, not both.</div>
+      <div class="grp" id="area-grp">
+        <h3>Area <button class="info" onclick="toggleTip(this)" aria-label="About area filters">i</button></h3>
+        <select id="areatype" aria-label="Kind of area">
+          <option value="">Whole city</option>
+          <option value="district">Council district</option>
+          <option value="sn">Super neighborhood</option>
+          <option value="precinct">County commissioner precinct</option>
+          <option value="tirz">TIRZ (tax increment zone)</option>
+        </select>
+        <select id="areasel" aria-label="Area" class="area-sub" disabled><option value="">Pick a kind above</option></select>
+        <div class="note" id="area-note" aria-live="polite"></div>
+        <div class="tip">Focus the whole dashboard on one part of Houston. <b>Council districts</b> (A to K) and <b>Super Neighborhoods</b> (88 named planning areas like Montrose or Second Ward) are City geographies. <b>County commissioner precincts</b> cover the parts of Harris, Fort Bend and Montgomery counties inside the city. <b>TIRZs</b> are the City's 27 Tax Increment Reinvestment Zones, which fund local infrastructure. One area at a time; boundaries are clipped to the city limits.</div>
+        <select id="district" hidden aria-hidden="true" tabindex="-1"></select>
+        <select id="snsel" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
       <div class="grp">
         <h3 id="mode-h">Travel mode</h3>
@@ -331,7 +338,10 @@
       </div>
       <div class="grp">
         <h3>Freeways <button class="info" onclick="toggleTip(this)" aria-label="About including freeways">i</button></h3>
-        <label class="toggle"><input type="checkbox" id="fwy"> Include freeways and toll roads</label>
+        <span class="seg">
+          <label title="City streets only"><input type="radio" name="fwy" value="0" checked> Excluded</label>
+          <label title="Add crashes on freeways, toll roads, ramps and frontage roads"><input type="radio" name="fwy" value="1"> Included</label>
+        </span>
         <div class="note" id="fwy-note" aria-live="polite"></div>
         <div class="tip">Off by default: this dashboard focuses on city streets, the roads the City can redesign. Turn this on to add crashes on freeways, toll roads, ramps and frontage roads, about a third of Houston's traffic deaths, to every total, chart and filter. They show on the map as dots, because freeways are not part of the street network the map shades. Street rankings and the "harm is concentrated" measure still cover city streets only. Toll roads count under Road owner: All only.</div>
       </div>
@@ -352,10 +362,9 @@
         <div class="tip">Three levels of detail. <b>Streets</b> colors each whole street by its total; <b>Segments</b> colors each block on its own; <b>Points</b> plots every crash as a dot.</div>
       </div>
       <div class="grp">
-        <h3>Overlays <button class="info" onclick="toggleTip(this)" aria-label="About the overlay networks">i</button></h3>
+        <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
         <label class="toggle"><input type="checkbox" id="hin"> City's High Injury Network</label>
-        <label class="toggle"><input type="checkbox" id="psn"> Concept Proactive Safety Network</label>
-        <div class="tip">Two street networks of comparable size. The <b>High Injury Network</b> (solid purple) is the City's official 2022 map of the streets with the most severe crashes. The <b>Proactive Safety Network</b> (dashed blue) is this project's concept network, flagged by a research model for how the streets are built (lanes, speed, signals, traffic) rather than for their crash history. The PSN is a research product, not an official City designation. Turn either on to compare it with where crashes actually fall.</div>
+        <div class="tip">The City's official map of the streets with the most severe crashes (its 2022 "High Injury Network", solid purple). Turn it on to compare the official list with where crashes actually fall.</div>
       </div>
       <div class="grp">
         <button id="blink" class="blinkbtn">Blink crash locations</button>
@@ -492,10 +501,10 @@
         <p><span class="lbl">Road ownership (city vs TxDOT)</span> &middot; TxDOT Roadway Inventory. <a href="https://gis-txdot.opendata.arcgis.com/" target="_blank" rel="noopener">TxDOT Open Data Portal</a></p>
         <p><span class="lbl">Street design (speed, lanes, width, median) &amp; traffic volume</span> &middot; City of Houston Public Works. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">High Injury Network overlay</span> &middot; City of Houston Vision Zero, official 2022 HIN. <a href="https://www.houstontx.gov/visionzero/" target="_blank" rel="noopener">houstontx.gov/visionzero</a></p>
-        <p><span class="lbl">Proactive Safety Network overlay</span> &middot; this project's research model (a concept network scored on street design, not crash history; not an official City designation). <a href="https://github.com/WrenVin/PharisFellowshipVisionZero" target="_blank" rel="noopener">github.com/WrenVin/PharisFellowshipVisionZero</a></p>
         <p><span class="lbl">Neighborhood income</span> &middot; U.S. Census American Community Survey, 2023 5-year estimates (block group). <a href="https://www.census.gov/programs-surveys/acs/" target="_blank" rel="noopener">census.gov/acs</a></p>
         <p><span class="lbl">Crash costs</span> &middot; FHWA, Updated Crash Costs for Highway Safety Analysis (FHWA-SA-25-021), KABCO per-person costs in 2024 dollars. <a href="https://highways.dot.gov/safety/data-analysis-tools/rsdp/rsdp-tools/crash-costs-highway-safety-analysis-0" target="_blank" rel="noopener">highways.dot.gov</a></p>
-        <p><span class="lbl">City boundary, council districts, super neighborhoods</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs</span> &middot; City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
+        <p><span class="lbl">County commissioner precincts</span> &middot; Harris County GIS (2022 precinct plan); Fort Bend and Montgomery County precincts via City of Houston GIS. <a href="https://www.gis.hctx.net/arcgis/rest/services/CommPrecinct/MapServer" target="_blank" rel="noopener">gis.hctx.net</a></p>
         <p>The specific source layers, vintages, and join methods are documented in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
@@ -537,12 +546,18 @@
             <input type="text" id="rc-title" autocomplete="off" />
           </label>
           <label class="rc-field">
-            <span>Council district</span>
-            <select id="rc-district"></select>
+            <span>Kind of area</span>
+            <select id="rc-areatype">
+              <option value="">Whole city</option>
+              <option value="district">Council district</option>
+              <option value="sn">Super neighborhood</option>
+              <option value="precinct">County commissioner precinct</option>
+              <option value="tirz">TIRZ (tax increment zone)</option>
+            </select>
           </label>
           <label class="rc-field">
-            <span>Super neighborhood</span>
-            <select id="rc-sn"></select>
+            <span>Area</span>
+            <select id="rc-area"></select>
           </label>
           <label class="rc-field">
             <span>Travel mode</span>
@@ -598,8 +613,6 @@
           </label>
         </div>
         <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City High Injury Network overlay</span></label>
-        <label class="rc-check rc-overlay"><input type="checkbox" id="rc-psn"> <span>Include the concept Proactive Safety Network overlay</span></label>
-        <div class="rc-note">Choosing a district clears the super neighborhood, and the reverse: you can use one or the other, not both.</div>
       </section>
 
       <section class="rc-sec">
@@ -632,10 +645,10 @@
 // warm sequential ramp (low -> high). The low end is a clear orange, not a pale
 // cream, so a 1-crash block is still easy to spot against the light basemap.
 const REDS=['#fdae61','#f98e52','#f16d43','#e0451f','#c0151a','#8a0b12'];
-const ZERO='#c9ccd1', HINCOLOR='#6a3d9a', PSNCOLOR='#0072B2';
+const ZERO='#c9ccd1', HINCOLOR='#6a3d9a';
 const FIELD={all:{ksi:'n_severe',all:'n_crash'},ped:{ksi:'n_ped_severe',all:'n_ped'},
   bike:{ksi:'n_bike_severe',all:'n_bike'}};
-let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, hinCasing=null, hinCore=null, psnLayer=null, psnCasing=null, psnCore=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
+let mode='all', sev='ksi', year=null, month=null, district=null, sn=null, owner='all', view='streets', vz=null, geo=null, hinLayer=null, hinCasing=null, hinCore=null, ptLayer=null, blinkLayer=null, blinkTimer=null, selStreet=null, selSeg=null, selIds=new Set();
 // temporal range filters (year/hour/day-of-week). yrLo..yrHi default to the full span (set once data loads);
 // hour 0..23, day-of-week 0..6 (Mon=0 .. Sun=6). year is DERIVED from the year range below.
 let yrLo=null, yrHi=null, hrLo=0, hrHi=23, dowLo=0, dowHi=6;
@@ -680,9 +693,39 @@ const inDist=d=>district===null || d===district;   // is this segment/crash in t
 // when an SN is active.
 const snOk=s=>sn===null || s===sn;
 // combined "area" tests (district AND super-neighborhood), by data shape:
-const inArea=p=>inDist(p[10]) && snOk(p[CSN]);             // crash array
-const inAreaProp=p=>inDist(p.district) && snOk(p.sn);      // segment feature.properties (or selSeg)
-const inAreaSeg=seg=>inDist(seg2dist[seg]) && snOk(seg2sn[seg]);  // by seg_id
+// Polygon areas (county precincts, TIRZs, ...) are not tagged on the data; they are
+// tested in the browser against the selected boundary: crashes by their point,
+// segments by their midpoint. Results are cached per selection (poly.key), so the
+// ~0.3 s grid-accelerated pass happens once per area, lazily, on first render.
+const POLY_TYPES={
+  precinct:{file:'areas_precinct.geojson', label:'County commissioner precinct', pick:'Choose a precinct'},
+  tirz:{file:'areas_tirz.geojson', label:'TIRZ', pick:'Choose a TIRZ'}};
+let poly=null, polyLayer=null, polyKey=0, wantArea=null, _segIn={}, _areaPicking=false;   // _areaPicking: a kind is chosen, no area yet
+const _polyFeats={}, seg2mid={};
+const inPoly=p=>{ if(!poly) return true; if(p._pk!==poly.key){ p._pk=poly.key; p._pin=poly.test(p[1],p[0]); } return p._pin; };
+function inPolySeg(id){ if(!poly) return true; let v=_segIn[id];
+  if(v===undefined){ const m=seg2mid[id]; v=_segIn[id]= m ? poly.test(m[0],m[1]) : false; } return v; }
+const inArea=p=>inDist(p[10]) && snOk(p[CSN]) && inPoly(p);             // crash array
+const inAreaProp=p=>inDist(p.district) && snOk(p.sn) && inPolySeg(p.seg_id);      // segment feature.properties (or selSeg)
+const inAreaSeg=seg=>inDist(seg2dist[seg]) && snOk(seg2sn[seg]) && inPolySeg(seg);  // by seg_id
+// fast point-in-polygon: a grid over the boundary's bbox marks cells as inside,
+// outside, or crossed by an edge; only points in edge cells get the exact test
+function polyTester(geom, N){
+  N=N||128; const P=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
+  let a=1e9,b=1e9,c=-1e9,d=-1e9;
+  for(const pg of P) for(const r of pg) for(const q of r){ if(q[0]<a)a=q[0]; if(q[1]<b)b=q[1]; if(q[0]>c)c=q[0]; if(q[1]>d)d=q[1]; }
+  const exact=(x,y)=>{ for(const pg of P){ if(!_ringHas(x,y,pg[0])) continue; let hole=false;
+    for(let k=1;k<pg.length;k++) if(_ringHas(x,y,pg[k])){ hole=true; break; } if(!hole) return true; } return false; };
+  const cw=(c-a)/N||1e-9, ch=(d-b)/N||1e-9, st=new Uint8Array(N*N);   // 1 edge, 2 in, 3 out
+  for(const pg of P) for(const r of pg) for(let i=0,j=r.length-1;i<r.length;j=i++){
+    const x0=Math.max(0,Math.floor((Math.min(r[i][0],r[j][0])-a)/cw)), x1=Math.min(N-1,Math.floor((Math.max(r[i][0],r[j][0])-a)/cw));
+    const y0=Math.max(0,Math.floor((Math.min(r[i][1],r[j][1])-b)/ch)), y1=Math.min(N-1,Math.floor((Math.max(r[i][1],r[j][1])-b)/ch));
+    for(let X=x0;X<=x1;X++) for(let Y=y0;Y<=y1;Y++) st[Y*N+X]=1; }
+  for(let Y=0;Y<N;Y++) for(let X=0;X<N;X++){ const k=Y*N+X; if(!st[k]) st[k]=exact(a+(X+.5)*cw,b+(Y+.5)*ch)?2:3; }
+  return (x,y)=>{ if(x<a||x>c||y<b||y>d) return false;
+    const v=st[Math.min(N-1,Math.floor((y-b)/ch))*N+Math.min(N-1,Math.floor((x-a)/cw))];
+    return v===2 ? true : v===3 ? false : exact(x,y); };
+}
 const titleCase=s=>String(s||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot' && otx);  // otx: on_txdot (truthy/1)
 // crash-row owner test: toll-road crashes (p[21]===2, freeway toggle only) belong to neither City nor TxDOT
@@ -723,17 +766,11 @@ function _lineMid(g){   // representative interior point [lng,lat] of the longes
     if(acc+seg>=half){ const t=seg===0?0:(half-acc)/seg; return [best[i-1][0]+(best[i][0]-best[i-1][0])*t, best[i-1][1]+(best[i][1]-best[i-1][1])*t]; } acc+=seg; }
   return best[Math.floor(best.length/2)] || best[0]; }
 function tagHIN(feats){ feats.forEach(f=>{ const m=_lineMid(f.geometry); const a=_areaOf(m[0],m[1]);
-  f.properties=f.properties||{}; f.properties._dist=a.dist; f.properties._sn=a.snid; }); }
-function _hinShow(f){ const p=f.properties||{}; return inDist(p._dist) && snOk(p._sn); }   // visible only inside the active area
+  f.properties=f.properties||{}; f.properties._dist=a.dist; f.properties._sn=a.snid; f.properties._mid=m; }); }
+function _hinShow(f){ const p=f.properties||{}; return inDist(p._dist) && snOk(p._sn) && (!poly || (p._mid && poly.test(p._mid[0],p._mid[1]))); }   // visible only inside the active area
 const _hinCasingStyle=f=> _hinShow(f) ? {color:'#ffffff',weight:6,opacity:.7,lineCap:'round'} : {opacity:0,weight:0};
 const _hinCoreStyle  =f=> _hinShow(f) ? {color:HINCOLOR,weight:2.6,opacity:.95,lineCap:'round'} : {opacity:0,weight:0};
 function refreshHinClip(){ if(hinCasing) hinCasing.setStyle(_hinCasingStyle); if(hinCore) hinCore.setStyle(_hinCoreStyle); }
-// PSN overlay: same casing+core+clip pattern as the HIN. The dashed core marks it
-// as a concept network (proposed, not official), and keeps the two overlays
-// distinguishable without relying on color alone.
-const _psnCasingStyle=f=> _hinShow(f) ? {color:'#ffffff',weight:6,opacity:.7,lineCap:'round'} : {opacity:0,weight:0};
-const _psnCoreStyle  =f=> _hinShow(f) ? {color:PSNCOLOR,weight:2.6,opacity:.95,lineCap:'butt',dashArray:'7 5'} : {opacity:0,weight:0};
-function refreshPsnClip(){ if(psnCasing) psnCasing.setStyle(_psnCasingStyle); if(psnCore) psnCore.setStyle(_psnCoreStyle); }
 const CSN=15;   // crash-point field index: Super Neighborhood POLYID
 // clicking a street/segment cross-filters the whole dashboard: when a selection is
 // active, every crash panel narrows to crashes on the selected segment(s).
@@ -980,15 +1017,16 @@ function rebuildDow(){   // precompute each crash's weekday once (Mon=0..Sun=6; 
 }
 // turn freeway crashes on/off; the first time on, fetch them (~2 MB) before re-rendering
 function setFwy(on){
-  const box=document.getElementById('fwy'), note=document.getElementById('fwy-note');
+  const radios=[...document.querySelectorAll('input[name=fwy]')], note=document.getElementById('fwy-note');
+  const show=v=>radios.forEach(r=>{ r.checked=(r.value===(v?'1':'0')); });
   if(on && !fwyPts){
-    box.disabled=true; box.checked=true; note.textContent='Loading freeway crashes…';
+    radios.forEach(r=>r.disabled=true); show(true); note.textContent='Loading freeway crashes…';
     fetch('freeway_crashes.packed.json').then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
-      .then(pk=>{ fwyPts=unpackCrashes(pk); box.disabled=false; note.textContent=''; setFwy(true); })
-      .catch(()=>{ box.disabled=false; box.checked=false; note.textContent='Could not load freeway crashes. Try again.'; });
+      .then(pk=>{ fwyPts=unpackCrashes(pk); radios.forEach(r=>r.disabled=false); note.textContent=''; setFwy(true); })
+      .catch(()=>{ radios.forEach(r=>r.disabled=false); show(false); note.textContent='Could not load freeway crashes. Try again.'; });
     return;
   }
-  fwyOn=!!on && !!fwyPts; box.checked=fwyOn;
+  fwyOn=!!on && !!fwyPts; show(fwyOn);
   pts = fwyOn ? cityPts.concat(fwyPts) : cityPts;
   rebuildDow();
   render();
@@ -999,11 +1037,10 @@ Promise.all([
   fetch('boundary.geojson').then(r=>r.json()),
   fetch('segments.packed.json').then(r=>r.json()).then(unpackSegments),
   fetch('hin.geojson').then(r=>r.json()),
-  fetch('psn.geojson').then(r=>r.json()),
   fetch('crashes.packed.json').then(r=>r.json()).then(unpackCrashes),
   fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
   fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
-]).then(([summary,bnd,seg,hin,psn,points,dists,sns])=>{
+]).then(([summary,bnd,seg,hin,points,dists,sns])=>{
   vz=summary; cityPts=points; pts=points;
   rebuildDow();
   if(yrLo===null){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }   // full span by default (overridden by applyURL)
@@ -1012,7 +1049,7 @@ Promise.all([
     const gen=vz.generated?new Date(vz.generated+'T12:00:00'):null;   // compile date from the export itself (noon = timezone-safe), so it can't go stale
     const when=(gen&&!isNaN(gen))?gen.toLocaleDateString('en-US',{month:'long',year:'numeric'}):'';
     const el=document.getElementById('data-asof'); if(el) el.textContent='Data: TxDOT CRIS crashes, '+span+'.'+(when?' Compiled '+when+'.':''); }
-  for(const f of seg.features){ const p=f.properties; seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
+  for(const f of seg.features){ const p=f.properties; seg2mid[p.seg_id]=_lineMid(f.geometry); seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
     // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
     // unnamed segments are their own corridor (no name to group on).
     seg2corr[p.seg_id]=(p.name && p.name.trim()) ? p.name+'|'+(p.on_txdot?1:0) : ' '+p.seg_id; }
@@ -1027,11 +1064,6 @@ Promise.all([
   hinCasing=L.geoJSON(hin,{interactive:false,style:_hinCasingStyle});
   hinCore  =L.geoJSON(hin,{interactive:false,style:_hinCoreStyle});
   hinLayer=L.layerGroup([hinCasing, hinCore]);
-  // same treatment for the concept PSN overlay (tagged for area clipping, dashed core)
-  tagHIN(psn.features);
-  psnCasing=L.geoJSON(psn,{interactive:false,style:_psnCasingStyle});
-  psnCore  =L.geoJSON(psn,{interactive:false,style:_psnCoreStyle});
-  psnLayer=L.layerGroup([psnCasing, psnCore]);
   geo=L.geoJSON(seg,{renderer,onEachFeature:(f,l)=>{
     l.on('click',e=>{ if(view==='points') return;  // points view: let the map handler pick a crash dot
       const p=f.properties;
@@ -1060,6 +1092,7 @@ Promise.all([
   render();
   if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
   if(wantFwy) setFwy(true);        // shared link with freeways on: load them after the first render
+  if(wantArea) selectPoly(wantArea[0], wantArea[1]);   // shared link to a precinct / TIRZ
 }).catch(err=>{   // a data file failed to load: show a message instead of hanging on the spinner forever
   console.error('Dashboard data failed to load', err);
   const l=document.getElementById('loading');
@@ -1197,6 +1230,7 @@ function syncURL(){
   if(selD.size) q.push('dw='+encSet(selD));
   if(district!=null) q.push('district='+encodeURIComponent(district));
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
+  if(poly) q.push('area='+poly.type+':'+encodeURIComponent(poly.id));
   if(owner!=='all') q.push('owner='+owner);
   if(fwyOn) q.push('fwy=1');
   if(view!=='streets') q.push('view='+view);
@@ -1223,6 +1257,7 @@ function applyURL(){
   const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
   const vw=p.get('view'); if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
   wantFwy = p.get('fwy')==='1';
+  { const ar=p.get('area'); if(ar && ar.includes(':')){ const i=ar.indexOf(':'), t=ar.slice(0,i); if(POLY_TYPES[t]) wantArea=[t, ar.slice(i+1)]; } }
   const ow=p.get('owner'); if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
   // facet selections: "y/mo/hr/dw" are dot-separated lists; legacy "yr"/"dow" ranges (a-b) still parse
   const decSet=(str, lo, hi)=>{ const S=new Set(); if(!str) return S;
@@ -1273,7 +1308,6 @@ function render(){
   } else selIds=new Set();
   restyle();
   if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // keep the HIN overlay trimmed to the active area
-  if(psnLayer && map.hasLayer(psnLayer)) refreshPsnClip();   // and the PSN overlay
   if(view==='points') buildPoints();
   else if(fwyOn) buildPoints(true);   // street views: freeways have no street to shade, so their crashes show as dots
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
@@ -1283,6 +1317,7 @@ function render(){
   else if(selSeg!==null) openInfoSeg(selSeg);
   else document.getElementById('info').style.display='none';
   updateResetBtn();
+  syncAreaUI();
   syncURL();
 }
 function drawViewing(){
@@ -1293,6 +1328,7 @@ function drawViewing(){
   if(selName) parts.push('<b>'+selName+'</b>');
   if(district!==null) parts.push('District <b>'+district+'</b>');
   if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); if(f) parts.push('<b>'+titleCase(f.properties.SNBNAME)+'</b> (SN'+sn+')'); }
+  if(poly) parts.push('<b>'+poly.name+'</b>');
   if(mrActive() || selY.size || selM.size) parts.push('<b>'+timeSpan(false)+'</b>');
   if(selD.size){ const l=facetLabel('dow'); if(l) parts.push('<b>'+l+'</b>'); }
   if(selH.size){ const l=facetLabel('hour'); if(l) parts.push('<b>'+l+'</b>'); }
@@ -1311,12 +1347,10 @@ function setupDistricts(dists){
   distFeats.map(f=>f.properties.DISTRICT).sort()
     .forEach(d=>opts.push('<option value="'+d+'">District '+d+'</option>'));
   sel.innerHTML=opts.join('');
-  sel.onchange=()=>selectDistrict(sel.value);
-  document.getElementById('district-grp').style.display='';
 }
 function selectDistrict(d){
   district = d || null;
-  if(district!==null) _clearSN();   // district and super neighborhood are mutually exclusive
+  if(district!==null){ _clearSN(); _clearPoly(); }   // district and super neighborhood are mutually exclusive
   // keep any selected street; render() re-derives it within the new district
   // (narrowing to the in-district part, or clearing if none remains).
   if(distLayer){ map.removeLayer(distLayer); distLayer=null; }
@@ -1342,12 +1376,10 @@ function setupSN(sns){
     .sort((a,b)=>a[0]-b[0])
     .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
   sel.innerHTML=opts.join('');
-  sel.onchange=()=>selectSN(sel.value);
-  document.getElementById('sn-grp').style.display='';
 }
 function selectSN(v){
   sn = (v===''||v==null) ? null : +v;
-  if(sn!==null) _clearDist();   // choosing a super neighborhood clears the district filter
+  if(sn!==null){ _clearDist(); _clearPoly(); }   // one area at a time
   if(snLayer){ map.removeLayer(snLayer); snLayer=null; }
   if(sn!==null){
     const f=snFeats.find(x=>+x.properties.POLYID===sn);
@@ -1357,10 +1389,80 @@ function selectSN(v){
   } else { try{ fitCity(); }catch(e){} }
   render();
 }
+function _clearPoly(){ poly=null; _segIn={}; _areaPicking=false; if(polyLayer){ map.removeLayer(polyLayer); polyLayer=null; } }
+function polyFeatures(type){   // fetch + cache one polygon layer's features
+  if(_polyFeats[type]) return Promise.resolve(_polyFeats[type]);
+  return fetch(POLY_TYPES[type].file).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(g=>(_polyFeats[type]=g.features));
+}
+function selectPoly(type, id){
+  const note=document.getElementById('area-note'); note.textContent='Loading boundaries…';
+  return polyFeatures(type).then(fs=>{
+    note.textContent='';
+    const f=fs.find(x=>x.properties.id===id); if(!f) return;
+    _clearDist(); _clearSN(); _clearPoly();
+    poly={type, id, name:f.properties.name, key:++polyKey, test:polyTester(f.geometry)};
+    polyLayer=L.geoJSON(f,{interactive:false,style:{color:'#111',weight:2.5,fill:false,opacity:.75,dashArray:'5 3'}}).addTo(map);
+    try{ map.invalidateSize(false); map.fitBounds(polyLayer.getBounds().pad(0.04),{animate:false}); }catch(e){}   // not animated: an async load can land mid-animation
+    if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();
+    render();
+  }).catch(()=>{ note.textContent='Could not load those boundaries. Try again.'; });
+}
+// one entry point for every kind of area; returns a promise so callers can await it
+function selectArea(type, id){
+  if(!type || id==='' || id==null){ _clearPoly(); _clearSN(); selectDistrict(null); return Promise.resolve(); }
+  if(type==='district'){ const s=document.getElementById('district'); if(s) s.value=id; selectDistrict(id); return Promise.resolve(); }
+  if(type==='sn'){ const s=document.getElementById('snsel'); if(s) s.value=String(id); selectSN(+id); return Promise.resolve(); }
+  if(POLY_TYPES[type]) return selectPoly(type, id);
+  return Promise.resolve();
+}
+const activeAreaType=()=> district!==null ? 'district' : sn!==null ? 'sn' : poly ? poly.type : '';
+const activeAreaId=()=> district!==null ? district : sn!==null ? String(sn) : poly ? poly.id : '';
+function areaName(){
+  if(district!==null) return 'District '+district;
+  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):null; }
+  return poly ? poly.name : null;
+}
+// options for one kind of area: [[value,label], ...]; polygon kinds may need a fetch first
+function areaOptions(type){
+  if(type==='district') return Promise.resolve((distFeats||[]).map(f=>f.properties.DISTRICT).sort().map(d=>[d,'District '+d]));
+  if(type==='sn') return Promise.resolve((snFeats||[]).map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
+      .sort((a,b)=>a[0]-b[0]).map(([id,nm])=>[String(id),'SN'+id+' · '+nm]));
+  if(POLY_TYPES[type]) return polyFeatures(type).then(fs=>fs.map(f=>[f.properties.id,f.properties.name]));
+  return Promise.resolve([]);
+}
+const AREA_PICK={district:'Choose a district', sn:'Choose a super neighborhood'};
+function fillAreaSelect(sel, type, value){   // fill an area <select> for `type`, then select `value`
+  sel.dataset.type=type;
+  if(!type){ sel.innerHTML='<option value="">Pick a kind above</option>'; sel.disabled=true; return Promise.resolve(); }
+  sel.disabled=true; sel.innerHTML='<option value="">Loading…</option>';
+  return areaOptions(type).then(opts=>{
+    if(sel.dataset.type!==type) return;   // a newer choice superseded this fill
+    const pick=(POLY_TYPES[type]&&POLY_TYPES[type].pick)||AREA_PICK[type]||'Choose an area';
+    sel.innerHTML='<option value="">'+pick+'</option>'+opts.map(([v,l])=>'<option value="'+v+'">'+l+'</option>').join('');
+    sel.disabled=false; sel.value=value||'';
+  }).catch(()=>{ sel.innerHTML='<option value="">Could not load areas</option>'; });
+}
+// keep the sidebar Area controls in step with the active area (URL, report, reset all call render())
+function syncAreaUI(){
+  const ts=document.getElementById('areatype'), as=document.getElementById('areasel'); if(!ts||!as) return;
+  const t=activeAreaType(), id=activeAreaId();
+  if(t==='' && _areaPicking) return;   // mid-choice: a kind is picked, the specific area not yet
+  if(ts.value!==t) ts.value=t;
+  if(t===''){ if(as.dataset.type) fillAreaSelect(as,''); return; }
+  if(as.dataset.type!==t) fillAreaSelect(as,t,id); else if(as.value!==id) as.value=id;
+}
+(()=>{ const ts=document.getElementById('areatype'), as=document.getElementById('areasel');
+  ts.onchange=()=>{ const t=ts.value;
+    if(!t){ fillAreaSelect(as,''); selectArea('',''); return; }
+    _areaPicking=true; fillAreaSelect(as,t,'');   // pick a kind, then a specific area; the current area stays until then
+  };
+  as.onchange=()=>{ if(as.value) selectArea(ts.value, as.value); else selectArea('',''); };
+})();
 function clearView(){
   selY.clear(); selM.clear(); selD.clear(); selH.clear(); ymLo=ymHi=null; syncDerived();   // clear all time facets
   selStreet=null; selSeg=null; selIds=new Set();   // clear selection
-  _clearSN();   // clear any super-neighborhood filter too
+  _clearSN(); _clearPoly();   // clear any super-neighborhood / polygon area too
   const sel=document.getElementById('district'); if(sel) sel.value='';
   selectDistrict(null);   // resets district, refits, renders once
 }
@@ -1373,10 +1475,9 @@ function resetAll(){
   const setR=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
   setR('sev','ksi'); setR('view','streets'); setR('owner','all');
   const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
-  const psn=document.getElementById('psn'); if(psn && psn.checked){ psn.checked=false; if(map.hasLayer(psnLayer)) map.removeLayer(psnLayer); }
-  if(fwyOn){ fwyOn=false; document.getElementById('fwy').checked=false; pts=cityPts; rebuildDow(); }
+  if(fwyOn){ fwyOn=false; setR('fwy','0'); pts=cityPts; rebuildDow(); }
   const ds=document.getElementById('district'); if(ds) ds.value='';
-  _clearSN();   // also clear any super-neighborhood filter
+  _clearSN(); _clearPoly();   // also clear any super-neighborhood / polygon area
   document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
   selectDistrict(null);   // sets district=null, removes its outline, refits the map, and renders (which hides Reset again)
 }
@@ -1384,10 +1485,9 @@ function resetAll(){
 function updateResetBtn(){
   const rb=document.getElementById('reset'); if(!rb) return;
   const hinOn=!!(document.getElementById('hin')||{}).checked;
-  const psnOn=!!(document.getElementById('psn')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
     && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow()
-    && district===null && sn===null && selIds.size===0 && !hinOn && !psnOn && !fwyOn;
+    && district===null && sn===null && !poly && selIds.size===0 && !hinOn && !fwyOn;
   rb.style.display = def ? 'none' : '';
 }
 
@@ -1472,7 +1572,6 @@ function drawLegend(){
     if(fwyOn) h+='<div class="key"><span class="dot" style="background:#c0151a;border-radius:50%;width:8px;height:8px"></span>Freeway crash (freeways are not shaded)</div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
-  if(psnLayer && map.hasLayer(psnLayer)) h+='<div class="key"><span class="dot" style="background:repeating-linear-gradient(90deg,'+PSNCOLOR+' 0 5px,#fff 5px 8px);width:18px;height:4px"></span>Concept Proactive Safety Network</div>';
   el.innerHTML=h;
 }
 
@@ -1560,20 +1659,19 @@ function drawOwnership(){
 let streetKsiRanking={};
 // label for the region currently being benchmarked against ("Houston" when unfiltered)
 function regionLabel(){
-  if(district!==null) return 'District '+district;
-  if(sn!==null){ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):'Houston'; }
-  return 'Houston';
+  return areaName()||'Houston';
 }
 function streetKsiRank(name){
   if(!name || !name.trim() || name.startsWith('__seg__')) return null;
   // read the active region at call time so the panel updates when the filter changes
-  const key = district!==null ? 'd:'+district : sn!==null ? 's:'+sn : 'city';
+  const key = district!==null ? 'd:'+district : sn!==null ? 's:'+sn : poly ? 'p:'+poly.type+':'+poly.id : 'city';
   if(!streetKsiRanking[key]){
     const tot={}; geo.eachLayer(l=>{ const p=l.feature.properties;
       if(!p.name || !p.name.trim()) return;
       // only streets inside the active region (district OR super-neighborhood)
       if(district!==null && p.district!==district) return;
       if(sn!==null && +p.sn!==sn) return;
+      if(poly && !inPolySeg(p.seg_id)) return;
       tot[p.name]=(tot[p.name]||0)+(p.n_severe||0); });
     // rank only streets that HAVE a severe crash. (Including the ~92% of streets with
     // zero KSI made every crash street read as "top 1-2%", which was not useful.)
@@ -1939,11 +2037,7 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ refreshHinClip(); hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
-document.getElementById('psn').onchange=e=>{
-  if(e.target.checked){ refreshPsnClip(); psnLayer.addTo(map); } else if(map.hasLayer(psnLayer)){ map.removeLayer(psnLayer); }
-  drawLegend(); updateResetBtn();   // PSN counts toward "off-default" too
-};
-document.getElementById('fwy').onchange=e=>setFwy(e.target.checked);
+document.querySelectorAll('input[name=fwy]').forEach(r=>r.onchange=()=>setFwy(document.querySelector('input[name=fwy]:checked').value==='1'));
 document.getElementById('reset').onclick=resetAll;
 document.getElementById('blink').onclick=doBlink;
 // range-reset links (used by the chart sub text)
@@ -1978,7 +2072,6 @@ document.getElementById('share').onclick=async()=>{
 // CORS we fall back to the overlay alone (shape without the basemap).
 function captureMap(){
   if(hinLayer && map.hasLayer(hinLayer)) refreshHinClip();   // ensure the HIN is trimmed to the active area before capture
-  if(psnLayer && map.hasLayer(psnLayer)) refreshPsnClip();   // and the PSN
   if(renderer && renderer._redraw) renderer._redraw();   // flush any pending (rAF-deferred) restyle so the canvas pixels are current
   const size=map.getSize(), mc=map.getContainer(), mr=mc.getBoundingClientRect(), oc=renderer._container;
   const draw=withTiles=>{ const c=document.createElement('canvas'); c.width=size.x; c.height=size.y;
@@ -1999,6 +2092,7 @@ function settleMap(){
       if(selIds.size){ const ll=[]; geo.eachLayer(l=>{ if(selIds.has(l.feature.properties.seg_id)) ll.push(l); }); if(ll.length) b=L.featureGroup(ll).getBounds(); }
       if(!b){ if(district!==null && distLayer) b=distLayer.getBounds();
         else if(sn!==null && snLayer) b=snLayer.getBounds();
+        else if(poly && polyLayer) b=polyLayer.getBounds();
         else b=geo.getBounds(); }
     }catch(e){}
     if(b){ try{ if(b.isValid()) map.fitBounds(b, {animate:false, padding:[16,16]}); }catch(e){} }
@@ -2010,9 +2104,7 @@ function settleMap(){
 }
 // human-readable description of the active view
 function viewDesc(){
-  const region = district!==null ? 'District '+district
-    : sn!==null ? (()=>{ const f=snFeats.find(x=>+x.properties.POLYID===sn); return f?titleCase(f.properties.SNBNAME):'City of Houston'; })()
-    : 'City of Houston';
+  const region = areaName()||'City of Houston';
   const when = timeSpan(false);
   const modeTxt = mode==='ped'?'people walking' : mode==='bike'?'people biking' : mode==='veh'?'people in vehicles' : null;
   const sel = selStreet!==null ? (selStreet.startsWith('__seg__')?'a selected block':selStreet) : (selSeg!==null ? (selSeg.name||'a selected block') : null);
@@ -2035,7 +2127,7 @@ async function generateReport(cfg){
   const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
   if(d.modeTxt) chips.push(d.modeTxt); d.extras.forEach(e=>chips.push(e));
   const subtitle=chips.join('&nbsp;&nbsp;·&nbsp;&nbsp;');
-  const where = d.sel?('on '+d.sel) : (district!==null||sn!==null)?('on '+d.region+' streets') : 'on City of Houston streets';
+  const where = d.sel?('on '+d.sel) : (areaName()!==null)?('on '+d.region+' streets') : 'on City of Houston streets';
   // synthesis: ONE qualitative takeaway, no restated numbers (gated by S.summary)
   let synthHTML='';
   if(S.summary){
@@ -2102,7 +2194,7 @@ async function generateReport(cfg){
     +mapHTML
     +(chartsHTML?('<h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'):'')
     +(worstHTML?('<h2 class="r-sec">Most affected streets, this view</h2>'+worstHTML):'')
-    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads (dots on the map; street shading and rankings cover city streets only).':'')+' Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network and the dashed blue overlay is the concept Proactive Safety Network, a research product of this project (streets flagged by a design-based statistical model, not an official City designation). Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, High Injury Network), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
+    +'<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+'–'+vz.years[vz.years.length-2]+' plus partial '+vz.years[vz.years.length-1]+' (TxDOT CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads (dots on the map; street shading and rankings cover city streets only).':'')+' Streets are ranked by count (the Vision Zero convention), not normalized for traffic volume; limited-access freeways are excluded. Economic cost is the societal economic loss (medical care, lost productivity, property damage, emergency and legal services) from FHWA per-person costs by injury severity (KABCO, FHWA-SA-25-021, 2024 dollars) applied to the people hurt in each crash; the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) additionally values lost quality and length of life and so overlaps the years of life lost shown above. Unknown-severity crashes are excluded and reported crashes undercount the toll, so the cost is a conservative floor. If shown on the map, the solid purple overlay is the City&rsquo;s official 2022 High Injury Network. Sources: TxDOT CRIS (crashes) and TxDOT Roadway Inventory (ownership), OpenStreetMap (street network), City of Houston GIS (council districts, super neighborhoods, TIRZs, High Injury Network), Harris County GIS (commissioner precincts), U.S. Census ACS 2023 (neighborhood income), FHWA (crash costs). Full methods in the project CODEBOOK on GitHub.</div>';
   R.dataset.built='1';
   const img=document.querySelector('#report .r-map img');   // wait for the map data-URL image to be ready (capped, never hangs)
   if(img){ await new Promise(r=>{ if(img.complete && img.naturalWidth) return r(); img.onload=img.onerror=r; setTimeout(r,800); }); }
@@ -2114,23 +2206,8 @@ async function generateReport(cfg){
 // then applies the chosen filters and hands a cfg to generateReport().
 const _rcEl=id=>document.getElementById(id);
 let _rcLastFocus=null;
-// (re)populate the district + super-neighborhood + year selects from loaded data
+// (re)populate the year selects from loaded data (the area selects fill on demand)
 function _rcFillSelects(){
-  const ds=_rcEl('rc-district');
-  if(ds){
-    const opts=['<option value="">All districts</option>'];
-    (distFeats||[]).map(f=>f.properties.DISTRICT).sort()
-      .forEach(d=>opts.push('<option value="'+d+'">District '+d+'</option>'));
-    ds.innerHTML=opts.join('');
-  }
-  const ss=_rcEl('rc-sn');
-  if(ss){
-    const opts=['<option value="">All neighborhoods</option>'];
-    (snFeats||[]).map(f=>[+f.properties.POLYID, titleCase(f.properties.SNBNAME)])
-      .sort((a,b)=>a[0]-b[0])
-      .forEach(([id,nm])=>opts.push('<option value="'+id+'">SN'+id+' · '+nm+'</option>'));
-    ss.innerHTML=opts.join('');
-  }
   const lo=_rcEl('rc-from-yr'), hi=_rcEl('rc-to-yr');
   if(lo && hi && vz && vz.years){
     const opts=vz.years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
@@ -2142,8 +2219,8 @@ function openReportModal(){
   _rcFillSelects();
   // pre-fill filters from the current globals
   _rcEl('rc-title').value='Traffic deaths & serious injuries';
-  _rcEl('rc-district').value = district!==null ? district : '';
-  _rcEl('rc-sn').value = sn!==null ? String(sn) : '';
+  _rcEl('rc-areatype').value = activeAreaType();
+  fillAreaSelect(_rcEl('rc-area'), activeAreaType(), activeAreaId());
   _rcEl('rc-mode').value = mode;
   _rcEl('rc-owner').value = owner;
   _rcEl('rc-sev').value = sev;
@@ -2158,7 +2235,6 @@ function openReportModal(){
     _rcEl('rc-to-yr').value=String(ty); _rcEl('rc-to-mo').value=String(tm);
   }
   const hinOn=!!(_rcEl('hin')||{}).checked; _rcEl('rc-hin').checked=hinOn;
-  const psnOn=!!(_rcEl('psn')||{}).checked; const rcPsn=_rcEl('rc-psn'); if(rcPsn) rcPsn.checked=psnOn;
   // sections: all checked by default each time the modal opens
   ['summary','map','trend','tod','dow','mode','eq','own','worst'].forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
@@ -2170,9 +2246,7 @@ function closeReportModal(){
   ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
   if(_rcLastFocus && _rcLastFocus.focus){ try{ _rcLastFocus.focus(); }catch(e){} }
 }
-// district and super neighborhood are mutually exclusive: picking one clears the other in the modal
-_rcEl('rc-district').addEventListener('change',()=>{ if(_rcEl('rc-district').value) _rcEl('rc-sn').value=''; });
-_rcEl('rc-sn').addEventListener('change',()=>{ if(_rcEl('rc-sn').value) _rcEl('rc-district').value=''; });
+_rcEl('rc-areatype').addEventListener('change',()=>fillAreaSelect(_rcEl('rc-area'), _rcEl('rc-areatype').value, ''));
 // apply the chosen filters to the live dashboard, then build cfg and print
 async function _rcGenerate(){
   // mode: set the global + reflect the sidebar pills (no extra render; render() runs once at the end)
@@ -2203,17 +2277,9 @@ async function _rcGenerate(){
   if(hinBox){ hinBox.checked=wantHin;
     if(wantHin){ if(!map.hasLayer(hinLayer)) hinLayer.addTo(map); }
     else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); } }
-  // concept PSN overlay: same sync between the report checkbox and the sidebar/layer
-  const wantPsn=!!(_rcEl('rc-psn')||{}).checked, psnBox=_rcEl('psn');
-  if(psnBox){ psnBox.checked=wantPsn;
-    if(wantPsn){ refreshPsnClip(); if(!map.hasLayer(psnLayer)) psnLayer.addTo(map); }
-    else if(map.hasLayer(psnLayer)){ map.removeLayer(psnLayer); } }
-  // area: district / super neighborhood are mutually exclusive. selectDistrict / selectSN
-  // each clear the other global, sync their own sidebar select, and call render() themselves.
-  const dVal=_rcEl('rc-district').value, snVal=_rcEl('rc-sn').value;
-  if(dVal){ const sel=_rcEl('district'); if(sel) sel.value=dVal; selectDistrict(dVal); }
-  else if(snVal){ const sel=_rcEl('snsel'); if(sel) sel.value=snVal; selectSN(+snVal); }
-  else { if(typeof selectSN==='function') selectSN(''); const sel=_rcEl('district'); if(sel) sel.value=''; selectDistrict(''); }   // clear SN then district, refit, render
+  // area: one kind at a time; selectArea clears the others and renders (polygon kinds load first)
+  { const t=_rcEl('rc-areatype').value, v=_rcEl('rc-area').value;
+    await selectArea(t && v ? t : '', t && v ? v : ''); }
   render();   // final recompute so the cloned charts + captured map reflect every chosen filter
   // gather the config: headline stats are always on; a section renders only if its box is checked
   const cfg={ title:(_rcEl('rc-title').value||'').trim()||'Traffic deaths & serious injuries',

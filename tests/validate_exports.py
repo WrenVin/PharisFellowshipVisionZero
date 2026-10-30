@@ -281,10 +281,21 @@ def check_equity(pts):
 
 def check_aux_geojson():
     # Required by the dashboard's initial Promise.all (no .catch fallback).
-    for name in ("boundary.geojson", "hin.geojson", "psn.geojson"):
+    for name in ("boundary.geojson", "hin.geojson"):
         g = load(name)
         if g is not None and not (g.get("features") or g.get("type") == "Feature"):
             err(f"{name}: GeoJSON has no features")
+    # Area-filter layers the page fetches on demand: each feature needs an id + name.
+    for name in ("areas_precinct.geojson", "areas_tirz.geojson"):
+        g = load(name)
+        if g is not None:
+            fs = g.get("features") or []
+            if not fs:
+                err(f"{name}: GeoJSON has no features")
+            elif any(not (f.get("properties") or {}).get("id") or not (f.get("properties") or {}).get("name") for f in fs):
+                err(f"{name}: every feature needs an id and a name (the Area filter keys on them)")
+            elif len({f["properties"]["id"] for f in fs}) != len(fs):
+                err(f"{name}: duplicate area ids")
     # Optional (city build only) — validate if present, don't require.
     for name in ("districts.geojson", "superneighborhoods.geojson"):
         path = DOCS / name

@@ -279,11 +279,10 @@ actually sees and can do:
   district, choose who to look at (everyone / driving / walking / biking),
   filter by who owns the road (city vs. TxDOT/state), switch between
   deaths-and-serious-injuries vs. all crashes, flip a **Freeways** switch (off
-  by default) that adds crashes on freeways and toll roads, and toggle two overlay maps on
-  top for comparison: the City's official **High Injury Network** (solid
-  purple, built from past crashes) and this project's **concept Proactive
-  Safety Network** (dashed blue, built by the research model from street
-  design; a concept, not an official City map).
+  by default) that adds crashes on freeways and toll roads, and toggle the City's
+  official **High Injury Network** (solid purple, built from past crashes) on top
+  for comparison. One **Area** menu narrows everything to a council district,
+  super neighborhood, county commissioner precinct, or TIRZ.
 - **Click any street** (or one block) and the *whole* dashboard updates to just
   that street; a popup shows the road's design (lanes, width, speed, sidewalks,
   traffic, owner), and you can expand a single block to the whole street.

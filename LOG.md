@@ -4,6 +4,20 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-29 — Dashboard: one Area filter (adds county precincts + TIRZs), PSN overlay removed, Freeways toggle restyled
+
+Three changes Vincent asked for.
+
+- **Concept Proactive Safety Network overlay removed** from the dashboard: sidebar toggle, legend key, report-dialog checkbox, Data sources line, report footer sentence, and `docs/psn.geojson` + `src/export_psn.py` (both remain in git history). The research network itself stays in `data/processed/houston_concept_psn.geojson` for the paper. The Overlay group now has only the City's HIN.
+- **Freeways control** is now an Excluded / Included segmented toggle, the same style as Road owner / Show / Display as (was a checkbox). Behavior unchanged.
+- **Area filter.** The separate District and Super neighborhood dropdowns became one "Area" group: a kind-of-area dropdown (Whole city, Council district, Super neighborhood, County commissioner precinct, TIRZ) above an area dropdown. One area at a time.
+  - New `src/export_area_layers.py` writes `docs/areas_precinct.geojson` (8 commissioner precincts inside the city: Harris 1 to 4 from Harris County GIS's current 2022 plan, with commissioner names; Fort Bend 1 to 3 and Montgomery 4 from City of Houston GIS) and `docs/areas_tirz.geojson` (all 27 TIRZs), clipped to the full-purpose boundary and simplified ~50 ft. The City's GIS server moved from `pubgis02` to `gisweb02`; the old address that `fetch_superneighborhoods.py` and `export_hin.py` use is now down (logged on the roadmap).
+  - Districts and super neighborhoods keep their exact pipeline-tagged logic. Precincts and TIRZs are tested in the browser: a crash by its point, a segment by its midpoint, the HIN overlay by segment midpoint, using a 128x128 grid over the boundary so only points in cells the edge crosses get the exact ring test. About 0.3 s for all 695k crash points (vs 1.9 s naive, identical results), cached per selection, and the boundary file loads only when that kind is picked.
+  - Everything that knew about districts/SNs follows the new kinds: map outline and zoom, the "Viewing" chip, worst-streets ranking, report region text and map framing, shareable links (`area=precinct:harris-1`; old `district=` and `sn=` links still work), Reset, and the report dialog (same two-step picker; applying awaits the boundary load).
+  - Fixed during testing: on a shared-link load the area zoom was animated and got cut short, leaving the map citywide; the area zoom is now immediate.
+- **Verified in the browser** against independent Python (shapely) counts on the same JSON: Harris County Precinct 1, 695 killed and 4,626 KSI (exact); Midtown TIRZ via shared link with freeways on, 19 and 227 (exact), city-only 10 and 184 (exact); old and new page give identical tallies for `sn=52&mode=ped&sev=all` and `district=J&owner=txdot`; report dialog pre-fills and applies Harris Precinct 2; Reset returns to Whole city; no console errors.
+- Validator: area layers must have features with unique id + name; `psn.geojson` dropped from the required files.
+
 ## 2026-10-29 — Dashboard: optional Freeways toggle (off by default)
 
 Visitors can now include crashes on freeways, toll roads, ramps and frontage roads. About a third of Houston's traffic deaths happen there, and the City-street-only totals were being compared against citywide all-roads figures (e.g. 202 vs 331).
