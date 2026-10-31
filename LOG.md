@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Intersection polygon sizing check (no dashboard change yet)
+
+Vincent wants intersection polygons on the Vision Zero Austin model (each intersection reaches a set distance down every street that meets it; Austin uses 150 ft on local/collector streets and 250 ft on arterials, buffered 40/50/75 ft by street level; a crash belongs to the intersection if it falls inside the polygon). Before choosing Houston's distances, `src/check_intersection_distance.py` compared distance to the nearest intersection (OSM nodes where 3+ streets meet, merged within 80 ft for divided roads; 42,939 intersections) with the police intersection code (CRIS `Intrsct_Relat_ID` 1 or 2) for 424,913 city-street crashes.
+
+- The share coded intersection falls from 72 to 84% within 25 ft to a flat background (10% local, 13% collector, 18 to 27% arterials) by 50 to 75 ft on every street type. Beyond that the code no longer depends on distance.
+- Crashes cluster at the intersection point (CRIS geocodes many intersection crashes to the crossing), so the polygon size mostly decides how many mid-block crashes are pulled in.
+- At Austin's distances (150 ft local/collector, 250 ft arterial), 82 to 90% of city-street crashes would fall inside an intersection polygon; about half of those inside on arterials are coded non-intersection. Shorter legs keep most police-coded intersection crashes: at 75 ft, 93 to 94% on local and collector streets; at 125 ft on arterials, about 85 to 90%.
+- Output: `reports/intersection_distance_check.png` and `.csv`. Distances not chosen yet.
+
 ## 2026-10-31 — Roads included option; interchanges, exit labels, milepost placement, freeway ranking
 
 - **Roads included** (Roads section, dropdown) replaces the Freeways toggle: Streets only / Streets and frontage roads (default) / Streets, frontage roads and freeways. Every number, chart, the map, the concentration figure and the **Most dangerous streets table** follow it (freeway directions and interchanges rank there when freeways are included). Crash rows carry a road type in field 24 (0 street, 3 frontage, 1 freeway, 2 toll), so frontage crashes can be switched off without a second file. URL `roads=streets|freeways` (old `fwy=1` links still work); report form, Showing chip, Reset and badges updated. Checked: 1,822 / 2,111 / 2,947 people killed for the three settings; the table changes with each.
