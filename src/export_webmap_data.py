@@ -113,6 +113,7 @@ COLS = {
     "n_crash": 0, "n_injury": 0, "n_severe": 0, "n_fatal": 0,
     "n_ped": 0, "n_bike": 0, "n_ped_severe": 0, "n_bike_severe": 0,
     "n_signals": 0, "oneway": None, "merged_dual": None, "length_ft": 0,
+    "mid_ft": 0,       # length outside intersection polygons (dashboard concentration measure)
     "on_hin": None,    # on the City's official High Injury Network?
     "on_txdot": None,  # TxDOT-owned (state) road vs city-owned?
 }
@@ -124,7 +125,7 @@ COLS = {
 WEB_KEEP = [
     "seg_id", "name", "road_class", "district", "sn", "on_txdot", "on_hin",
     "n_crash", "n_severe", "n_fatal", "n_ped", "n_ped_severe",
-    "n_bike", "n_bike_severe", "length_ft",
+    "n_bike", "n_bike_severe", "length_ft", "mid_ft",
     "lanes_final", "roadway_width_ft", "posted_speed_mph",
     "sidewalk_presence", "adt",
 ]
@@ -331,6 +332,82 @@ except Exception as e:
     print(f"WARNING: TxDOT tagging skipped ({type(e).__name__}: {e})")
 
 seg.loc[seg["highway"].eq("frontage"), "on_txdot"] = True   # frontage roads are part of the state highway
+
+# Intersections (dashboard only; decision 2026-10-31). build_intersections.py draws a
+# polygon around every intersection on the Vision Zero Austin method; a street or
+# frontage-road crash inside one belongs to the intersection, not to a block. The
+# blocks' crash counts drop by the crashes that moved, so block + intersection
+# counts still add up to the same total. ix_of maps Crash_ID -> intersection id and
+# is applied to the crash points below.
+_city_all = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes")
+if front_cr is not None:   # frontage-road crashes join the default view
+    _fc = front_cr.to_crs(_city_all.crs)
+    _city_all = gpd.GeoDataFrame(pd.concat([_city_all, _fc[[c for c in _city_all.columns if c in _fc.columns] + (["seg_id"] if "seg_id" not in _city_all.columns else [])]],
+                                           ignore_index=True), crs=_city_all.crs)
+ixg, ix_of = None, {}
+_ixpath = cfg.processed("intersections.gpkg")
+if _ixpath.exists():
+    ixg = gpd.read_file(_ixpath, layer="intersections").to_crs(seg.crs).rename(columns={"ix_id": "seg_id"})
+    _cc = _city_all.to_crs(seg.crs)
+    hit = gpd.sjoin(_cc[["Crash_ID", "seg_id", "severe", "fatal", "any_injury", "involves_ped", "involves_bike", "geometry"]],
+                    ixg[["seg_id", "geometry"]].rename(columns={"seg_id": "ix"}), predicate="within")
+    hit = hit[~hit.index.duplicated(keep="first")]
+    ix_of = dict(zip(hit["Crash_ID"], hit["ix"]))
+    _ksi_all = _cc["severe"].sum()
+    print(f"Intersections: {len(ixg):,}; crashes inside one: {len(hit):,} of {len(_cc):,} ({100*len(hit)/len(_cc):.1f}%); "
+          f"killed or seriously injured crashes: {100*hit['severe'].sum()/_ksi_all:.1f}%")
+
+    def _counts(a, by):
+        g = a.groupby(by)
+        return pd.DataFrame({
+            "n_crash": g.size(), "n_injury": g["any_injury"].sum(), "n_severe": g["severe"].sum(),
+            "n_fatal": g["fatal"].sum(), "n_ped": g["involves_ped"].sum(), "n_bike": g["involves_bike"].sum(),
+            "n_ped_severe": a[a["severe"]].groupby(by)["involves_ped"].sum(),
+            "n_bike_severe": a[a["severe"]].groupby(by)["involves_bike"].sum()}).fillna(0).astype(int)
+    moved = _counts(hit[hit["seg_id"].notna()], "seg_id")          # leave their blocks
+    _m = moved.reindex(seg["seg_id"].values).fillna(0).astype(int)
+    for c_ in moved.columns:
+        seg[c_] = (seg[c_].fillna(0).astype(int).values - _m[c_].values).clip(min=0)
+    ixc = _counts(hit, "ix")
+    ixg = ixg.join(ixc, on="seg_id")
+    for c_ in ixc.columns:
+        ixg[c_] = ixg[c_].fillna(0).astype(int)
+
+    # an intersection is on a TxDOT road or the HIN when 60+ ft of such a street runs inside it
+    pairs = gpd.sjoin(seg[["on_txdot", "on_hin", "geometry"]], ixg[["geometry"]], predicate="intersects")
+    pairs["_ft"] = [g.intersection(ixg.geometry.iat[j]).length for g, j in zip(pairs.geometry, pairs["index_right"])]
+    for flag in ("on_txdot", "on_hin"):
+        ft = pairs[pairs[flag].fillna(False).astype(bool)].groupby("index_right")["_ft"].sum()
+        ixg[flag] = (ft.reindex(ixg.index).fillna(0) >= 60).values
+    # street length inside intersections moves with their crashes, so block miles plus
+    # intersection miles add up to the network's miles (the "share of street miles" KPI)
+    covered = pairs.groupby(level=0)["_ft"].sum()
+    seg["mid_ft"] = (seg["length_ft"] - covered.reindex(seg.index).fillna(0)).clip(lower=0)
+    ixg["leg_ft"] = pairs.groupby("index_right")["_ft"].sum().reindex(ixg.index).fillna(0).round()
+    ctr = gpd.GeoDataFrame(geometry=ixg.geometry.representative_point(), crs=seg.crs)
+    if districts_4326 is not None:
+        j = gpd.sjoin_nearest(ctr, districts_4326.to_crs(seg.crs)[["DISTRICT", "geometry"]], how="left")
+        ixg["district"] = j[~j.index.duplicated()]["DISTRICT"].values
+    if sn_4326 is not None:
+        j = gpd.sjoin(ctr, sn_4326.to_crs(seg.crs)[["POLYID", "geometry"]], how="left", predicate="within")
+        ixg["sn"] = pd.array(pd.to_numeric(j[~j.index.duplicated()]["POLYID"].values, errors="coerce"), dtype="Int64")
+    ixg["road_class"] = "Intersection"
+    ixg["length_ft"] = ixg["leg_ft"]
+    print(f"Intersections on TxDOT roads: {int(ixg['on_txdot'].sum()):,}; on the HIN: {int(ixg['on_hin'].sum()):,}")
+    iw = ixg[["seg_id", "name", "streets", "top_class", "road_class", "district", "sn", "on_txdot", "on_hin",
+              "n_crash", "n_severe", "n_fatal", "n_ped", "n_ped_severe", "n_bike", "n_bike_severe", "length_ft", "geometry"]].copy()
+    _simp = iw.geometry.simplify(5)   # keep the original where simplifying breaks a small polygon
+    iw["geometry"] = [b if b.geom_type == "Polygon" and not b.is_empty else a for a, b in zip(iw.geometry, _simp)]
+    iw = iw.to_crs(4326)
+    ipath = DOCS / "intersections_vz.geojson"
+    if ipath.exists():
+        ipath.unlink()
+    iw.to_file(ipath, driver="GeoJSON", COORDINATE_PRECISION=5)
+    ipath.write_text(json.dumps(json.loads(ipath.read_text()), separators=(",", ":")))
+    print(f"Wrote {len(iw):,} intersections -> {ipath.name} ({ipath.stat().st_size/1e6:.1f} MB)")
+else:
+    print("WARNING: houston_intersections.gpkg missing (run build_intersections.py); crashes stay on blocks")
+
 keep = seg[[c for c in COLS if c in seg.columns] + ["road_class", "geometry"]].copy()
 for c, nd in COLS.items():
     if c in keep.columns and nd is not None:
@@ -425,9 +502,12 @@ def crash_rows(cr, freeway=False):
         cr["on_hin"] = False
         cr["on_txdot"] = cr["road_type"].eq(1)
     elif "seg_id" in cr.columns:
-        _pub = set(seg["seg_id"])
-        cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].isin(_pub))
         _lut = seg.set_index("seg_id")[["on_hin", "on_txdot"]]
+        if ixg is not None:   # crashes inside an intersection polygon belong to the intersection
+            cr["seg_id"] = cr["Crash_ID"].map(ix_of).fillna(cr["seg_id"])
+            _lut = pd.concat([_lut, ixg.set_index("seg_id")[["on_hin", "on_txdot"]]])
+        _pub = set(_lut.index)
+        cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].isin(_pub))
         cr["on_hin"] = cr["seg_id"].map(_lut["on_hin"]).fillna(False).astype(bool)
         cr["on_txdot"] = cr["seg_id"].map(_lut["on_txdot"]).fillna(False).astype(bool)
         print(f"Crash streets from pipeline assignment: {int(cr['seg_id'].notna().sum()):,} of {len(cr):,} attach to a published street")
@@ -502,12 +582,7 @@ def crash_rows(cr, freeway=False):
     return pts
 
 
-_city = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes")
-if front_cr is not None:   # frontage-road crashes join the default view
-    _fc = front_cr.to_crs(_city.crs)
-    _city = gpd.GeoDataFrame(pd.concat([_city, _fc[[c for c in _city.columns if c in _fc.columns] + (["seg_id"] if "seg_id" not in _city.columns else [])]],
-                                       ignore_index=True), crs=_city.crs)
-pts = crash_rows(_city)
+pts = crash_rows(_city_all)
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
@@ -633,7 +708,7 @@ if _fpath.exists():
         for c_ in ("lanes_final", "roadway_width_ft", "posted_speed_mph", "sidewalk_presence", "adt"):
             sec[c_] = None
         sec["geometry"] = sec.geometry.simplify(25, preserve_topology=False)
-        fs = sec.to_crs(4326)[WEB_KEEP + ["label", "geometry"]]
+        fs = sec.to_crs(4326)[[c for c in WEB_KEEP if c != "mid_ft"] + ["label", "geometry"]]   # whole sections, no intersections
         fsp = DOCS / "freeway_sections.geojson"
         if fsp.exists():
             fsp.unlink()

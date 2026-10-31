@@ -243,10 +243,10 @@ def reconcile(label, from_crashes, from_summary, tol):
 # ---------------------------------------------------------------------------
 # 4. Cross-file referential integrity + the other GeoJSON layers
 # ---------------------------------------------------------------------------
-def check_integrity(crashes, segments):
+def check_integrity(crashes, segments, ix_ids=frozenset()):
     if not (crashes and segments):
         return
-    orphan = crashes["seg_ids"] - segments["ids"]
+    orphan = crashes["seg_ids"] - segments["ids"] - ix_ids
     if crashes["seg_ids"]:
         frac = len(orphan) / len(crashes["seg_ids"])
         msg = (f"{len(orphan):,} of {len(crashes['seg_ids']):,} crash seg_ids "
@@ -370,8 +370,9 @@ def decode_segments(pk):
         m = pk["npts"][i]
         coords = [[xy[2 * (j + t)] / 1e5, xy[2 * (j + t) + 1] / 1e5] for t in range(m)]
         j += m
-        feats.append({"type": "Feature", "properties": props,
-                      "geometry": {"type": "LineString", "coordinates": coords}})
+        geom = ({"type": "Polygon", "coordinates": [coords]} if pk.get("geom") == "Polygon"
+                else {"type": "LineString", "coordinates": coords})
+        feats.append({"type": "Feature", "properties": props, "geometry": geom})
     return feats
 
 
@@ -398,6 +399,38 @@ def check_freeway_sections():
         err(f"freeway crashes: {len(missing)} section ids not in freeway_sections.packed.json")
     print(f"  freeway_sections.packed.json: {len(ids):,} sections and ramps; "
           f"{sum(1 for r in rows if r[14] is not None):,} of {len(rows):,} freeway crashes on one ({100*sum(1 for r in rows if r[14] is not None)/max(1,len(rows)):.1f}%)")
+
+
+def check_intersections(pts, seg):
+    """Intersection polygons: decodable closed rings, ids apart from street ids, and a
+    plausible share of street crashes inside one (64% when first built, 2026-10-31)."""
+    ik = load("intersections.packed.json")
+    if ik is None:
+        return frozenset()
+    feats = decode_segments(ik)
+    ids = [f["properties"]["seg_id"] for f in feats]
+    if len(ids) != len(set(ids)):
+        err("intersections.packed.json: duplicate ids")
+    if seg is not None and set(ids) & {f["properties"]["seg_id"] for f in seg["features"]}:
+        err("intersections.packed.json: ids overlap street segment ids")
+    bad = [f for f in feats if f["geometry"]["type"] != "Polygon" or len(f["geometry"]["coordinates"][0]) < 4
+           or f["geometry"]["coordinates"][0][0] != f["geometry"]["coordinates"][0][-1]
+           or f["properties"].get("road_class") != "Intersection"]
+    if bad:
+        err(f"intersections.packed.json: {len(bad)} features are not closed intersection polygons")
+    ip = DOCS / "intersections_vz.geojson"
+    if ip.exists():
+        canon = json.loads(ip.read_text())["features"]
+        if feats != [{"type": "Feature", "properties": f["properties"], "geometry": f["geometry"]} for f in canon]:
+            err("intersections.packed.json: does not decode to intersections_vz.geojson; rerun src/pack_webmap_data.py")
+    idset = frozenset(ids)
+    if pts is not None:
+        at = sum(1 for r in pts if r[14] in idset)
+        share = at / max(1, len(pts))
+        if not 0.45 <= share <= 0.85:
+            err(f"intersections: {share:.1%} of street crashes are at an intersection (expected 45 to 85%)")
+        print(f"  intersections.packed.json: {len(ids):,} intersections; {at:,} of {len(pts):,} street crashes at one ({share:.1%})")
+    return idset
 
 
 def check_blockgroups():
@@ -477,7 +510,8 @@ def main():
     segments = check_segments(seg) if seg is not None else None
     if vz is not None:
         check_summary(vz, crashes)
-    check_integrity(crashes, segments)
+    ix_ids = check_intersections(pts, seg)
+    check_integrity(crashes, segments, ix_ids)
     if pts is not None:
         check_equity(pts)
     check_aux_geojson()

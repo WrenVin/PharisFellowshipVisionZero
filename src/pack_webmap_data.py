@@ -5,6 +5,7 @@ canonical, human-readable exports. This step writes column-oriented versions:
 
     docs/crashes.packed.json    every crash, same 24 fields, lossless
     docs/segments.packed.json   every street segment, same properties + geometry
+    docs/intersections.packed.json   every intersection polygon (outer ring), same layout
     docs/freeway_crashes.packed.json   freeway/tollway/ramp/frontage crashes for the
                                 optional toggle (24 fields + road_type), lossless
 
@@ -30,7 +31,7 @@ DOCS = Path(__file__).resolve().parent.parent / "docs"
 D0 = dt.date(2016, 1, 1)
 # crash row field -> bit in the packed flags column
 FLAG_FIELDS = (2, 3, 4, 5, 12, 13)          # severe, fatal, ped, bike, on_hin, on_txdot
-SEG_STR_DICT = ("name", "road_class", "district", "sidewalk_presence")
+SEG_STR_DICT = ("name", "road_class", "district", "sidewalk_presence", "top_class")
 SEG_BOOL = ("on_txdot", "on_hin")
 
 
@@ -94,16 +95,18 @@ def pack_segments(gj):
             cols[k] = [int(v) for v in vals]
         else:
             cols[k] = vals
+    gtype = feats[0]["geometry"]["type"]       # LineString (streets) or Polygon (intersections: outer ring only)
     npts, xy, px, py = [], [], 0, 0
     for f in feats:
         g = f["geometry"]
-        assert g["type"] == "LineString", g["type"]
-        npts.append(len(g["coordinates"]))
-        for x, y in g["coordinates"]:
+        assert g["type"] == gtype, g["type"]
+        cs = g["coordinates"][0] if gtype == "Polygon" else g["coordinates"]
+        npts.append(len(cs))
+        for x, y in cs:
             X, Y = round(x * 1e5), round(y * 1e5)
             xy += [X - px, Y - py]
             px, py = X, Y
-    return {"format": "vz-segments", "version": 1, "keys": keys, "dicts": dicts,
+    return {"format": "vz-segments", "version": 1, "geom": gtype, "keys": keys, "dicts": dicts,
             "n": len(feats), "cols": cols, "npts": npts, "xy": xy}
 
 
@@ -121,6 +124,11 @@ def main():
         fs = json.loads(fsp.read_text())
         n = dump(pack_segments(fs), DOCS / "freeway_sections.packed.json")
         print(f"Wrote {len(fs['features']):,} freeway sections -> freeway_sections.packed.json ({n/1e6:.1f} MB)")
+    ip = DOCS / "intersections_vz.geojson"   # intersection polygons, loaded with the streets
+    if ip.exists():
+        ig = json.loads(ip.read_text())
+        n = dump(pack_segments(ig), DOCS / "intersections.packed.json")
+        print(f"Wrote {len(ig['features']):,} intersections -> intersections.packed.json ({n/1e6:.1f} MB)")
     segs = json.loads((DOCS / "segments_vz.geojson").read_text())
     n = dump(pack_segments(segs), DOCS / "segments.packed.json")
     print(f"Wrote {len(segs['features']):,} segments -> segments.packed.json ({n/1e6:.1f} MB)")
