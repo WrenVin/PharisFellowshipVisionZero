@@ -476,7 +476,7 @@
 </header>
 <div class="fbar" id="fbar" aria-live="polite"><div class="sh-in"><span class="fb-lead">Showing</span><span class="fb-chips" id="fb-chips"></span></div></div>
 <div class="wrap">
-  <h1 class="sr-only">Houston Traffic Crash Dashboard: traffic deaths and serious injuries on Houston streets, January 2016 to September 2026</h1>
+  <h1 class="sr-only">Houston Traffic Crash Dashboard: traffic deaths and serious injuries on Houston streets, <span class="data-span">January 2016 to September 2026</span></h1>
 
   <div class="kpis" id="kpis"></div>
 
@@ -713,7 +713,7 @@
     <div class="shd"><h2 id="welcome-title">Welcome</h2><button class="x" id="welcome-x" aria-label="Close">×</button></div>
     <div class="sbody">
       <section>
-        <p>This dashboard maps traffic crashes on Houston city streets that killed or seriously injured someone, from January 2016 to September 2026, using Texas Department of Transportation crash records.</p>
+        <p>This dashboard maps traffic crashes on Houston city streets that killed or seriously injured someone, from <span class="data-span">January 2016 to September 2026</span>, using Texas Department of Transportation crash records.</p>
       </section>
       <section>
         <h3>How to use it</h3>
@@ -1348,6 +1348,7 @@ Promise.all([
   { const last=cityPts.reduce((m,p)=>p[7]&&p[7]>m?p[7]:m,''), d=new Date(last+'T12:00:00');   // last complete month of data
     if(last){ d.setDate(d.getDate()+1); d.setDate(0); DATA_END=d.toISOString().slice(0,10); } }   // day after the last date, back to the end of the prior month
   setupWhenUI();   // fill the Years / Month / Day / Time selects (year bounds are known now)
+  { const sp=fullSpan(); if(sp) document.querySelectorAll('.data-span').forEach(e=>e.textContent=sp); }   // date range from the data, never typed
   fetch('blockgroups.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(b=>{ if(b){ BG=b.rows; drawEquity(); } }).catch(()=>{});
   document.getElementById('loading').style.display='none';
   map.invalidateSize();

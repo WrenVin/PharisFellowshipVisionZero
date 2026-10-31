@@ -24,3 +24,11 @@ data/external/*_mapillary_points.parquet
 data/raw/CRIS_staging/
 data/raw/CRIS_backup_*/
 data/processed/*_freeway_crashes.gpkg
+
+# Large regenerable files kept out of git (2026-10-31): the processed crash layer
+# rebuilds from raw CRIS (build_crashes.py + assign_crashes.py), and the readable web
+# exports rebuild with export_webmap_data.py; the page loads only the *.packed.json files.
+data/processed/houston_crashes.gpkg
+docs/crash_points.json
+docs/freeway_crash_points.json
+docs/segments_vz.geojson

@@ -23,7 +23,7 @@ import requests
 import config as cfg
 ROOT, PROCESSED, EXTERNAL, REPORTS = cfg.ROOT, cfg.PROCESSED, cfg.EXTERNAL, cfg.REPORTS
 
-LU_URL = "https://mycity2.houstontx.gov/pubgis02/rest/services/HoustonMap/Landuse/MapServer/0"
+LU_URL = "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Landuse/MapServer/0"
 BUFFER_FT = 100
 OWNED = ["landuse_dominant", "pct_residential", "pct_commercial",
          "pct_industrial", "n_parcels_nearby", "landuse_source"]

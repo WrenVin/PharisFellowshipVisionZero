@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config as cfg
 from arcgis_fetch import fetch_layer
 
-SN_URL = ("https://mycity2.houstontx.gov/pubgis02/rest/services/"
+SN_URL = ("https://mycity2.houstontx.gov/gisweb02/rest/services/"
           "HoustonMap/Administrative_Boundary/MapServer/3")  # Super Neighborhoods
 
 def main():

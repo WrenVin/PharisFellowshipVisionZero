@@ -2,7 +2,7 @@
 study-area boundary the whole pipeline clips to.
 
 Source: COH GIS, Administrative_Boundary MapServer, layer 0 "Houston City Limit"
-(https://mycity2.houstontx.gov/pubgis02/rest/services/HoustonMap/Administrative_Boundary/MapServer/0).
+(https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/0).
 Each polygon carries SERVICE_TY in {FULL, LIMITED}. We keep ONLY SERVICE_TY='FULL'
 (the fully-annexed, full-service city: police/EMS/fire/etc.) and dissolve to one
 polygon. The LIMITED-purpose annexations (749 slivers — the "tentacles") are dropped
@@ -19,7 +19,7 @@ import requests
 
 import config as cfg
 
-LAYER = ("https://mycity2.houstontx.gov/pubgis02/rest/services/"
+LAYER = ("https://mycity2.houstontx.gov/gisweb02/rest/services/"
          "HoustonMap/Administrative_Boundary/MapServer/0")
 
 

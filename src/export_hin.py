@@ -9,8 +9,8 @@ config (clips to whatever AREA's boundary is).
 import config as cfg
 from arcgis_fetch import fetch_layer
 
-HIN_URL = ("https://mycity2.houstontx.gov/pubgis02/rest/services/"
-           "HoustonMap/Transportation/MapServer/20")  # Vision Zero HIN 2022
+HIN_URL = ("https://mycity2.houstontx.gov/gisweb02/rest/services/"
+           "HoustonMap/Transportation/MapServer/22")  # Vision Zero HIN 2022
 
 hin = fetch_layer(HIN_URL, out_fields="*", bbox_4326=cfg.bbox_4326(), out_sr=cfg.CRS_FT)
 boundary = cfg.boundary(cfg.CRS_FT).geometry.iloc[0]

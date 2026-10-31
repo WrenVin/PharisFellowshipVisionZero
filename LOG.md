@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Quick fixes: City GIS address, repo size, automatic date range
+
+- **City GIS address:** `fetch_boundary.py`, `fetch_superneighborhoods.py`, `export_hin.py` and `conflate_landuse.py` now use `mycity2.houstontx.gov/gisweb02/...` (the old `pubgis02` server is retired). The High Injury Network also moved from Transportation layer 20 to 22 (20 is now airport airspace); a re-fetch from the new address produced a byte-identical `docs/hin.geojson` (1,261 segments). The city limit (layer 0), super neighborhoods (88, matches disk) and land use layers respond.
+- **Repo size:** stopped tracking `data/processed/houston_crashes.gpkg` (71 MB; rebuilds from raw CRIS) and the readable web exports `docs/crash_points.json` (47.6 MB, about to pass GitHub's 50 MB warning), `docs/freeway_crash_points.json` and `docs/segments_vz.geojson`; the page loads only the packed files. `tests/validate_exports.py` now runs every check on the decoded packed files when the readable ones are absent (as in CI) and still round-trips them locally. Simulated a CI checkout: all checks pass. (Git history still holds the old copies.)
+- **Date range is automatic:** the welcome guide and the screen-reader title now take "January 2016 to September 2026" from the data (last complete month), like the rest of the page.
+
 ## 2026-10-31 — Frontage roads join the street map (dashboard only)
 
 - **New `src/build_frontage.py`:** pulls from OSM the ways `pull_osm.py` drops (named frontage, feeder or service road, or tagged `frontage_road=yes`; 19,575 raw edges), splits them where an analysis-network street meets them (3,783 cross-street nodes), clips to the full-purpose boundary: **3,460 frontage blocks, 364 mi** (`data/processed/houston_frontage_segments.gpkg`, ids H-300000 and up). 395 unnamed pieces borrowed the nearest named frontage block's name; 17 stay unnamed.

@@ -438,8 +438,19 @@ def check_packed(pts, seg):
 # ---------------------------------------------------------------------------
 def main():
     print(f"Validating dashboard exports in {DOCS} ...")
-    pts = load("crash_points.json")
-    seg = load("segments_vz.geojson")
+    # The readable exports (crash_points.json, segments_vz.geojson, freeway_crash_points.json)
+    # are built locally but not committed (size). Where they are missing, as in CI, every
+    # check runs on the rows decoded from the packed files the page actually loads; locally
+    # the packed files are also round-tripped against them.
+    canonical = (DOCS / "crash_points.json").exists() and (DOCS / "segments_vz.geojson").exists()
+    if canonical:
+        pts = load("crash_points.json")
+        seg = load("segments_vz.geojson")
+    else:
+        print("  (readable exports not present; checking the decoded packed files)")
+        pk, sk = load("crashes.packed.json"), load("segments.packed.json")
+        pts = decode_crashes(pk) if pk is not None else None
+        seg = {"type": "FeatureCollection", "features": decode_segments(sk)} if sk is not None else None
     vz = load("vz_summary.json")
 
     crashes = check_crashes(pts) if pts is not None else None
@@ -450,7 +461,8 @@ def main():
     if pts is not None:
         check_equity(pts)
     check_aux_geojson()
-    check_packed(pts, seg)
+    if canonical:
+        check_packed(pts, seg)
     check_blockgroups()
 
     print()

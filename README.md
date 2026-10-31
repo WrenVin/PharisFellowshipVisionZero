@@ -52,7 +52,7 @@ src/
 docs/                          # public web apps (GitHub Pages)
   vision-zero.html             # Vision Zero dashboard (story-first: toll, HIN, travel mode, year drill-down)
   index.html                   # redirect to vision-zero.html (Street Explorer retired)
-  segments_vz.geojson          # slim per-street data (the 20 fields the dashboard uses, incl. sn); canonical export, not loaded by the page
+  segments_vz.geojson          # slim per-street data (the 20 fields the dashboard uses, incl. sn); canonical export, not loaded by the page; built locally, not in git (size)
   segments.packed.json         # column-packed segments_vz.geojson; what the page loads (decoded in the browser)
   boundary.geojson             # study-area outline (City of Houston)
   districts.geojson            # the 11 council-district outlines (district filter + zoom)
@@ -60,9 +60,9 @@ docs/                          # public web apps (GitHub Pages)
   vz_summary.json              # static snapshot (toll/trend/equity); dashboard reads only its `years` list, recomputing the rest live
   hin.geojson                  # City of Houston official Vision Zero HIN (2022)
   areas_<kind>.geojson         # Area-filter boundaries, tested in the browser: tirz (26), mgmt (18), hpd (16), zip (55), tract (596); only areas >= 95% inside the city
-  crash_points.json            # one row per crash (points view, KPIs, charts, filtering); canonical export, not loaded by the page
+  crash_points.json            # one row per crash (points view, KPIs, charts, filtering); canonical export, not loaded by the page; built locally, not in git (size)
   crashes.packed.json          # column-packed crash_points.json; what the page loads (decoded in the browser)
-  freeway_crash_points.json    # freeway/tollway main-lane and ramp crashes (24 fields + road_type) for the optional Freeways toggle; frontage-road crashes are in crash_points.json; canonical
+  freeway_crash_points.json    # freeway/tollway main-lane and ramp crashes (24 fields + road_type) for the optional Freeways toggle; frontage-road crashes are in crash_points.json; built locally, not in git; canonical
   freeway_crashes.packed.json  # column-packed freeway crashes; fetched only when a visitor turns the toggle on (~1.9 MB)
 reports/
   feature_coverage.md       # segment & feature coverage report (generated)
