@@ -590,7 +590,7 @@
           <label title="Add crashes on freeways, toll roads, ramps and frontage roads"><input type="radio" name="fwy" value="1"> Included</label>
         </span>
         <div class="note" id="fwy-note" aria-live="polite"></div>
-        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the top 10 streets figure still count city streets only.</div>
+        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the share of street miles figure still count city streets only.</div>
       </div>
       </details>
       <details class="secd" data-sec="map">
@@ -934,17 +934,17 @@ function animateKPIs(){
   const gen=++_kpiGen;
   document.querySelectorAll('#kpis .kpi .v[data-num]').forEach(el=>{
     const key=el.getAttribute('data-key'), to=+el.getAttribute('data-num');
-    const F = el.hasAttribute('data-money') ? fmtMoney : el.hasAttribute('data-pct') ? (v=>Math.round(v)+'%') : fmt;   // money KPIs render as $ (e.g. $18.4B), shares as %
+    const F = el.hasAttribute('data-money') ? fmtMoney : el.hasAttribute('data-pct1') ? (v=>(v<10?v.toFixed(1):Math.round(v))+'%') : el.hasAttribute('data-pct') ? (v=>Math.round(v)+'%') : fmt;   // money KPIs render as $ (e.g. $18.4B), shares as %
     const prev=_kpiPrev[key]; _kpiPrev[key]=to;
     if(_reduceMotion || prev==null || prev===to){ el.textContent=F(to); return; }   // first time / no change: just set
     const from=prev, dur=600; let t0=null;
-    el.textContent=F(Math.round(from));
+    el.textContent=F(el.hasAttribute('data-pct1') ? from : Math.round(from));
     requestAnimationFrame(function step(now){
       if(gen!==_kpiGen) return;                 // a newer render superseded this tween
       if(t0===null) t0=now;                     // clock starts once the browser is free to paint
       let k=(now-t0)/dur; if(k>1)k=1;
       const e=1-Math.pow(1-k,3);                // easeOutCubic
-      el.textContent=F(Math.round(from+(to-from)*e));
+      el.textContent=F(el.hasAttribute('data-pct1') ? from+(to-from)*e : Math.round(from+(to-from)*e));
       if(k<1) requestAnimationFrame(step);
     });
   });
@@ -1174,6 +1174,21 @@ function tally(y){
     if(pe)pa++; if(bi)ba++;                                // ped / bike crashes of any severity (all-crashes mode)
     if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
   return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,ped_all:pa,bike_all:ba,crashes};
+}
+// Concentration: street miles ranked by deaths and serious injuries per mile (in the
+// current filters); pctForHalf = share of street miles holding 50% of them,
+// hinKsi = share held by the worst 6% of street miles (the City's HIN size).
+function concentration(){
+  const rows=[]; let totK=0, totM=0;
+  geo.eachLayer(l=>{const p=l.feature.properties; if(!inAreaProp(p) || !ownerOk(p.on_txdot)) return;
+    const k=activeCounts[p.seg_id]||0, m=(p.length_ft||0)/5280; if(m>0){ rows.push([k,m]); totK+=k; totM+=m; }});
+  if(totK<=0 || totM<=0) return {totK:0, pctForHalf:null, hinKsi:0};
+  rows.sort((a,b)=> (b[0]/b[1]) - (a[0]/a[1]));   // most per mile first
+  let cumM=0, cumK=0, pctForHalf=null, hinKsi=null;
+  for(const [k,m] of rows){ cumM+=m; cumK+=k; const x=cumM/totM, y=cumK/totK;
+    if(pctForHalf===null && y>=0.5) pctForHalf=x;
+    if(hinKsi===null && x>=0.06) hinKsi=y; if(pctForHalf!==null && hinKsi!==null) break; }
+  return {totK, pctForHalf, hinKsi: hinKsi===null?1:hinKsi};
 }
 const renderer=L.canvas({tolerance:8});
 const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
@@ -1782,10 +1797,13 @@ function drawKPIs(t){
   if(selIds.size>0){
     kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':'block')+(year===null?'':', '+span), true, null, 'extra', t.crashes);
   } else {
-    const ts=topStreets(), metric = sev==='all'?'crashes':'deaths and serious injuries';
-    const tsTip='The share of '+metric+' in this view that happened on the '+(ts.n===10?'10 streets':ts.n+' streets')+' at the top of the Most dangerous streets table below, out of '+fmt(ts.streets)+' streets with any.';
-    kpi4 = ts.pct==null ? kpi(KICON.conc,'Top 10 streets','–','none in this view',true,null)
-      : kpi(KICON.conc, ts.n===10?'Top 10 streets':'Top '+ts.n+' streets', ts.pct+'%', 'of '+metric, true, tsTip, 'top10', ts.pct, 'pct');
+    const con=concentration(), metric = sev==='all'?'crashes':'deaths and serious injuries';
+    const few = con.totK<20;   // a share of street miles means little with only a handful of crashes
+    const half = con.pctForHalf!=null && !few ? con.pctForHalf*100 : null;
+    const conTip = few ? 'This measure needs at least 20 '+metric+' in the view.'
+      : 'Streets are ranked from the most '+metric+' per mile to the fewest. The top '+(half<10?half.toFixed(1):Math.round(half))+'% of street miles had 50% of the '+metric+' in this view; most streets had none. For comparison, the City\'s High Injury Network covers about 6% of street miles; the worst 6% here had '+Math.round(con.hinKsi*100)+'%.';
+    kpi4 = half==null ? kpi(KICON.conc,'Concentrated','–','too few to measure',true,conTip)
+      : kpi(KICON.conc,'Concentrated', (half<10?half.toFixed(1):Math.round(half))+'%', 'of street miles had 50% of '+metric, true, conTip, 'conc', +half.toFixed(1), 'pct1');
   }
   const cost=costTotal();
   const costTip='Medical care, lost work, property damage, and emergency and legal costs, using federal (FHWA) per-person costs by injury severity in 2024 dollars. The comprehensive cost also counts lost quality of life. Both are likely undercounts because not every crash is reported.';
@@ -1801,7 +1819,7 @@ function drawKPIs(t){
 function kpi(ic,l,v,s,neutral,tip,key,num,money){
   const info = tip ? ' <button class="info" onclick="toggleTip(this)" aria-label="How this is calculated">i</button>' : '';
   const tipDiv = tip ? '<div class="tip ktip">'+tip+'</div>' : '';
-  const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"'+(money==='pct'?' data-pct="1"':money?' data-money="1"':'') : '';   // numeric KPIs count up on filter change (money ones format as $)
+  const vattr = (num!=null) ? ' data-key="'+key+'" data-num="'+num+'"'+(money==='pct1'?' data-pct1="1"':money==='pct'?' data-pct="1"':money?' data-money="1"':'') : '';   // numeric KPIs count up on filter change (money ones format as $)
   return '<div class="kpi'+(neutral?' neutral':'')+'"><div class="ic">'+ic+'</div><div class="l">'+l+info+'</div><div class="v"'+vattr+'>'+v+'</div><div class="s">'+s+'</div>'+tipDiv+'</div>';
 }
 // info tips open in one floating box beside the button, so the page layout never shifts
@@ -2076,11 +2094,6 @@ function rankStreets(){
   const L=streetLengths();
   const rows=Object.keys(agg).map(nm=>({nm, f:agg[nm].f, s:agg[nm].s, t:agg[nm].f+agg[nm].s, L:L[nm]})).sort((a,b)=>b.t-a.t||b.f-a.f);
   _rankCache={sig, rows}; return rows;
-}
-// share of the view's crashes (or people killed/seriously injured) on its 10 worst streets
-function topStreets(){
-  const rows=rankStreets(), n=Math.min(10,rows.length), tot=rows.reduce((a,r)=>a+r.t,0), top=rows.slice(0,n).reduce((a,r)=>a+r.t,0);
-  return {n, pct: tot ? Math.round(100*top/tot) : null, streets:rows.length};
 }
 function streetRankNow(name){
   if(!name || name.startsWith('__seg__')) return null;
@@ -2596,7 +2609,8 @@ async function generateReport(cfg){
   const R=document.getElementById('report'); if(!R) return;
   const d=viewDesc();
   const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed), cost=costTotal();
-  const ts = selIds.size>0 ? null : topStreets();
+  const con = selIds.size>0 ? null : concentration();
+  const conPct = (con && con.totK>=20 && con.pctForHalf!=null) ? (con.pctForHalf*100<10?(con.pctForHalf*100).toFixed(1):Math.round(con.pctForHalf*100))+'%' : null;
   const metric = sev==='all' ? 'crashes' : 'people killed or seriously injured';
   const chips=[]; if(d.sel) chips.push(d.sel); chips.push(d.region); chips.push(d.when);
   if(d.modeTxt) chips.push(d.modeTxt); d.extras.forEach(e=>chips.push(e));
@@ -2610,7 +2624,7 @@ async function generateReport(cfg){
       const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
       const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return null;
       const ch=(r-b)/b; return ch>0.05?'rising':ch<-0.05?'falling':'roughly flat'; })();
-    const conPhrase = (ts && ts.pct!=null) ? ('The '+(ts.n===10?'10':ts.n)+' most dangerous streets in this view account for '+ts.pct+'% of its '+metric) : 'This view covers a single street';
+    const conPhrase = conPct ? ('50% of the '+metric+' in this view happened on '+conPct+' of its street miles') : (selIds.size ? 'This view covers a single street' : 'This view has too few crashes to measure how concentrated they are');
     const trPhrase = trDir ? (', and the yearly trend is '+trDir+' against the 2016–2018 baseline') : '';
     synthHTML='<p class="r-synth">'+conPhrase+trPhrase+'.</p>';
   }
@@ -2618,7 +2632,7 @@ async function generateReport(cfg){
   const stat=(v,l)=>'<div class="r-stat"><div class="r-statv">'+v+'</div><div class="r-statl">'+l+'</div></div>';
   const statsHTML = stat(fmt(t.killed),'People killed')+stat(fmt(serious),'Seriously injured')+stat(fmt(yll),'Years of life lost')
     +stat(fmtMoney(cost.econ),'Economic cost')
-    +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(ts&&ts.pct!=null?ts.pct+'%':'–','on the '+(ts&&ts.n<10?ts.n:10)+' most dangerous streets'));
+    +(selIds.size>0 ? stat(fmt(t.crashes),'All crashes') : stat(conPct||'–','of street miles had 50% of all '+(sev==='all'?'crashes':'deaths and serious injuries')));
   // map (gated)
   let mapHTML='';
   if(S.map){

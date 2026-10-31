@@ -4,6 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Concentration KPI back, reworded
+
+After comparing alternatives (top 10 streets' share, this year vs last, rate per 100,000 residents, walking share, days between deaths), Vincent chose to keep the original concentration measure; the problem was the phrase "half the harm". The tile now reads **Concentrated: 2.3% of street miles had 50% of deaths and serious injuries** ("crashes" under All crashes), with a tip explaining the ranking and the comparison to the High Injury Network's 6% (the worst 6% of street miles hold 81% citywide). Decimal count-up; "too few to measure" under 20 in view. The report stat and summary sentence use the same wording. The Top 10 streets KPI code is removed (the street table and popups keep their ranking).
+
 ## 2026-10-31 — "Top 10 streets" replaces "Harm is concentrated"; notice bar removed
 
 - Vincent found "2.3% of streets, half the harm" confusing for a general reader. Options compared with live numbers (citywide / District C): top 10 streets' share 13% / 26%; one death every 2.3 / 44 days; share on the City's HIN 50% / 38%; the same measure reworded. He chose **Top 10 streets**: the share of deaths and serious injuries in the view on the 10 streets at the top of the Most dangerous streets table (same ranking, so the two always agree), counting up like the other KPIs. The printed report's stat and summary sentence use it too. The concentration-curve code is removed.

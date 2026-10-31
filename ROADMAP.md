@@ -19,6 +19,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-31 Concentration KPI restored with plain wording ("2.3% of street miles had 50% of deaths and serious injuries"); Top 10 streets KPI dropped.
 - [x] 2026-10-31 KPI "Top 10 streets" replaces "Harm is concentrated"; notice bar under the header removed (notice kept in the guide, footer and report).
 - [x] 2026-10-31 Quality pass: sticky Showing bar with removable filter chips; every panel names its area and dates and says when it shows its own filter's full split; filtered street ranks in popups; plain trend wording.
 - [x] 2026-10-31 Smooth updates (count-up timing, panels drawn after the map, bars and charts transition); report form holds every option; sidebar controls fit beside the scrollbar; Segments renamed Blocks.
