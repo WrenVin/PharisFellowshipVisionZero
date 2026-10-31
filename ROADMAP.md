@@ -12,6 +12,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-31 Streets only is the default Roads included setting (frontage roads led the street table once intersections were split out).
 - [x] 2026-10-31 Intersections (Vision Zero Austin method, 75 / 125 ft legs from the police-code check): 34,141 polygons; crashes inside one count for it (64%); Most dangerous intersections table; whole streets include their intersections.
 - [x] 2026-10-31 Roads included (streets / + frontage / + freeways) everywhere incl. the street table; freeway interchanges as units; cross-street and exit labels; TxDOT milepost placement; Most dangerous freeway sections list.
 - [x] 2026-10-31 Freeway sections v1: 1,051 main-lane sections (one per direction, between ramps) and 1,416 ramps; 97.2% of freeway crashes placed; shaded and clickable with the Freeways toggle.

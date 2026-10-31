@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Streets only is the default
+
+Vincent's call after the intersection build: the dashboard opens on Streets only; frontage roads and freeways are added from Roads included.
+
+- Why it came up: with crashes inside intersections moved off the street table, frontage roads led it (Gulf Freeway Frontage Road 158 people killed or seriously injured over 38.1 mi, Southwest 142, North 128; Westheimer 127 between intersections at #4). A frontage-road name covers both sides of a freeway for many miles with few intersections (929 of 34,141 are led by a frontage road; ramps do not make intersections), so it keeps most of its crashes, while arterials give most of theirs to their intersections. Per mile the frontage roads are lower (4.1 to 6.0 against Westheimer's 7.7).
+- Default view now: 1,822 people killed (2,111 with frontage roads); street table led by Westheimer Road, Main Street, Bissonnet Street, South Highway 6, Airport Boulevard; concentration 1.7% of street miles had 50% of deaths and serious injuries.
+- URL: no `roads` parameter means streets only; `roads=frontage` and `roads=freeways` add them. Older shared links that relied on the frontage default now open on streets only. Showing chip reads "Frontage roads included"; KPI labels read "on Houston streets" (default) or "on streets and frontage roads"; Reset, badges, report form and report footer follow.
+
 ## 2026-10-31 — Intersections on the dashboard
 
 Built on the sizing check below (Vincent's call: Austin's method, Houston's distances, every intersection, no freeway ramps).
