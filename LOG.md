@@ -10,7 +10,7 @@ Vincent wants intersection polygons on the Vision Zero Austin model (each inters
 
 - The share coded intersection falls from 72 to 84% within 25 ft to a flat background (10% local, 13% collector, 18 to 27% arterials) by 50 to 75 ft on every street type. Beyond that the code no longer depends on distance.
 - Crashes cluster at the intersection point (CRIS geocodes many intersection crashes to the crossing), so the polygon size mostly decides how many mid-block crashes are pulled in.
-- At Austin's distances (150 ft local/collector, 250 ft arterial), 82 to 90% of city-street crashes would fall inside an intersection polygon; about half of those inside on arterials are coded non-intersection. Shorter legs keep most police-coded intersection crashes: at 75 ft, 93 to 94% on local and collector streets; at 125 ft on arterials, about 85 to 90%.
+- At Austin's distances (150 ft local/collector, 250 ft arterial), 82 to 90% of city-street crashes would fall inside an intersection polygon; about half of those inside on arterials are coded non-intersection. Shorter legs keep most police-coded intersection crashes: at 75 ft, 93 to 94% on local and collector streets; at 125 ft on arterials, about 84 to 89%.
 - Output: `reports/intersection_distance_check.png` and `.csv`. Distances not chosen yet.
 
 ## 2026-10-31 — Roads included option; interchanges, exit labels, milepost placement, freeway ranking
