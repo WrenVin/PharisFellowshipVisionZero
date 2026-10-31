@@ -4,6 +4,12 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Smooth updates restored; report form holds every option; sidebar controls fit
+
+- **Animations.** A full redraw takes about 0.57 s with freeways on (695k crashes; the time is spread across the panels). The KPI count-up started its clock when the redraw began, so by the first painted frame its time had run out and the numbers jumped. Now the count-up clock starts at the first painted frame, and the eight panels below the map are drawn one per task after the map and KPIs, so the page paints between them and a newer filter change cancels a half-finished pass (`schedulePanels`, `flushPanels` for the report). Bars, donut slices and heatmap squares are updated in place, so their widths, arcs and colors transition instead of being replaced. Verified: Freeways off counts 2,793 down to 1,729 over about 25 frames.
+- **Report form** now holds every option: title, area, the selected street (keep or drop), dates, day of week, time of day, show, travel mode, age, sex, lighting, contributing factor, road owner, freeways (loads freeway data if needed), map style, HIN overlay, sections. Removed the read-only summary and the "close this window" link. The dashboard switches to the chosen options when the report is made. The report subtitle uses the band names ("Late night, 12 AM to 6 AM", "Weekends").
+- **Sidebar controls clear the scrollbar:** sidebar 236 px, segmented buttons shrink to fit; "Segments" renamed **Blocks** (it shades each block).
+
 ## 2026-10-30 — Printed report redone: two pages, civic style, current panels
 
 Vincent's sample PDF (District A) ran to three pages, kept the old red styling, stranded the "Breakdowns" and "Most affected streets" headings at page bottoms, clipped chart labels and values, and shrank the year chart's text.

@@ -217,12 +217,10 @@
   .rc-overlay{margin-top:11px}
   .rc-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
   .rc-always{margin-top:0;margin-bottom:9px}
+  .rc-gap{margin-top:12px}
   .rc-dates{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
   .rc-dates select{padding:6px 8px;border:1px solid #71767a;border-radius:2px;font:inherit;font-size:13.5px;background:#fff;color:var(--ink)}
   .rc-dl{font-size:13px;color:var(--ink);font-weight:600}
-  .rc-sum{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:5px 16px;margin:0;font-size:13.5px}
-  .rc-sum dt{color:var(--muted)}.rc-sum dd{margin:0;color:var(--ink);font-weight:600}
-  .rc-link{border:none;background:none;padding:0;font:inherit;color:var(--act);text-decoration:underline;cursor:pointer}
   .rc-sec h3{font-size:15px}
   .rc-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 18px;border-top:1px solid var(--line)}
   .rc-btn{padding:8px 16px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);
@@ -381,6 +379,8 @@
     #mapwrap{height:var(--panelH);min-height:0}
     .ctrl{height:var(--panelH);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   }
+  .ctrl{flex-basis:236px;overflow-x:hidden}
+  .seg label{flex:1 1 0;min-width:0;padding:5px 3px;overflow:hidden;text-overflow:ellipsis}
   .secd{border-top:1px solid #c9cdd1}.secd:first-child{border-top:none}
   .secd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink);padding:11px 0}
   .secd:first-child>summary{padding-top:0}
@@ -399,7 +399,11 @@
   .hb-l{color:var(--ink);line-height:1.25}
   .hb-t{display:flex;height:14px;background:transparent}
   .hb-f{background:var(--fatal);height:100%}.hb-s{background:var(--serious);height:100%;margin-left:0}
-  .hb-f+.hb-s{border-left:2px solid #fff}
+  .hb-s:not([style*='width:0%']){border-left:2px solid #fff}
+  .hb-f,.hb-s{transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .slice{transition:stroke-dasharray .5s cubic-bezier(.4,0,.2,1),stroke-dashoffset .5s cubic-bezier(.4,0,.2,1),opacity .3s}
+  .heat .hc{transition:background-color .45s ease,opacity .3s}
+  @media (prefers-reduced-motion:reduce){.hb-f,.hb-s,.slice,.heat .hc{transition:none}}
   .hb-v{font-variant-numeric:tabular-nums;color:var(--ink);min-width:44px;text-align:right}
   .hbh{font-size:12.5px;font-weight:700;color:var(--muted);margin:2px 0 4px}
   .donutwrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -590,10 +594,10 @@
         <h3>Display as <button class="info" onclick="toggleTip(this)" aria-label="About display modes">i</button></h3>
         <span class="seg">
           <label><input type="radio" name="view" value="corridor"> Streets</label>
-          <label><input type="radio" name="view" value="streets" checked> Segments</label>
+          <label><input type="radio" name="view" value="streets" checked> Blocks</label>
           <label><input type="radio" name="view" value="points"> Points</label>
         </span>
-        <div class="tip"><b>Streets</b> shades each street by its total. <b>Segments</b> shades each block. <b>Points</b> shows each crash.</div>
+        <div class="tip"><b>Streets</b> shades each street by its total. <b>Blocks</b> shades each block. <b>Points</b> shows each crash.</div>
       </div>
       <div class="grp">
         <h3>Overlay <button class="info" onclick="toggleTip(this)" aria-label="About the High Injury Network">i</button></h3>
@@ -794,7 +798,7 @@
     <div class="rc-hd">
       <div>
         <h2 id="rcfg-title">Create a report</h2>
-        <div class="rc-lede">A printable PDF of the dashboard with the filters below.</div>
+        <div class="rc-lede">A printable PDF of the dashboard. The options start from your current view; the dashboard switches to them when the report is made.</div>
       </div>
       <button class="x" id="rcfg-x" type="button" aria-label="Close">&times;</button>
     </div>
@@ -812,28 +816,47 @@
             </select></label>
           <label class="rc-field"><span>Area</span><select id="rc-area"></select></label>
         </div>
+        <label class="rc-check rc-overlay" id="rc-street-wrap" hidden><input type="checkbox" id="rc-street"> <span id="rc-street-lbl"></span></label>
       </section>
 
       <section class="rc-sec">
-        <h3>Dates</h3>
+        <h3>Dates and times</h3>
         <div class="rc-dates">
           <span class="rc-dl">From</span><select id="rc-from-mo" aria-label="From month"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><select id="rc-from-yr" aria-label="From year"></select>
           <span class="rc-dl">to</span><select id="rc-to-mo" aria-label="To month"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><select id="rc-to-yr" aria-label="To year"></select>
         </div>
         <div class="rc-note" id="rc-date-note"></div>
+        <div class="rc-grid rc-gap">
+          <label class="rc-field"><span>Day of week</span><select id="rc-dow"></select></label>
+          <label class="rc-field"><span>Time of day</span><select id="rc-hr"></select></label>
+        </div>
       </section>
 
       <section class="rc-sec">
-        <h3>Other filters in this report</h3>
-        <dl class="rc-sum" id="rc-sum"></dl>
-        <div class="rc-note">These come from the dashboard. To change them, <button type="button" class="rc-link" id="rc-change">close this window and use the filters on the left</button>; your report settings will be here when you come back.</div>
+        <h3>Who</h3>
+        <div class="rc-grid">
+          <label class="rc-field"><span>Show</span><select id="rc-sev"><option value="ksi">People killed or seriously injured</option><option value="all">All crashes</option></select></label>
+          <label class="rc-field"><span>Travel mode</span><select id="rc-mode"><option value="all">Everyone</option><option value="veh">Driving or riding</option><option value="ped">Walking</option><option value="bike">Biking</option></select></label>
+          <label class="rc-field"><span>Age of person hurt</span><select id="rc-age"></select></label>
+          <label class="rc-field"><span>Sex of person hurt</span><select id="rc-sex"><option value="0">All</option><option value="1">Male</option><option value="2">Female</option></select></label>
+        </div>
+      </section>
+
+      <section class="rc-sec">
+        <h3>Circumstances and roads</h3>
+        <div class="rc-grid">
+          <label class="rc-field"><span>Lighting</span><select id="rc-light"></select></label>
+          <label class="rc-field"><span>Contributing factor</span><select id="rc-fac"></select></label>
+          <label class="rc-field"><span>Road owner</span><select id="rc-owner"><option value="all">All roads</option><option value="city">City-owned</option><option value="txdot">TxDOT-owned</option></select></label>
+          <label class="rc-field"><span>Freeways</span><select id="rc-fwy"><option value="0">Not included</option><option value="1">Included</option></select></label>
+        </div>
       </section>
 
       <section class="rc-sec">
         <h3>Map</h3>
         <div class="rc-grid">
           <label class="rc-field"><span>Show the map as</span>
-            <select id="rc-view"><option value="corridor">Whole streets</option><option value="streets">Street segments</option><option value="points">Crash points</option></select></label>
+            <select id="rc-view"><option value="corridor">Whole streets</option><option value="streets">Blocks</option><option value="points">Crash points</option></select></label>
         </div>
         <label class="rc-check rc-overlay"><input type="checkbox" id="rc-hin"> <span>Include the City's High Injury Network</span></label>
       </section>
@@ -902,15 +925,16 @@ function animateKPIs(){
     const F = el.hasAttribute('data-money') ? fmtMoney : fmt;   // money KPIs render as $ (e.g. $18.4B)
     const prev=_kpiPrev[key]; _kpiPrev[key]=to;
     if(_reduceMotion || prev==null || prev===to){ el.textContent=F(to); return; }   // first time / no change: just set
-    const from=prev, dur=520, t0=performance.now();
+    const from=prev, dur=600; let t0=null;
     el.textContent=F(Math.round(from));
-    (function step(now){
+    requestAnimationFrame(function step(now){
       if(gen!==_kpiGen) return;                 // a newer render superseded this tween
+      if(t0===null) t0=now;                     // clock starts once the browser is free to paint
       let k=(now-t0)/dur; if(k>1)k=1;
       const e=1-Math.pow(1-k,3);                // easeOutCubic
       el.textContent=F(Math.round(from+(to-from)*e));
       if(k<1) requestAnimationFrame(step);
-    })(t0);
+    });
   });
 }
 const inDist=d=>district===null || d===district;   // is this segment/crash in the active district?
@@ -1531,7 +1555,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(fwyOn) buildPoints(true);   // street views: freeways have no street to shade, so their crashes show as dots
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  const _t=tally(year); drawKPIs(_t); drawLegend(); drawWorstStreets(); drawTrend(); drawMode(_t); drawWhen(); drawFactors(); drawPeople(); drawLight(); drawEquity(); drawViewing(); updateBlinkBtn(); syncWhoWhenUI();
+  const _t=tally(year); drawKPIs(_t); drawLegend(); drawViewing(); updateBlinkBtn(); syncWhoWhenUI(); schedulePanels();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1540,6 +1564,18 @@ function render(){
   syncAreaUI();
   syncURL();
 }
+// The panels below the map are drawn one per task after the map and KPIs, so the
+// browser can paint (and the numbers can count up) between them instead of freezing
+// for the whole update. A newer render cancels a half-finished pass; flushPanels()
+// finishes any pending pass at once (the printed report needs every panel current).
+const PANELS=[drawWorstStreets, drawTrend, drawMode, drawWhen, drawFactors, drawPeople, drawLight, drawEquity];
+let _panelGen=0, _panelsDirty=false;
+function schedulePanels(){
+  const gen=++_panelGen; _panelsDirty=true; let i=0;
+  const next=()=>{ if(gen!==_panelGen) return; PANELS[i++](); if(i<PANELS.length) setTimeout(next,0); else _panelsDirty=false; };
+  setTimeout(next,30);
+}
+function flushPanels(){ if(!_panelsDirty) return; _panelGen++; PANELS.forEach(f=>f()); _panelsDirty=false; }
 function drawViewing(){
   const v=document.getElementById('viewing');
   const parts=[];
@@ -1847,14 +1883,24 @@ const MODE_LAB={veh:'Driving or riding', ped:'Walking', bike:'Biking'};
 const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const unitWord=()=> sev==='all' ? 'crashes' : 'killed or seriously injured';
 // horizontal bars: rows [{label, f, s, on, click, val}]; f = dark (killed) part, s = light part
-function hbars(el, rows){
+function hbars(el, rows, head){
   const max=Math.max(1,...rows.map(r=>(r.f||0)+(r.s||0))), anyOn=rows.some(r=>r.on);
-  el.innerHTML=rows.map(r=>{ const t=(r.f||0)+(r.s||0);
-    const cls='hb'+(r.click?' hb-click':'')+(anyOn&&!r.on?' hb-off':'')+(r.on?' hb-on':'');
+  const key=(head||'')+'#'+rows.map(r=>r.label+(r.click?'*':'')).join('|');
+  const cls=r=>'hb'+(r.click?' hb-click':'')+(anyOn&&!r.on?' hb-off':'')+(r.on?' hb-on':'');
+  const val=r=> r.val!=null ? r.val : fmt((r.f||0)+(r.s||0));
+  if(el._hbKey===key){   // same rows: update in place so the bar widths transition
+    el.querySelectorAll(':scope > .hb').forEach((d,i)=>{ const r=rows[i];
+      d.className=cls(r); if(r.click) d.setAttribute('aria-pressed',!!r.on);
+      d.querySelector('.hb-f').style.width=(100*(r.f||0)/max)+'%'; const hs=d.querySelector('.hb-s'); hs.style.width=(100*(r.s||0)/max)+'%'; hs.style.borderLeft=(r.f&&r.s)?'2px solid #fff':'0';
+      d.querySelector('.hb-v').textContent=val(r); });
+    return;
+  }
+  el._hbKey=key;
+  el.innerHTML=(head?'<div class="hbh">'+esc(head)+'</div>':'')+rows.map(r=>{
     const act=r.click?' role="button" tabindex="0" aria-pressed="'+(!!r.on)+'" onclick="'+r.click+'" title="'+esc(r.title||('Show only '+r.label))+'"':'';
-    return '<div class="'+cls+'"'+act+'><span class="hb-l">'+esc(r.label)+'</span>'
-      +'<span class="hb-t"><span class="hb-f" style="width:'+(100*(r.f||0)/max)+'%"></span>'+(r.s?'<span class="hb-s" style="width:'+(100*r.s/max)+'%"></span>':'')+'</span>'
-      +'<span class="hb-v">'+(r.val!=null?r.val:fmt(t))+'</span></div>'; }).join('');
+    return '<div class="'+cls(r)+'"'+act+'><span class="hb-l">'+esc(r.label)+'</span>'
+      +'<span class="hb-t"><span class="hb-f" style="width:'+(100*(r.f||0)/max)+'%"></span><span class="hb-s" style="width:'+(100*(r.s||0)/max)+'%;border-left:'+((r.f&&r.s)?'2px solid #fff':'0')+'"></span></span>'
+      +'<span class="hb-v">'+val(r)+'</span></div>'; }).join('');
 }
 const legKS=()=> sev==='all'
   ? '<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed or seriously injured</span><span><span class="dot" style="background:'+SERIOUS_C+'"></span>Other crashes</span>'
@@ -1875,20 +1921,25 @@ function drawMode(){
   const tot=n.veh+n.ped+n.bike, keys=['veh','ped','bike'];
   document.getElementById('mode-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+timeSuffix(true);
   const el=document.getElementById('donut');
-  if(!tot){ el.innerHTML='<div class="note">Nothing to show for this view.</div>'; document.getElementById('modedeaths').textContent=''; return; }
-  const R0=56, SW=22, C=2*Math.PI*R0; let off=0, arcs='';
-  keys.forEach(m=>{ const frac=n[m]/tot; if(frac<=0) return; const len=Math.max(0,frac*C-(frac<1?2:0));
-    arcs+='<circle class="slice" r="'+R0+'" cx="70" cy="70" fill="none" stroke="'+MODE_COL[m]+'" stroke-width="'+SW+'" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 70 70)" opacity="'+(mode==='all'||mode===m?1:.3)+'" onclick="pickMode(\''+m+'\')"><title>'+MODE_LAB[m]+': '+fmt(n[m])+'</title></circle>';
-    off+=frac*C; });
-  const shown=mode==='all'?tot:n[mode]||0;
-  const svg='<svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="Travel mode split">'+arcs
-    +'<text x="70" y="68" text-anchor="middle" font-size="20" font-weight="700" fill="#1b1b1b">'+fmt(shown)+'</text>'
-    +'<text x="70" y="86" text-anchor="middle" font-size="11" fill="#565c65">'+(mode==='all'?'total':MODE_LAB[mode].toLowerCase())+'</text></svg>';
-  const leg='<div class="dleg">'+keys.map(m=>{ const on=mode===m, off_=mode!=='all'&&!on;
-    return '<div class="hb hb-click'+(off_?' hb-off':'')+(on?' hb-on':'')+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="pickMode(\''+m+'\')" title="Show only '+MODE_LAB[m].toLowerCase()+'">'
-      +'<span class="hb-l"><span class="dsw" style="background:'+MODE_COL[m]+'"></span>'+MODE_LAB[m]+'</span><span></span>'
-      +'<span class="hb-v">'+Math.round(100*n[m]/tot)+'%</span></div>'; }).join('')+'</div>';
-  el.innerHTML='<div class="donutwrap">'+svg+leg+'</div>';
+  if(!tot){ el._donut=false; el.innerHTML='<div class="note">Nothing to show for this view.</div>'; document.getElementById('modedeaths').textContent=''; return; }
+  const R0=56, SW=22, C=2*Math.PI*R0, shown=mode==='all'?tot:n[mode]||0;
+  if(!el._donut){   // build once; later updates move the arcs (CSS transition)
+    el.innerHTML='<div class="donutwrap"><svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="Travel mode split">'
+      +keys.map(m=>'<circle class="slice" data-m="'+m+'" r="'+R0+'" cx="70" cy="70" fill="none" stroke="'+MODE_COL[m]+'" stroke-width="'+SW+'" stroke-dasharray="0 '+C+'" transform="rotate(-90 70 70)" onclick="pickMode(\''+m+'\')"><title></title></circle>').join('')
+      +'<text class="dn" x="70" y="68" text-anchor="middle" font-size="20" font-weight="700" fill="#1b1b1b"></text>'
+      +'<text class="dl" x="70" y="86" text-anchor="middle" font-size="11" fill="#565c65"></text></svg>'
+      +'<div class="dleg">'+keys.map(m=>'<div class="hb hb-click" data-m="'+m+'" role="button" tabindex="0" onclick="pickMode(\''+m+'\')" title="Show only '+MODE_LAB[m].toLowerCase()+'">'
+        +'<span class="hb-l"><span class="dsw" style="background:'+MODE_COL[m]+'"></span>'+MODE_LAB[m]+'</span><span></span><span class="hb-v"></span></div>').join('')+'</div></div>';
+    el._donut=true;
+  }
+  let off=0;
+  keys.forEach(m=>{ const frac=n[m]/tot, len=frac>0?Math.max(0,frac*C-(frac<1?2:0)):0, c=el.querySelector('circle[data-m='+m+']');
+    c.setAttribute('stroke-dasharray',len+' '+(C-len)); c.setAttribute('stroke-dashoffset',-off); c.setAttribute('opacity',mode==='all'||mode===m?1:.3);
+    c.querySelector('title').textContent=MODE_LAB[m]+': '+fmt(n[m]); off+=frac*C;
+    const row=el.querySelector('.dleg [data-m='+m+']'), on=mode===m;
+    row.className='hb hb-click'+(mode!=='all'&&!on?' hb-off':'')+(on?' hb-on':''); row.setAttribute('aria-pressed',on);
+    row.querySelector('.hb-v').textContent=Math.round(100*n[m]/tot)+'%'; });
+  el.querySelector('.dn').textContent=fmt(shown); el.querySelector('.dl').textContent=mode==='all'?'total':MODE_LAB[mode].toLowerCase();
   const kt=k.veh+k.ped+k.bike;
   document.getElementById('modedeaths').textContent=kt ? (fmt(kt)+' fatal crashes: '+fmt(k.ped)+' killed someone walking and '+fmt(k.bike)+' someone biking.') : '';
 }
@@ -1900,14 +1951,18 @@ function drawWhen(){
   for(let i=0;i<pts.length;i++){ const p=pts[i]; if(p[8]==null||!p[7]) continue;
     if(!timeOk(p,'hour,dow')||!inLens(p)||!chartInc(p)) continue; g[dowArr[i]*24+p[8]]++; }
   const max=Math.max(...g), hl=h=> h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p';
-  let h='<div class="heat" role="img" aria-label="'+esc(unitWord())+' by day of week and hour">';
-  for(let d=0;d<7;d++){ h+='<div class="hl">'+DOW_LAB[d]+'</div>';
-    for(let hr=0;hr<24;hr++){ const v=g[d*24+hr], lvl=v&&max?Math.min(HEAT.length-1,Math.floor(v/max*HEAT.length)):-1;
-      const off=(selD.size&&!selD.has(d))||(selH.size&&!selH.has(hr));
-      h+='<div class="hc" style="background:'+(lvl<0?'#f1f2f3':HEAT[lvl])+(off?';opacity:.25':'')+'" title="'+DOW_LAB[d]+' '+hourLabel(hr)+': '+fmt(v)+'"></div>'; } }
-  h+='<div></div>'; for(let hr=0;hr<24;hr++) h+='<div class="hx">'+(hr%3===0?hl(hr):'')+'</div>';
-  h+='</div><div class="heatleg">Fewer <span class="ramp">'+HEAT.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span> More</div>';
-  document.getElementById('heat').innerHTML=h;
+  const hm=document.getElementById('heat');
+  if(!hm._cells){
+    let h='<div class="heat" role="img" aria-label="People killed or seriously injured by day of week and hour">';
+    for(let d=0;d<7;d++){ h+='<div class="hl">'+DOW_LAB[d]+'</div>'; for(let hr=0;hr<24;hr++) h+='<div class="hc"></div>'; }
+    h+='<div></div>'; for(let hr=0;hr<24;hr++) h+='<div class="hx">'+(hr%3===0?hl(hr):'')+'</div>';
+    h+='</div><div class="heatleg">Fewer <span class="ramp">'+HEAT.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span> More</div>';
+    hm.innerHTML=h; hm._cells=[...hm.querySelectorAll('.hc')];
+  }
+  hm.firstChild.setAttribute('aria-label', unitWord()+' by day of week and hour');
+  for(let d=0;d<7;d++) for(let hr=0;hr<24;hr++){ const v=g[d*24+hr], lvl=v&&max?Math.min(HEAT.length-1,Math.floor(v/max*HEAT.length)):-1, c=hm._cells[d*24+hr];
+    c.style.background=lvl<0?'#f1f2f3':HEAT[lvl]; c.style.opacity=((selD.size&&!selD.has(d))||(selH.size&&!selH.has(hr)))?.25:1;
+    c.title=DOW_LAB[d]+' '+hourLabel(hr)+': '+fmt(v); }
   document.getElementById('when-sub').textContent=(sev==='all'?'All crashes':'Killed or seriously injured')+', '+totalsSpan();
   let bi=0; g.forEach((v,i)=>{ if(v>g[bi]) bi=i; });
   const night=[0,1,2,3,4,5,19,20,21,22,23]; let nn=0, tt=0; g.forEach((v,i)=>{ tt+=v; if(night.includes(i%24)) nn+=v; });
@@ -1939,8 +1994,8 @@ function drawPeople(){
   const sexRows=[1,2].map(x=>({label:SEX_LAB[x], f:sf[x], s:ss[x], on:sexSel===x, click:'pickSex('+x+')'}));
   if(sf[0]+ss[0]) sexRows.push({label:SEX_LAB[0], f:sf[0], s:ss[0]});
   const ae=document.getElementById('agebars'), se=document.getElementById('sexbars');
-  hbars(ae, ageRows); ae.insertAdjacentHTML('afterbegin','<div class="hbh">Age</div>');
-  hbars(se, sexRows); se.insertAdjacentHTML('afterbegin','<div class="hbh">Sex</div>');
+  hbars(ae, ageRows, 'Age');
+  hbars(se, sexRows, 'Sex');
   document.getElementById('ppl-sub').textContent='People killed or seriously injured'+timeSuffix(true);
   document.getElementById('ppl-leg').innerHTML='<span><span class="dot" style="background:'+FATAL_C+'"></span>Killed</span><span><span class="dot" style="background:'+SERIOUS_C+'"></span>Seriously injured</span>';
 }
@@ -2521,8 +2576,8 @@ function viewDesc(){
   const modeTxt = mode==='ped'?'people walking' : mode==='bike'?'people biking' : mode==='veh'?'people in vehicles' : null;
   const sel = selStreet!==null ? (selStreet.startsWith('__seg__')?'a selected block':selStreet) : (selSeg!==null ? (selSeg.name||'a selected block') : null);
   const extras=[];
-  if(hrNarrow()) extras.push(hourLabel(hrLo)+'–'+hourLabel(hrHi));
-  if(dowNarrow()) extras.push(DOW_LAB[dowLo]+'–'+DOW_LAB[dowHi]);
+  if(hrNarrow()){ const o=HOUR_BANDS.find(x=>_sameSet(selH,x[2])); extras.push(o?o[1]:facetLabel('hour')); }
+  if(dowNarrow()){ const o=DOW_OPTS.find(x=>_sameSet(selD,x[2])); extras.push(o?o[1]:facetLabel('dow')); }
   if(owner!=='all') extras.push(owner==='city'?'City-owned roads':'TxDOT-owned roads');
   if(fwyOn) extras.push('Freeways included');
   if(lightSel) extras.push(lightName(lightSel));
@@ -2537,6 +2592,7 @@ const RSECT_KEYS=['summary','map','worst','trend','mode','when','factors','peopl
 const RSECT_DEFAULT=Object.fromEntries(RSECT_KEYS.map(k=>[k,true]));
 // build the report honoring cfg, await the map image decode, then print
 async function generateReport(cfg){
+  flushPanels();
   cfg=cfg||{}; const S=Object.assign({},RSECT_DEFAULT,cfg.sections||{});
   const R=document.getElementById('report'); if(!R) return;
   const d=viewDesc();
@@ -2641,37 +2697,28 @@ function _rcFillSelects(){
     lo.innerHTML=opts; hi.innerHTML=opts;
   }
 }
-let _rcKeep=null, _rcAreaFill=Promise.resolve();   // _rcAreaFill: the area list may still be loading   // the dialog's own settings (title, sections) kept while the visitor changes filters
-// summary rows for the filters the dialog does not edit
-function _rcSummaryRows(){
-  const rows=[], add=(k,v)=>rows.push([k,v]);
-  if(selStreet!==null) add('Street', selStreet.startsWith('__seg__')?'Selected block':selStreet);
-  else if(selSeg!==null) add('Street', (selSeg.name||'Selected block')+' (one block)');
-  add('Show', sev==='all'?'All crashes':'People killed or seriously injured');
-  add('Travel mode', mode==='all'?'Everyone':MODE_LAB[mode]);
-  if(ageSel) add('Age of person hurt', AGE_LAB[ageSel]);
-  if(sexSel) add('Sex of person hurt', SEX_LAB[sexSel]);
-  if(selD.size){ const o=DOW_OPTS.find(x=>_sameSet(selD,x[2])); add('Day of week', o?o[1]:facetLabel('dow')); }
-  if(selH.size){ const o=HOUR_BANDS.find(x=>_sameSet(selH,x[2])); add('Time of day', o?o[1]:facetLabel('hour')); }
-  if(lightSel) add('Lighting', lightName(lightSel));
-  if(facSel) add('Contributing factor', FACTORS.find(f=>f[0]===facSel)[1]);
-  add('Road owner', owner==='all'?'All':owner==='city'?'City-owned':'TxDOT-owned');
-  add('Freeways', fwyOn?'Included':'Not included');
-  return rows;
-}
+let _rcAreaFill=Promise.resolve();   // the area list may still be loading
 function _rcDateNote(){
   const fy=+_rcEl('rc-from-yr').value, fm=+_rcEl('rc-from-mo').value, ty=+_rcEl('rc-to-yr').value, tm=+_rcEl('rc-to-mo').value;
   const lo=fy*12+fm-1, hi=ty*12+tm-1, end=DATA_END?(+DATA_END.slice(0,4)*12+(+DATA_END.slice(5,7))-1):hi;
   let n='';
   if(lo>hi) n='The start is after the end; the dates will be swapped.';
   else if(hi>end) n='Data runs through '+MONTHS[end%12]+' '+Math.floor(end/12)+'.';
-  if(selM.size===1 && !mrActive()) n=(n?n+' ':'')+'The dashboard is showing '+MONTHS[[...selM][0]-1]+' only; the report will use the full date range above.';
   _rcEl('rc-date-note').textContent=n;
 }
 function openReportModal(){
   const ov=_rcEl('rcfg'); if(!ov) return;
   _rcFillSelects();
-  _rcEl('rc-title').value = _rcKeep ? _rcKeep.title : 'Traffic deaths and serious injuries';
+  _rcEl('rc-title').value = _rcEl('rc-title').value || 'Traffic deaths and serious injuries';
+  // the filter lists match the sidebar's; a Set with no matching choice shows as Custom
+  const copy=(id,src)=>{ _rcEl(id).innerHTML=_rcEl(src).innerHTML; };
+  copy('rc-age','agesel'); copy('rc-light','lightsel'); copy('rc-fac','facsel');
+  _opts(_rcEl('rc-dow'), DOW_OPTS); _opts(_rcEl('rc-hr'), HOUR_BANDS);
+  _syncSel(_rcEl('rc-dow'), DOW_OPTS, selD); _syncSel(_rcEl('rc-hr'), HOUR_BANDS, selH);
+  _rcEl('rc-sev').value=sev; _rcEl('rc-mode').value=mode; _rcEl('rc-age').value=ageSel; _rcEl('rc-sex').value=sexSel;
+  _rcEl('rc-light').value=lightSel; _rcEl('rc-fac').value=facSel; _rcEl('rc-owner').value=owner; _rcEl('rc-fwy').value=fwyOn?1:0;
+  { const nm = selStreet!==null ? (selStreet.startsWith('__seg__')?'the selected block':selStreet) : selSeg!==null ? (selSeg.name||'the selected block')+' (one block)' : null;
+    _rcEl('rc-street-wrap').hidden=!nm; _rcEl('rc-street').checked=!!nm; if(nm) _rcEl('rc-street-lbl').textContent='Only '+nm+' (selected on the map)'; }
   _rcEl('rc-areatype').value = activeAreaType();
   _rcAreaFill=fillAreaSelect(_rcEl('rc-area'), activeAreaType(), activeAreaId());
   _rcEl('rc-view').value = view;
@@ -2685,10 +2732,8 @@ function openReportModal(){
     _rcEl('rc-to-yr').value=String(Math.floor(hi/12)); _rcEl('rc-to-mo').value=String(hi%12+1);
   }
   _rcDateNote();
-  _rcEl('rc-sum').innerHTML=_rcSummaryRows().map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd>').join('');
   _rcEl('rc-hin').checked=!!(_rcEl('hin')||{}).checked;
-  RSECT_KEYS.forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked = _rcKeep ? _rcKeep.sections[k]!==false : true; });
-  _rcKeep=null;
+  RSECT_KEYS.forEach(k=>{ const c=_rcEl('rc-s-'+k); if(c) c.checked=true; });
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
   _rcLastFocus=document.activeElement;
   const first=_rcEl('rc-title'); if(first) first.focus();
@@ -2700,13 +2745,23 @@ function closeReportModal(){
 }
 _rcEl('rc-areatype').addEventListener('change',()=>{ _rcAreaFill=fillAreaSelect(_rcEl('rc-area'), _rcEl('rc-areatype').value, ''); });
 ['rc-from-mo','rc-from-yr','rc-to-mo','rc-to-yr'].forEach(id=>_rcEl(id).addEventListener('change',_rcDateNote));
-_rcEl('rc-change').onclick=()=>{ _rcKeep={title:_rcEl('rc-title').value, sections:Object.fromEntries(RSECT_KEYS.map(k=>[k,_rcEl('rc-s-'+k).checked]))};
-  closeReportModal(); const d=document.querySelector('.secd[data-sec=who]'); if(d) d.open=true; document.querySelector('.ctrl').scrollIntoView({behavior:'smooth',block:'start'}); };
 // apply the chosen filters to the live dashboard, then build cfg and print
 async function _rcGenerate(){
   // the dialog edits only the map style, the dates, the overlay and the area; every other
   // filter is whatever the dashboard shows (listed read-only in the dialog)
-  const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; const el=document.querySelector('input[name=view][value="'+vw+'"]'); if(el) el.checked=true; }
+  const radio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
+  const vw=_rcEl('rc-view').value; if(['corridor','streets','points'].includes(vw)){ view=vw; radio('view',vw); }
+  sev=_rcEl('rc-sev').value==='all'?'all':'ksi'; radio('sev',sev);
+  owner=['all','city','txdot'].includes(_rcEl('rc-owner').value)?_rcEl('rc-owner').value:'all'; radio('owner',owner);
+  { const m=_rcEl('rc-mode').value; mode=['all','veh','ped','bike'].includes(m)?m:'all';
+    document.querySelectorAll('.pill').forEach(x=>{ const on=x.dataset.mode===mode; x.classList.toggle('on',on); x.setAttribute('aria-pressed',on); }); }
+  ageSel=+_rcEl('rc-age').value||0; sexSel=+_rcEl('rc-sex').value||0; lightSel=+_rcEl('rc-light').value||0; facSel=+_rcEl('rc-fac').value||0;
+  { const o=DOW_OPTS.find(x=>x[0]===_rcEl('rc-dow').value); if(o){ selD.clear(); o[2].forEach(v=>selD.add(v)); } }   // Custom keeps the current days
+  { const o=HOUR_BANDS.find(x=>x[0]===_rcEl('rc-hr').value); if(o){ selH.clear(); o[2].forEach(v=>selH.add(v)); } }
+  if(!_rcEl('rc-street').checked){ selStreet=null; selSeg=null; selIds=new Set(); }
+  { const want=_rcEl('rc-fwy').value==='1';   // freeway crashes load on first use
+    if(want && !fwyPts){ try{ fwyPts=unpackCrashes(await fetch('freeway_crashes.packed.json').then(r=>r.json())); }catch(e){} }
+    fwyOn=want && !!fwyPts; radio('fwy',fwyOn?'1':'0'); pts=fwyOn?cityPts.concat(fwyPts):cityPts; rebuildDow(); }
   // dates at month granularity; whole years become the plain year filter, the full span clears it
   const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
   if(!isNaN(fy) && !isNaN(ty)){
