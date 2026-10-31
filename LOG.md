@@ -8,6 +8,7 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 - The two tables took two full-width blocks. They now sit side by side (stacked below 1000 px), cutting about 300 px. To fit, Miles is dropped on screen and Owner / High Injury Network become tags after the name (TxDOT or Part TxDOT; HIN or Part HIN; intersections TxDOT and HIN), explained in each table's tip. The printed report still uses the full columns (`_tblFull`). The TxDOT and HIN share line sits under both. A tabs or dropdown selector was considered and not used: it hides one list from most visitors.
 - Checked at 1440, 1280 and 375 px wide: pair is about 330 px tall, no sideways scrolling in either table.
+- Follow-up (Vincent): rows did not line up (the intersection table's header wrapped and a long name pushed its tags to a second line). Now both tables share fixed number-column widths and the two cards share grid rows (CSS subgrid: title, subtitle, table, pager, tip), names stay on one line ending in "…" (full name on hover), and the pair stacks below 1200 px instead of 1000. Checked at 1600, 1280 (rows and pagers at identical heights, also with "all crashes" and with a tip open) and 1080 (stacked).
 
 ## 2026-10-31 — Continuous zoom (tried, reverted)
 

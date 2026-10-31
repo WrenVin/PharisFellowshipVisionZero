@@ -444,8 +444,19 @@
   .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;align-items:start}
   .pair>.card{min-width:0}
   .pair .wtbl th{white-space:normal;vertical-align:bottom}
+  .wtbl .nm{display:flex;align-items:center;min-width:0}
+  .wtbl .nm .sname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:5em}
+  .wtbl .nm .rtag{flex:none}
+  @media(min-width:1201px){   /* side by side: same fixed columns in both tables so rows and headers line up */
+    .pair .wtbl{table-layout:fixed}
+    .pair .wtbl th:nth-child(1){width:28px}.pair .wtbl th:nth-child(3){width:58px}.pair .wtbl th:nth-child(4){width:82px}
+    .pair .wtbl th:nth-child(5){width:54px}.pair .wtbl th:nth-child(6){width:62px}
+    .pair .wtbl td:nth-child(2){min-width:0}
+    .pair{grid-template-rows:repeat(5,auto);row-gap:0}   /* title, subtitle, table, pager, tip share rows across both cards */
+    .pair>.card{display:grid;grid-row:1/span 5;grid-template-rows:subgrid;align-content:start}
+    .pair .pair-foot{grid-row:6;margin-top:6px}}
   .pair-foot{grid-column:1/-1;font-size:13px;color:var(--muted);margin-top:-20px}
-  @media(max-width:1000px){.pair{grid-template-columns:minmax(0,1fr)}.pair-foot{margin-top:0}}
+  @media(max-width:1200px){.pair{grid-template-columns:minmax(0,1fr)}.pair-foot{margin-top:0}.wtbl .nm{flex-wrap:wrap}.wtbl .nm .sname{white-space:normal;min-width:0}}
   @media(max-width:680px){.pair .wtbl th,.pair .wtbl td{padding:6px 4px}.pair .wtbl td:nth-child(2){min-width:110px}}
   .rtag{display:inline-block;font-size:11px;font-weight:600;line-height:16px;padding:0 5px;border-radius:2px;margin-left:6px;vertical-align:1px;white-space:nowrap}
   .rtag.tx{background:#eef0f3;color:#4a5560}.rtag.hin{background:#efe7f6;color:#6a3d9a}
@@ -2319,7 +2330,7 @@ function drawWorstStreets(){
       const own=txs>=.9?'TxDOT':txs<=.1?'City':'City and TxDOT', hin=hs>=.5?'Yes':hs>=.05?'Part':'No';
       const tags=_tblFull?'':(own==='City'?'':'<span class="rtag tx">'+(own==='TxDOT'?'TxDOT':'Part TxDOT')+'</span>')+(hin==='No'?'':'<span class="rtag hin">'+(hin==='Yes'?'HIN':'Part HIN')+'</span>');
       return '<tr'+(selStreet===r.nm?' class="on"':'')+' tabindex="0" role="button" onclick="selectStreet('+esc(JSON.stringify(r.nm))+',true)">'
-        +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span>'+tags+'</td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+        +'<td>'+(first+i+1)+'</td><td><div class="nm"><span class="sname" title="'+esc(r.nm)+'">'+esc(r.nm)+'</span>'+tags+'</div></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
         +(_tblFull?'<td>'+(mi?mi.toFixed(1):'–')+'</td>':'')+'<td>'+(mi>=0.1?(r.t/mi).toFixed(1):'–')+'</td>'+(_tblFull?'<td>'+own+'</td><td>'+hin+'</td>':'')+'</tr>'; }).join('');
     tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
   }
@@ -2357,7 +2368,7 @@ function drawIntersections(){
   if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="7" style="text-align:left;color:var(--muted)">No intersections in this view.</td></tr></tbody>'; return; }
   const head='<thead><tr><th>#</th><th>Intersection</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th>'+(_tblFull?'<th>Owner</th><th>High Injury Network</th>':'')+'</tr></thead>';
   const body=rows.slice(first,first+_ixSize).map((r,i)=>'<tr'+(selSeg&&selSeg.seg_id===r.id?' class="on"':'')+' tabindex="0" role="button" onclick="selectSegById('+esc(JSON.stringify(r.id))+')">'
-      +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.p.name)+'</span>'+(_tblFull?'':(r.p.on_txdot?'<span class="rtag tx">TxDOT</span>':'')+(r.p.on_hin?'<span class="rtag hin">HIN</span>':''))+'</td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+      +'<td>'+(first+i+1)+'</td><td><div class="nm"><span class="sname" title="'+esc(r.p.name)+'">'+esc(r.p.name)+'</span>'+(_tblFull?'':(r.p.on_txdot?'<span class="rtag tx">TxDOT</span>':'')+(r.p.on_hin?'<span class="rtag hin">HIN</span>':''))+'</div></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
       +(_tblFull?'<td>'+(r.p.on_txdot?'TxDOT road':'City')+'</td><td>'+(r.p.on_hin?'Yes':'No')+'</td>':'')+'</tr>').join('');
   tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
 }
