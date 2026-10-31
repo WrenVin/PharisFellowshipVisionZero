@@ -441,6 +441,14 @@
   .wtbl tbody tr{cursor:pointer}.wtbl tbody tr:hover{background:var(--act-lt)}
   .wtbl tr.on td{background:var(--act-lt);font-weight:700}
   .wtbl .sname{color:var(--act);text-decoration:underline}
+  .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;align-items:start}
+  .pair>.card{min-width:0}
+  .pair .wtbl th{white-space:normal;vertical-align:bottom}
+  .pair-foot{grid-column:1/-1;font-size:13px;color:var(--muted);margin-top:-20px}
+  @media(max-width:1000px){.pair{grid-template-columns:minmax(0,1fr)}.pair-foot{margin-top:0}}
+  @media(max-width:680px){.pair .wtbl th,.pair .wtbl td{padding:6px 4px}.pair .wtbl td:nth-child(2){min-width:110px}}
+  .rtag{display:inline-block;font-size:11px;font-weight:600;line-height:16px;padding:0 5px;border-radius:2px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+  .rtag.tx{background:#eef0f3;color:#4a5560}.rtag.hin{background:#efe7f6;color:#6a3d9a}
   .wfoot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
   .pager{display:flex;align-items:center;gap:10px}.pager .morebtn:disabled{opacity:.4;cursor:default;background:#fff}
   .morebtn{border:1px solid var(--act);color:var(--act);background:#fff;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;border-radius:2px}
@@ -641,19 +649,22 @@
   </div>
 
   <div class="below">
-    <div class="card wide" data-card="worst">
+    <div class="pair wide">
+    <div class="card" data-card="worst">
       <h3>Most dangerous streets <button class="info" onclick="toggleTip(this)" aria-label="About the street ranking">i</button></h3>
       <div class="sub" id="worst-sub"></div>
       <div class="tblwrap"><table class="wtbl" id="worst-tbl"></table></div>
-      <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 5</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 5</button></div><span id="roadfacts"></span></div>
-      <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view, counting crashes between intersections. Crashes at intersections are ranked in the next table. Click a street to select it on the map, with its intersections. Per mile divides by the street's length in the current area. The High Injury Network column shows how much of the street is on the City's 2022 network.</div>
+      <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 5</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 5</button></div></div>
+      <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view, counting crashes between intersections. Crashes at intersections are ranked in the intersections table. Click a street to select it on the map, with its intersections. Per mile divides by the street's length in the current area. Tags: <b>TxDOT</b> or <b>Part TxDOT</b> when the state owns all or some of the street; <b>HIN</b> or <b>Part HIN</b> when all or some of it is on the City's 2022 High Injury Network.</div>
     </div>
-    <div class="card wide" data-card="ix">
+    <div class="card" data-card="ix">
       <h3>Most dangerous intersections <button class="info" onclick="toggleTip(this)" aria-label="About the intersection ranking">i</button></h3>
       <div class="sub" id="ix-sub"></div>
       <div class="tblwrap"><table class="wtbl" id="ix-tbl"></table></div>
       <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="ix-prev">Previous 5</button><span id="ix-range"></span><button type="button" class="morebtn" id="ix-next">Next 5</button></div></div>
-      <div class="tip">Each intersection covers the area where its streets cross, reaching 75 feet down each local street or collector and 125 feet down each arterial or frontage road, following the method Vision Zero Austin uses. A crash inside that area counts for the intersection; every other crash counts for its block. Click an intersection to select it on the map.</div>
+      <div class="tip">Each intersection covers the area where its streets cross, reaching 75 feet down each local street or collector and 125 feet down each arterial or frontage road, following the method Vision Zero Austin uses. A crash inside that area counts for the intersection; every other crash counts for its block. Click an intersection to select it on the map. Tags: <b>TxDOT</b> when a state road runs through it; <b>HIN</b> when it is on the City's 2022 High Injury Network.</div>
+    </div>
+    <div class="pair-foot" id="roadfacts"></div>
     </div>
     <div class="card wide" data-card="fwy" id="fwy-card" hidden>
       <h3>Most dangerous freeway sections <button class="info" onclick="toggleTip(this)" aria-label="About the freeway ranking">i</button></h3>
@@ -2303,12 +2314,13 @@ function drawWorstStreets(){
   document.getElementById('worst-range').textContent=rows.length ? ((first+1)+' to '+Math.min(rows.length,first+_worstSize)+' of '+fmt(rows.length)) : '';
   if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="9" style="text-align:left;color:var(--muted)">No streets in this view.</td></tr></tbody>'; }
   else {
-    const head='<thead><tr><th>#</th><th>Street</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Miles</th><th>Per mile</th><th>Owner</th><th>High Injury Network</th></tr></thead>';
+    const head='<thead><tr><th>#</th><th>Street</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th>'+(_tblFull?'<th>Miles</th>':'')+'<th>Per mile</th>'+(_tblFull?'<th>Owner</th><th>High Injury Network</th>':'')+'</tr></thead>';
     const body=rows.slice(first,first+_worstSize).map((r,i)=>{ const mi=r.L?r.L.ft/5280:0, txs=r.L&&r.L.ft?r.L.tx/r.L.ft:0, hs=r.L&&r.L.ft?r.L.hin/r.L.ft:0;
       const own=txs>=.9?'TxDOT':txs<=.1?'City':'City and TxDOT', hin=hs>=.5?'Yes':hs>=.05?'Part':'No';
+      const tags=_tblFull?'':(own==='City'?'':'<span class="rtag tx">'+(own==='TxDOT'?'TxDOT':'Part TxDOT')+'</span>')+(hin==='No'?'':'<span class="rtag hin">'+(hin==='Yes'?'HIN':'Part HIN')+'</span>');
       return '<tr'+(selStreet===r.nm?' class="on"':'')+' tabindex="0" role="button" onclick="selectStreet('+esc(JSON.stringify(r.nm))+',true)">'
-        +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
-        +'<td>'+(mi?mi.toFixed(1):'–')+'</td><td>'+(mi>=0.1?(r.t/mi).toFixed(1):'–')+'</td><td>'+own+'</td><td>'+hin+'</td></tr>'; }).join('');
+        +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.nm)+'</span>'+tags+'</td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+        +(_tblFull?'<td>'+(mi?mi.toFixed(1):'–')+'</td>':'')+'<td>'+(mi>=0.1?(r.t/mi).toFixed(1):'–')+'</td>'+(_tblFull?'<td>'+own+'</td><td>'+hin+'</td>':'')+'</tr>'; }).join('');
     tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
   }
   // ownership and High Injury Network shares for the whole view
@@ -2318,6 +2330,7 @@ function drawWorstStreets(){
 }
 // --- most dangerous intersections (table) ---
 let _ixPage=0, _ixSize=5, _ixSig='', _ixRank={sig:null, rows:null};
+let _tblFull=false;   // the printed report uses every column; on screen owner and HIN are tags after the name
 function rankIntersections(){   // within the current filters (not the selection), like the street table
   const sig=viewSig(); if(_ixRank.sig===sig) return _ixRank.rows;
   const agg={};
@@ -2342,10 +2355,10 @@ function drawIntersections(){
   document.getElementById('ix-prev').disabled=_ixPage===0; document.getElementById('ix-next').disabled=_ixPage>=pages-1;
   document.getElementById('ix-range').textContent=rows.length ? ((first+1)+' to '+Math.min(rows.length,first+_ixSize)+' of '+fmt(rows.length)) : '';
   if(!rows.length){ tbl.innerHTML='<tbody><tr><td colspan="7" style="text-align:left;color:var(--muted)">No intersections in this view.</td></tr></tbody>'; return; }
-  const head='<thead><tr><th>#</th><th>Intersection</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Owner</th><th>High Injury Network</th></tr></thead>';
+  const head='<thead><tr><th>#</th><th>Intersection</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th>'+(_tblFull?'<th>Owner</th><th>High Injury Network</th>':'')+'</tr></thead>';
   const body=rows.slice(first,first+_ixSize).map((r,i)=>'<tr'+(selSeg&&selSeg.seg_id===r.id?' class="on"':'')+' tabindex="0" role="button" onclick="selectSegById('+esc(JSON.stringify(r.id))+')">'
-      +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.p.name)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
-      +'<td>'+(r.p.on_txdot?'TxDOT road':'City')+'</td><td>'+(r.p.on_hin?'Yes':'No')+'</td></tr>').join('');
+      +'<td>'+(first+i+1)+'</td><td><span class="sname">'+esc(r.p.name)+'</span>'+(_tblFull?'':(r.p.on_txdot?'<span class="rtag tx">TxDOT</span>':'')+(r.p.on_hin?'<span class="rtag hin">HIN</span>':''))+'</td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td>'
+      +(_tblFull?'<td>'+(r.p.on_txdot?'TxDOT road':'City')+'</td><td>'+(r.p.on_hin?'Yes':'No')+'</td>':'')+'</tr>').join('');
   tbl.innerHTML=head+'<tbody>'+body+'</tbody>';
 }
 // year-to-date comparison for the latest (partial) year
@@ -2911,7 +2924,7 @@ async function generateReport(cfg){
   // worst-streets table (gated)
   let worstHTML='';
   if(S.worst){
-    const keepPage=_worstPage; _worstPage=0; _worstSize=10; drawWorstStreets();   // the report prints the top 10
+    const keepPage=_worstPage; _worstPage=0; _worstSize=10; _tblFull=true; drawWorstStreets(); _tblFull=false;   // the report prints the top 10
     const t_=document.getElementById('worst-tbl'), hd=t_.querySelector('thead');
     const rws=[...t_.querySelectorAll('tbody tr')].slice(0,10).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
     worstHTML = (hd && rws) ? ('<table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>'+note('roadfacts').replace('r-note','r-facts')) : '';
@@ -2919,7 +2932,7 @@ async function generateReport(cfg){
   }
   let ixHTML='';
   if(S.ix && ixLayers.length){
-    const keepPage=_ixPage; _ixPage=0; _ixSize=8; drawIntersections();   // top 8: page 2 also holds every chart
+    const keepPage=_ixPage; _ixPage=0; _ixSize=8; _tblFull=true; drawIntersections(); _tblFull=false;   // top 8: page 2 also holds every chart
     const t_=document.getElementById('ix-tbl'), hd=t_.querySelector('thead');
     const rws=[...t_.querySelectorAll('tbody tr')].slice(0,8).map(tr=>'<tr>'+[...tr.children].map(td=>'<td>'+td.textContent+'</td>').join('')+'</tr>').join('');
     ixHTML = (hd && rws) ? ('<h2 class="r-sec">Most dangerous intersections</h2><table class="r-worst"><thead>'+hd.innerHTML+'</thead><tbody>'+rws+'</tbody></table>') : '';

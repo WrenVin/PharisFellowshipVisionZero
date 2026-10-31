@@ -4,6 +4,11 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Street and intersection tables side by side
+
+- The two tables took two full-width blocks. They now sit side by side (stacked below 1000 px), cutting about 300 px. To fit, Miles is dropped on screen and Owner / High Injury Network become tags after the name (TxDOT or Part TxDOT; HIN or Part HIN; intersections TxDOT and HIN), explained in each table's tip. The printed report still uses the full columns (`_tblFull`). The TxDOT and HIN share line sits under both. A tabs or dropdown selector was considered and not used: it hides one list from most visitors.
+- Checked at 1440, 1280 and 375 px wide: pair is about 330 px tall, no sideways scrolling in either table.
+
 ## 2026-10-31 — Continuous zoom (tried, reverted)
 
 - Reverted the same day: Vincent found it extremely slow. Leaflet re-projects every street, block and intersection (about 100,000 shapes) on each zoom change, and a trackpad pinch with no snapping produces a long run of small zooms, each paying that cost. Back to whole zoom levels. Truly smooth zoom would need a GPU-drawn map (for example MapLibre GL) instead of Leaflet's canvas, a large rewrite.
