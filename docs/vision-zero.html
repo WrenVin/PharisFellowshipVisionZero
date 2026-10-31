@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Houston Street Safety Dashboard: Traffic Deaths and Serious Injuries in Houston</title>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Houston Street Safety Dashboard","alternateName":"Houston Street Safety","url":"https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html"}</script>
-<meta name="application-name" content="Houston Street Safety Dashboard" />
+<title>Houston Traffic Crash Dashboard: Traffic Deaths and Serious Injuries in Houston</title>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Houston Traffic Crash Dashboard","alternateName":"Houston Crash Dashboard","url":"https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html"}</script>
+<meta name="application-name" content="Houston Traffic Crash Dashboard" />
 <meta name="description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="canonical" href="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="Houston Street Safety Dashboard" />
-<meta property="og:title" content="Houston Street Safety Dashboard" />
+<meta property="og:site_name" content="Houston Traffic Crash Dashboard" />
+<meta property="og:title" content="Houston Traffic Crash Dashboard" />
 <meta property="og:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <meta property="og:url" content="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
 <!-- preview image: docs/og-image.png, made by src/make_og_image.py (rerun after each data refresh) -->
 <meta property="og:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Houston Street Safety Dashboard: map of Houston streets shaded by people killed or seriously injured" />
+<meta property="og:image:alt" content="Houston Traffic Crash Dashboard: map of Houston streets shaded by people killed or seriously injured" />
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-image.png" />
-<meta name="twitter:title" content="Houston Street Safety Dashboard" />
+<meta name="twitter:title" content="Houston Traffic Crash Dashboard" />
 <meta name="twitter:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -457,7 +457,7 @@
 <body>
 <header class="sitehead">
   <div class="sh-in">
-    <a class="sh-name" href="vision-zero.html">Houston Street Safety Dashboard</a>
+    <a class="sh-name" href="vision-zero.html">Houston Traffic Crash Dashboard</a>
     <nav class="sh-nav" aria-label="Site">
       <a href="vision-zero.html" aria-current="page">Dashboard</a>
       <a href="#" onclick="openWelcome();return false">How to use</a>
@@ -476,7 +476,7 @@
 </header>
 <div class="fbar" id="fbar" aria-live="polite"><div class="sh-in"><span class="fb-lead">Showing</span><span class="fb-chips" id="fb-chips"></span></div></div>
 <div class="wrap">
-  <h1 class="sr-only">Houston Street Safety Dashboard: traffic deaths and serious injuries on Houston streets, January 2016 to September 2026</h1>
+  <h1 class="sr-only">Houston Traffic Crash Dashboard: traffic deaths and serious injuries on Houston streets, January 2016 to September 2026</h1>
 
   <div class="kpis" id="kpis"></div>
 
@@ -2700,7 +2700,7 @@ async function generateReport(cfg){
   const rTitle = (cfg.title||'Traffic deaths and serious injuries').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const p1 =
-    '<div class="r-hd"><div><div class="r-eyebrow">Houston Street Safety Dashboard</div>'
+    '<div class="r-hd"><div><div class="r-eyebrow">Houston Traffic Crash Dashboard</div>'
       +'<h1 class="r-title">'+rTitle+'</h1>'
       +'<div class="r-sub">'+subtitle+'</div></div>'
       +'<div class="r-date">Prepared '+today+'<br>wrenvin.github.io/PharisFellowshipVisionZero</div></div>'

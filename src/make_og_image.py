@@ -62,7 +62,7 @@ def main():
     ax0 = fig.add_axes([0, 0, 0.42, 1])
     ax0.set_axis_off()
     ax0.add_patch(plt.Rectangle((0, 0), 1, 1, color=NAVY, transform=ax0.transAxes))
-    ax0.text(0.08, 0.86, "Houston Street\nSafety Dashboard", color="white", fontsize=34, fontweight="bold",
+    ax0.text(0.08, 0.86, "Houston Traffic\nCrash Dashboard", color="white", fontsize=34, fontweight="bold",
              va="top", linespacing=1.1, transform=ax0.transAxes)
     ax0.text(0.08, 0.60, "Where people are killed and\nseriously injured on city streets", color=MUTED,
              fontsize=17, va="top", linespacing=1.3, transform=ax0.transAxes)
