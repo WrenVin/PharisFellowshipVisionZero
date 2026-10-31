@@ -66,7 +66,9 @@ aren't "city streets we care about":
 - **Freeways and highway ramps** — the *state* controls those, not the city, so
   the city can't redesign them. Out.
 - **Frontage/feeder roads** (the access roads running alongside freeways) —
-  same deal, they're part of the highway and belong to the state. Out.
+  same deal, they're part of the highway and belong to the state. Out of the
+  *model*. (The public dashboard added them back in October 2026: they have
+  driveways, bus stops and people walking, and 289 people were killed on them.)
 - **Alleys and driveways** — not real through-streets. Out.
 
 What's left is the street network the *city* can actually do something about.

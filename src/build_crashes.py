@@ -108,6 +108,7 @@ n_in_district = len(g)
 cls = pd.to_numeric(g["Road_Cls_ID"], errors="coerce")
 part = pd.to_numeric(g["Rpt_Road_Part_ID"], errors="coerce")
 nm = g["Rpt_Street_Name"].fillna("")
+g["road_part"] = part.fillna(0).astype(int)   # 2 = frontage road (the dashboard shows these with city streets)
 on_fwy = (cls.isin([1, 6, 8, 9]) | part.isin([2, 3, 4, 5])
           | (cls.eq(2) & nm.str.contains(FWY_NAME)))
 n_fwy = int(on_fwy.sum())
@@ -240,7 +241,7 @@ total_yll = float(g["yll"].sum())
 out = g[["Crash_ID", "year", "month", "hour", "date", "kabco", "fatal",
          "serious", "severe", "yll", "any_injury", "mode", "involves_ped",
          "involves_bike", "Crash_Sev_ID", "speed_limit", "coord_source",
-         "light", "factors", "ksi_people", "geometry"]].copy()
+         "light", "factors", "ksi_people", "road_part", "geometry"]].copy()
 out["date"] = out["date"].dt.strftime("%Y-%m-%d")
 PROCESSED.mkdir(parents=True, exist_ok=True)
 dst = cfg.processed("crashes.gpkg")

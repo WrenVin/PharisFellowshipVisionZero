@@ -10,12 +10,12 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 - [ ] **Fix retired City GIS address.** `src/fetch_superneighborhoods.py`, `src/export_hin.py`, `src/fetch_boundary.py` and `src/conflate_landuse.py` use `mycity2.houstontx.gov/pubgis02/...`, which no longer responds; the City moved to `.../gisweb02/...`. Boundaries already on disk are fine; a re-fetch would fail until updated.
 - [ ] **Name the remaining management districts.** HCID #8, #10-A, #12, #16, #24 and Harris County PID #2 are inside the city but listed only by number in City data; add them once their names are confirmed.
 - [ ] **School districts.** None qualify under the within-the-city rule (Houston ISD is 91% inside). Revisit only if the dashboard expands beyond the city.
-- [ ] **Decide on frontage roads.** Frontage ("SER") roads currently count as freeways: hidden by default, included by the Freeways toggle. They have driveways, bus stops, and people walking (at least 15 deaths in 2024). Judgment call: keep them with freeways, or move them onto the default city-street view. Coding is consistent (2026-10-31 check: 99.9% of frontage-named crashes classified as freeway/frontage), so either choice is a clean switch. Size: frontage roads add 289 killed and 1,602 seriously injured (+16% over city streets); main lanes are 764 / 3,443. Best done by adding frontage segments to the dashboard's street network (FREEWAY_PLAN step 4), not as dots.
 - [ ] **Repo size.** `data/processed/houston_crashes.gpkg` is 66 MB and committed; GitHub warns above 50 MB and blocks pushes above 100 MB. It grows with every data refresh. Options: stop committing it (it regenerates from raw CRIS) or move it to Git LFS.
 - [ ] **Custom domain (optional).** Site lives on a personal github.io address. A custom domain can be added later without breaking existing links.
 
 ## Done
 
+- [x] 2026-10-31 Frontage roads added to the dashboard's street map (3,460 blocks, 364 mi; their crashes now in the default view); data files revalidate on load so caches never mix versions.
 - [x] 2026-10-31 Renamed the site Houston Traffic Crash Dashboard ("Street Safety" could read as policing).
 - [x] 2026-10-31 Counts are of people, not crashes (1,822 killed, 9,868 seriously injured); travel mode, age and sex per person; link-preview image; GoatCounter visit counter; frontage-road coding checked; report trend sentence fixed.
 - [x] 2026-10-31 Concentration KPI restored with plain wording ("2.3% of street miles had 50% of deaths and serious injuries"); Top 10 streets KPI dropped.

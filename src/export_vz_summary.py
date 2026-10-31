@@ -14,6 +14,15 @@ import config as cfg
 ROOT, PROCESSED, DOCS = cfg.ROOT, cfg.PROCESSED, cfg.DOCS
 
 cr = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes")
+# the dashboard's default view also includes frontage-road crashes (export_webmap_data.py)
+_fw = cfg.processed("freeway_crashes.gpkg")
+if _fw.exists():
+    import pandas as pd
+    fw = gpd.read_file(_fw, layer="crashes")
+    if "road_part" in fw.columns:
+        fr = fw[fw["road_part"].eq(2)].to_crs(cr.crs)
+        fr = fr[fr.within(cfg.boundary_geom(cr.crs))]
+        cr = gpd.GeoDataFrame(pd.concat([cr, fr[[c for c in cr.columns if c in fr.columns]]], ignore_index=True), crs=cr.crs)
 seg = gpd.read_file(cfg.processed("segments_enriched.gpkg"), layer="segments")
 
 ksi = cr["severe"]

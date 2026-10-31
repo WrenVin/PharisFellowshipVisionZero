@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Frontage roads join the street map (dashboard only)
+
+- **New `src/build_frontage.py`:** pulls from OSM the ways `pull_osm.py` drops (named frontage, feeder or service road, or tagged `frontage_road=yes`; 19,575 raw edges), splits them where an analysis-network street meets them (3,783 cross-street nodes), clips to the full-purpose boundary: **3,460 frontage blocks, 364 mi** (`data/processed/houston_frontage_segments.gpkg`, ids H-300000 and up). 395 unnamed pieces borrowed the nearest named frontage block's name; 17 stay unnamed.
+- **Export:** `build_crashes.py` now keeps `road_part` (CRIS `Rpt_Road_Part_ID`) on both crash layers. `export_webmap_data.py` adds the frontage blocks to `segments_vz.geojson` as TxDOT-owned "Frontage road" streets and moves the 73,660 crashes coded as frontage road (part 2) from the freeway file into `crash_points.json`, each assigned to the nearest frontage block within 200 ft (67,179, 91.2%; the rest still count in totals). `export_vz_summary.py` counts them too. **The analysis network, `segments_enriched.gpkg` and the model are unchanged.**
+- **Result:** default view now 2,111 people killed (+289) and 11,470 seriously injured (+1,602); 506,580 crashes; 70,382 street segments; the freeway file keeps 188,316 main-lane, ramp and toll-road crashes. Gulf Freeway, Southwest Freeway and North Freeway frontage roads rank 2nd, 3rd and 5th citywide (behind Westheimer). First-load download grows about 0.48 MB compressed.
+- Page text updated: the Freeways toggle now adds "freeway and toll-road main lanes and ramps" (about 28% of deaths); Data & methods explains frontage roads are included; KPI sublabel reads "on Houston streets"; report notes updated. Preview image regenerated (2,111 / 11,470).
+- **Cache fix:** while testing, the browser served a cached old street file next to a new crash file. All data fetches now revalidate with the server (`cache: 'no-cache'`; unchanged files return 304), so visitors never mix versions after an update.
+
 ## 2026-10-31 — Renamed: Houston Traffic Crash Dashboard; frontage-road sizing
 
 - **Rename.** "Street Safety" could read as crime and policing. Candidates compared: Houston Traffic Safety Dashboard, Houston Traffic Crash Dashboard, Houston Traffic Deaths and Injuries, Safer Streets Houston. Vincent chose **Houston Traffic Crash Dashboard** (literal, matches what people search for). Updated the header, browser and search title, Open Graph/Twitter tags, schema.org name, report header, redirect page, preview image and README. Older LOG entries keep the old name as history.

@@ -118,6 +118,39 @@ base = seg["highway"].str.replace("_link", "", regex=False)
 seg["road_class"] = base.map(FRIENDLY_CLASS).fillna("Minor street")
 seg.loc[seg["highway"].str.endswith("_link"), "road_class"] = "Minor street"
 
+# Frontage roads (dashboard only; decision 2026-10-31). The analysis network leaves them
+# out (pull_osm.py), so the model is unchanged; build_frontage.py makes blocks from OSM.
+# Crashes police code as frontage road (road_part 2) leave the Freeways toggle and join
+# the default view, each assigned to its nearest frontage block within 200 ft (the same
+# rule as assign_crashes.py). Frontage blocks are TxDOT-owned "Frontage road" streets.
+front_cr = None
+_fseg = cfg.processed("frontage_segments.gpkg")
+_fwy_all = cfg.processed("freeway_crashes.gpkg")
+if _fseg.exists() and _fwy_all.exists():
+    fseg = gpd.read_file(_fseg, layer="segments").to_crs(seg.crs)
+    fseg = fseg[fseg.intersects(_bnd)].copy()
+    fw_all = gpd.read_file(_fwy_all, layer="crashes").to_crs(seg.crs)
+    front_cr = fw_all[fw_all["road_part"].eq(2)].copy()
+    j = gpd.sjoin_nearest(front_cr[["geometry"]], fseg[["seg_id", "geometry"]], how="left",
+                          max_distance=200, distance_col="_d")
+    j = j[~j.index.duplicated(keep="first")]
+    front_cr["seg_id"] = j["seg_id"].reindex(front_cr.index).values
+    print(f"Frontage-road crashes: {len(front_cr):,}; assigned to a frontage block within 200 ft: "
+          f"{int(front_cr['seg_id'].notna().sum()):,} ({100*front_cr['seg_id'].notna().mean():.1f}%)")
+    a = front_cr[front_cr["seg_id"].notna()]
+    grp = a.groupby("seg_id")
+    cnt = pd.DataFrame({
+        "n_crash": grp.size(), "n_injury": grp["any_injury"].sum(), "n_severe": grp["severe"].sum(),
+        "n_fatal": grp["fatal"].sum(), "n_ped": grp["involves_ped"].sum(), "n_bike": grp["involves_bike"].sum(),
+        "n_ped_severe": a[a["severe"]].groupby("seg_id")["involves_ped"].sum(),
+        "n_bike_severe": a[a["severe"]].groupby("seg_id")["involves_bike"].sum()})
+    fseg = fseg.join(cnt, on="seg_id")
+    for c_ in cnt.columns:
+        fseg[c_] = fseg[c_].fillna(0).astype(int)
+    fseg["highway"], fseg["road_class"] = "frontage", "Frontage road"
+    seg = gpd.GeoDataFrame(pd.concat([seg, fseg], ignore_index=True), crs=seg.crs)
+    print(f"Added {len(fseg):,} frontage blocks ({fseg['length_ft'].sum()/5280:,.0f} mi) to the published network")
+
 # council district per segment (for the dashboard's per-district filter), if the
 # area has sub-districts to filter by (city build); skipped for single-district builds.
 districts_4326 = None
@@ -255,6 +288,7 @@ try:
 except Exception as e:
     print(f"WARNING: TxDOT tagging skipped ({type(e).__name__}: {e})")
 
+seg.loc[seg["highway"].eq("frontage"), "on_txdot"] = True   # frontage roads are part of the state highway
 keep = seg[[c for c in COLS if c in seg.columns] + ["road_class", "geometry"]].copy()
 for c, nd in COLS.items():
     if c in keep.columns and nd is not None:
@@ -424,7 +458,12 @@ def crash_rows(cr, freeway=False):
     return pts
 
 
-pts = crash_rows(gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes"))
+_city = gpd.read_file(cfg.processed("crashes.gpkg"), layer="crashes")
+if front_cr is not None:   # frontage-road crashes join the default view
+    _fc = front_cr.to_crs(_city.crs)
+    _city = gpd.GeoDataFrame(pd.concat([_city, _fc[[c for c in _city.columns if c in _fc.columns] + (["seg_id"] if "seg_id" not in _city.columns else [])]],
+                                       ignore_index=True), crs=_city.crs)
+pts = crash_rows(_city)
 cpath = DOCS / "crash_points.json"
 cpath.write_text(json.dumps(pts, separators=(",", ":")))
 print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1f} MB)")
@@ -433,7 +472,10 @@ print(f"Wrote {len(pts):,} crash points -> {cpath} ({cpath.stat().st_size/1e6:.1
 # road_type (1 = TxDOT freeway/ramp/frontage, 2 = toll-road main lanes or ramps).
 _fpath = cfg.processed("freeway_crashes.gpkg")
 if _fpath.exists():
-    fpts = crash_rows(gpd.read_file(_fpath, layer="crashes"), freeway=True)
+    _fw = gpd.read_file(_fpath, layer="crashes")
+    if "road_part" in _fw.columns:   # frontage roads are in the default view now
+        _fw = _fw[~_fw["road_part"].eq(2)]
+    fpts = crash_rows(_fw, freeway=True)
     fcp = DOCS / "freeway_crash_points.json"
     fcp.write_text(json.dumps(fpts, separators=(",", ":")))
     print(f"Wrote {len(fpts):,} freeway crash points -> {fcp} ({fcp.stat().st_size/1e6:.1f} MB)")

@@ -591,10 +591,10 @@
         <h3>Freeways <button class="info" onclick="toggleTip(this)" aria-label="About including freeways">i</button></h3>
         <span class="seg">
           <label title="City streets only"><input type="radio" name="fwy" value="0" checked> Excluded</label>
-          <label title="Add crashes on freeways, toll roads, ramps and frontage roads"><input type="radio" name="fwy" value="1"> Included</label>
+          <label title="Add crashes on freeway and toll-road main lanes and ramps"><input type="radio" name="fwy" value="1"> Included</label>
         </span>
         <div class="note" id="fwy-note" aria-live="polite"></div>
-        <div class="tip">Adds crashes on freeways, toll roads, ramps and frontage roads, which account for about a third of traffic deaths in Houston. They appear on the map as dots. The street rankings and the share of street miles figure still count city streets only.</div>
+        <div class="tip">Adds crashes on freeway and toll-road main lanes and ramps, about 28% of traffic deaths in Houston. They appear on the map as dots. Frontage roads are always included, with the other streets. The street rankings and the share of street miles figure still count city streets only.</div>
       </div>
       </details>
       <details class="secd" data-sec="map">
@@ -743,8 +743,8 @@
       </section>
       <section>
         <h3>Which roads</h3>
-        <p>By default the dashboard <span class="lbl">leaves out freeways, tollways, ramps and frontage roads</span>. It <span class="lbl">keeps major streets whoever owns them</span>, including state roads such as S Main (US-90A), SH 6 and Westheimer (FM 1093). Austin's Vision Zero dashboard and the City's High Injury Network do the same.</p>
-        <p>Set <span class="lbl">Freeways</span> to Included to add crashes on freeways, toll roads, ramps and frontage roads. They are added to every total and chart and appear on the map as dots. Toll roads are run by the county toll authority, so they count only under Road owner: All. Crashes in parking lots and on private property are never included.</p>
+        <p>By default the dashboard <span class="lbl">leaves out freeway and tollway main lanes and ramps</span>. <span class="lbl">Frontage roads are included</span> as TxDOT-owned streets: they have driveways, bus stops and people walking, and crashes police record on a frontage road are counted there. It <span class="lbl">keeps major streets whoever owns them</span>, including state roads such as S Main (US-90A), SH 6 and Westheimer (FM 1093). Austin's Vision Zero dashboard and the City's High Injury Network do the same.</p>
+        <p>Set <span class="lbl">Freeways</span> to Included to add crashes on freeway and toll-road main lanes and ramps. They are added to every total and chart and appear on the map as dots. Toll roads are run by the county toll authority, so they count only under Road owner: All. Crashes in parking lots and on private property are never included.</p>
       </section>
       <section>
         <h3>Road ownership</h3>
@@ -1249,7 +1249,7 @@ function unpackCrashes(pk){
       c.k[i], c.a[i], c.b[i], c.c[i], c.o[i],
       c.light[i], c.fac[i], c.ppl[i]===-1?null:PPL[c.ppl[i]]];
     const fl=c.flags[i]; for(let b=0;b<F.length;b++) r[F[b]]=(fl>>b)&1;
-    if(c.road) r.push(c.road[i]);   // freeway rows (field 24): road_type 1 = TxDOT freeway/ramp/frontage, 2 = toll road
+    if(c.road) r.push(c.road[i]);   // freeway rows (field 24): road_type 1 = TxDOT freeway main lanes or ramps, 2 = toll road
     rows[i]=r;
   }
   return rows;
@@ -1281,7 +1281,7 @@ function setFwy(on){
   const show=v=>radios.forEach(r=>{ r.checked=(r.value===(v?'1':'0')); });
   if(on && !fwyPts){
     radios.forEach(r=>r.disabled=true); show(true); note.textContent='Loading freeway crashes…';
-    fetch('freeway_crashes.packed.json').then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    fetch('freeway_crashes.packed.json',{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
       .then(pk=>{ fwyPts=unpackCrashes(pk); radios.forEach(r=>r.disabled=false); note.textContent=''; setFwy(true); })
       .catch(()=>{ radios.forEach(r=>r.disabled=false); show(false); note.textContent='Could not load freeway crashes. Try again.'; });
     return;
@@ -1293,13 +1293,13 @@ function setFwy(on){
 }
 
 Promise.all([
-  fetch('vz_summary.json').then(r=>r.json()),
-  fetch('boundary.geojson').then(r=>r.json()),
-  fetch('segments.packed.json').then(r=>r.json()).then(unpackSegments),
-  fetch('hin.geojson').then(r=>r.json()),
-  fetch('crashes.packed.json').then(r=>r.json()).then(unpackCrashes),
-  fetch('districts.geojson').then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
-  fetch('superneighborhoods.geojson').then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
+  fetch('vz_summary.json',{cache:'no-cache'}).then(r=>r.json()),
+  fetch('boundary.geojson',{cache:'no-cache'}).then(r=>r.json()),
+  fetch('segments.packed.json',{cache:'no-cache'}).then(r=>r.json()).then(unpackSegments),
+  fetch('hin.geojson',{cache:'no-cache'}).then(r=>r.json()),
+  fetch('crashes.packed.json',{cache:'no-cache'}).then(r=>r.json()).then(unpackCrashes),
+  fetch('districts.geojson',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null),  // optional (city build only)
+  fetch('superneighborhoods.geojson',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,points,dists,sns])=>{
   vz=summary; cityPts=points; pts=points;
   rebuildDow();
@@ -1348,7 +1348,7 @@ Promise.all([
   { const last=cityPts.reduce((m,p)=>p[7]&&p[7]>m?p[7]:m,''), d=new Date(last+'T12:00:00');   // last complete month of data
     if(last){ d.setDate(d.getDate()+1); d.setDate(0); DATA_END=d.toISOString().slice(0,10); } }   // day after the last date, back to the end of the prior month
   setupWhenUI();   // fill the Years / Month / Day / Time selects (year bounds are known now)
-  fetch('blockgroups.json').then(r=>r.ok?r.json():null).then(b=>{ if(b){ BG=b.rows; drawEquity(); } }).catch(()=>{});
+  fetch('blockgroups.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(b=>{ if(b){ BG=b.rows; drawEquity(); } }).catch(()=>{});
   document.getElementById('loading').style.display='none';
   map.invalidateSize();
   if(window.ResizeObserver) new ResizeObserver(()=>map.invalidateSize()).observe(document.getElementById('mapwrap'));   // the map stretches with the sidebar
@@ -1703,7 +1703,7 @@ function selectSN(v){
 function _clearPoly(){ poly=null; _segIn={}; _areaPicking=false; if(polyLayer){ map.removeLayer(polyLayer); polyLayer=null; } }
 function polyFeatures(type){   // fetch + cache one polygon layer's features
   if(_polyFeats[type]) return Promise.resolve(_polyFeats[type]);
-  return fetch(POLY_TYPES[type].file).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+  return fetch(POLY_TYPES[type].file,{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(g=>(_polyFeats[type]=g.features));
 }
 function selectPoly(type, id){
@@ -1812,7 +1812,7 @@ function drawKPIs(t){
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
   else if(mode==='bike'){killed=t.bike_killed;ksi=t.bike_ksi;}
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
-  const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : (fwyOn ? 'on city streets and freeways' : 'on city streets');
+  const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':'block')) : (fwyOn ? 'on streets and freeways' : 'on Houston streets');
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = timeSpan(true);
   const yll=Math.round(yllTotal()), serious=ksi-killed;
@@ -2346,7 +2346,7 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   if(p[FAC]) rows.push(['Factors recorded', FACTORS.filter(([bit])=>p[FAC]&bit).map(f=>f[1]).join(', ')]);
   if(p[PPL]) rows.push(['People hurt', p[PPL].map(c=>(((c>>5)&1)?'Killed':'Seriously injured')+', '+['in or on a vehicle','walking','biking'][c>>6]+', '+(((c>>2)&7)?'age '+AGE_LAB[(c>>2)&7].toLowerCase():'age not recorded')+((c&3)?', '+SEX_LAB[c&3].toLowerCase():'')).join('; ')]);
   // nearest street + its design, so a crash reads in context of the road it's on
-  if(p[RT]) rows.push(['Road', p[RT]===2 ? 'Toll road' : 'Freeway, ramp or frontage road']);
+  if(p[RT]) rows.push(['Road', p[RT]===2 ? 'Toll road' : 'Freeway or ramp']);
   const sp=p[RT] ? null : nearestSegProps(p[0],p[1]);   // a freeway crash is not on the nearest city street
   const swTxt={both:'both sides',one_side:'one side',partial:'partial',none:'none mapped'};
   const street=[];
@@ -2462,7 +2462,7 @@ let schoolsLayer=null, parksLayer=null;
 const SCHOOL_C='#1f5fbf', PARK_C='#2e8b57';
 map.createPane('parksPane'); map.getPane('parksPane').style.zIndex=350;
 const parksRenderer=L.canvas({pane:'parksPane'});
-function _spLoad(file){ return fetch(file).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }); }
+function _spLoad(file){ return fetch(file,{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }); }
 function setOverlay(kind, on){
   const box=document.getElementById(kind), note=document.getElementById('sp-note');
   const have = kind==='schools' ? schoolsLayer : parksLayer;
@@ -2707,7 +2707,7 @@ async function generateReport(cfg){
     +'<div class="r-stats">'+statsHTML+'</div>'
     +synthHTML+mapHTML
     +(worstHTML?('<h2 class="r-sec">Most dangerous streets</h2>'+worstHTML):'');
-  const about='<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+' to '+vz.years[vz.years.length-2]+' and part of '+vz.years[vz.years.length-1]+', from TxDOT crash records (CRIS).'+(fwyOn?' Includes crashes on freeways, toll roads, ramps and frontage roads, shown as dots. Street shading and rankings cover city streets only.':' Freeways are not included.')+' Streets are ranked by count, not adjusted for traffic volume. Economic cost uses FHWA per-person costs by injury level (FHWA-SA-25-021, 2024 dollars); the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) also values lost quality of life and overlaps with years of life lost. Costs are a minimum because some crashes are never reported. Contributing factors and lighting are as recorded by police. Income rates use 2023 American Community Survey population. The purple overlay, if shown, is the City&rsquo;s 2022 High Injury Network. Sources: TxDOT CRIS and Roadway Inventory, OpenStreetMap, City of Houston GIS, U.S. Census, FHWA. Methods: the project CODEBOOK on GitHub. <b>Public data project, not an official City of Houston website;</b> figures may differ from official City counts.</div>';
+  const about='<div class="r-foot"><b>About this report.</b> Traffic deaths and serious injuries on surface streets in the City of Houston, '+vz.years[0]+' to '+vz.years[vz.years.length-2]+' and part of '+vz.years[vz.years.length-1]+', from TxDOT crash records (CRIS).'+(fwyOn?' Includes crashes on freeway and toll-road main lanes and ramps, shown as dots. Street shading and rankings cover streets and frontage roads only.':' Freeway main lanes and ramps are not included.')+' Streets are ranked by count, not adjusted for traffic volume. Economic cost uses FHWA per-person costs by injury level (FHWA-SA-25-021, 2024 dollars); the comprehensive cost ('+fmtMoney(cost.comp)+' for this view) also values lost quality of life and overlaps with years of life lost. Costs are a minimum because some crashes are never reported. Contributing factors and lighting are as recorded by police. Income rates use 2023 American Community Survey population. The purple overlay, if shown, is the City&rsquo;s 2022 High Injury Network. Sources: TxDOT CRIS and Roadway Inventory, OpenStreetMap, City of Houston GIS, U.S. Census, FHWA. Methods: the project CODEBOOK on GitHub. <b>Public data project, not an official City of Houston website;</b> figures may differ from official City counts.</div>';
   R.innerHTML = '<div class="r-page r-p1">'+p1+(chartsHTML?'':about)+'</div>'
     + (chartsHTML ? ('<div class="r-page r-p2"><h2 class="r-sec">Breakdowns'+(sev==='all'?' (all crashes)':'')+'</h2><div class="r-charts">'+chartsHTML+'</div>'+about+'</div>') : '');
   R.dataset.built='1';
@@ -2792,7 +2792,7 @@ async function _rcGenerate(){
   { const o=HOUR_BANDS.find(x=>x[0]===_rcEl('rc-hr').value); if(o){ selH.clear(); o[2].forEach(v=>selH.add(v)); } }
   if(!_rcEl('rc-street').checked){ selStreet=null; selSeg=null; selIds=new Set(); }
   { const want=_rcEl('rc-fwy').value==='1';   // freeway crashes load on first use
-    if(want && !fwyPts){ try{ fwyPts=unpackCrashes(await fetch('freeway_crashes.packed.json').then(r=>r.json())); }catch(e){} }
+    if(want && !fwyPts){ try{ fwyPts=unpackCrashes(await fetch('freeway_crashes.packed.json',{cache:'no-cache'}).then(r=>r.json())); }catch(e){} }
     fwyOn=want && !!fwyPts; radio('fwy',fwyOn?'1':'0'); pts=fwyOn?cityPts.concat(fwyPts):cityPts; rebuildDow(); }
   // dates at month granularity; whole years become the plain year filter, the full span clears it
   const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
