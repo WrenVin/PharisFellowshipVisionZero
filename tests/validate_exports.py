@@ -380,6 +380,23 @@ def _undelta_xy(a):
     return out
 
 
+def check_freeway_sections():
+    """Freeway sections: decodable, unique ids, and every freeway crash's section exists."""
+    sk, fk = load("freeway_sections.packed.json"), load("freeway_crashes.packed.json")
+    if sk is None or fk is None:
+        return
+    ids = [f["properties"]["seg_id"] for f in decode_segments(sk)]
+    if len(ids) != len(set(ids)):
+        err("freeway_sections.packed.json: duplicate seg_id")
+    rows = decode_crashes(fk)
+    used = {r[14] for r in rows if r[14] is not None}
+    missing = used - set(ids)
+    if missing:
+        err(f"freeway crashes: {len(missing)} section ids not in freeway_sections.packed.json")
+    print(f"  freeway_sections.packed.json: {len(ids):,} sections and ramps; "
+          f"{sum(1 for r in rows if r[14] is not None):,} of {len(rows):,} freeway crashes on one ({100*sum(1 for r in rows if r[14] is not None)/max(1,len(rows)):.1f}%)")
+
+
 def check_blockgroups():
     """Block groups for the income rate panel: positive population, plausible city total."""
     bg = load("blockgroups.json")
@@ -413,10 +430,10 @@ def check_packed(pts, seg):
     fw = load("freeway_crash_points.json")
     fk = load("freeway_crashes.packed.json")
     if fw is not None and fk is not None:
-        bad = [r for r in fw if len(r) != 25 or r[14] is not None or r[12] != 0
+        bad = [r for r in fw if len(r) != 25 or r[12] != 0
                or r[24] not in (1, 2) or r[13] != (1 if r[24] == 1 else 0)]
         if bad:
-            err(f"freeway_crash_points.json: {len(bad)} rows break the freeway contract (25 fields, no street, not on HIN, road_type 1/2 with matching TxDOT flag)")
+            err(f"freeway_crash_points.json: {len(bad)} rows break the freeway contract (25 fields, not on HIN, road_type 1/2 with matching TxDOT flag)")
         key = lambda r: json.dumps(r)
         if sorted(map(key, decode_crashes(fk))) != sorted(map(key, fw)):
             err("freeway_crashes.packed.json: does not decode to freeway_crash_points.json; rerun src/pack_webmap_data.py")
@@ -464,6 +481,7 @@ def main():
     if canonical:
         check_packed(pts, seg)
     check_blockgroups()
+    check_freeway_sections()
 
     print()
     for w in warnings:

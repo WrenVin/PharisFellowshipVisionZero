@@ -4,6 +4,16 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Freeway sections (version 1)
+
+FREEWAY_PLAN.md, built.
+
+- **`src/build_freeway.py`:** OSM `motorway` + `motorway_link` inside the city (28,613 raw edges). Main lanes split at the 1,462 ramp junctions and wherever the route or toll status changes; OSM's one-way carriageways make every section one direction. Managed lanes (HOV/HOT, I-10 express toll lanes; 118 pieces) left out so main-lane crashes cannot snap to them. Toll status from the OSM tag or the name (Sam Houston Tollway, Westpark, Hardy, Fort Bend). Labels: route + name + signed direction ("I-10/US 90 Katy Freeway eastbound", "I-45 Gulf Freeway northbound"; odd Interstate/US numbers north/south, even east/west, loops and state highways by compass). Pieces cut by the city line become separate sections. Result: **1,051 main-lane sections (450 mi, median 0.35 mi) and 1,416 ramps and connectors.**
+- **Crash matching** (`export_webmap_data.py`; `build_crashes.py` now keeps `hwy_nbr` from CRIS `Hwy_Nbr`): ramp and connector crashes (road part 3 to 5) to ramps, others to main lanes; first a section on the crash's own highway within 250 ft, else the nearest of its kind, else the nearest. **183,043 of 188,316 (97.2%) placed**; of the 166,106 with a highway number, 150,566 (91%) are on their own highway's section (the rest fall back, mostly ramps and toll roads with no route number in OSM). Spot-checked labels against the crash records.
+- **Page:** sections load with the Freeways toggle (`freeway_sections.packed.json`, 0.2 MB) and are shaded on the same scale as streets (Vincent's call), clickable, with their own popup (length, "main lanes, one direction, between ramps" or ramp), labels saying "section" or "ramp", and links that reopen a section. Not ranked with streets and not in the concentration figure. Toll sections only under Road owner: All. The freeway dots in the street views are gone. Validator checks every freeway crash's section exists.
+- Removed a literal NUL byte from the page (an unnamed-street key), which is why text tools treated the file as binary; it is now written as the escape `'\u0000'`.
+- Not yet: interchanges as single features, exit numbers, milepost (DFO) matching, a separate freeway ranking.
+
 ## 2026-10-31 — Quick fixes: City GIS address, repo size, automatic date range
 
 - **City GIS address:** `fetch_boundary.py`, `fetch_superneighborhoods.py`, `export_hin.py` and `conflate_landuse.py` now use `mycity2.houstontx.gov/gisweb02/...` (the old `pubgis02` server is retired). The High Injury Network also moved from Transportation layer 20 to 22 (20 is now airport airspace); a re-fetch from the new address produced a byte-identical `docs/hin.geojson` (1,261 segments). The city limit (layer 0), super neighborhoods (88, matches disk) and land use layers respond.

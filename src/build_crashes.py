@@ -35,7 +35,7 @@ ROOT, CRIS, PROCESSED, REPORTS = cfg.ROOT, cfg.CRIS, cfg.PROCESSED, cfg.REPORTS
 WANT = ["Crash_ID", "Crash_Date", "Crash_Time", "Crash_Fatal_Fl", "Crash_Sev_ID",
         "Latitude", "Longitude", "Rpt_Latitude", "Rpt_Longitude",
         "Sus_Serious_Injry_Cnt", "Tot_Injry_Cnt", "Crash_Speed_Limit",
-        "Road_Cls_ID", "Rpt_Road_Part_ID", "Rpt_Street_Name", "Light_Cond_ID"]
+        "Road_Cls_ID", "Rpt_Road_Part_ID", "Rpt_Street_Name", "Light_Cond_ID", "Hwy_Nbr"]
 # Years of Life Lost: YPLL before age 75 (CDC convention) = max(0, 75 - age),
 # summed over the people killed. Age comes from the CRIS person table.
 LIFE_EXPECTANCY = 75
@@ -109,6 +109,7 @@ cls = pd.to_numeric(g["Road_Cls_ID"], errors="coerce")
 part = pd.to_numeric(g["Rpt_Road_Part_ID"], errors="coerce")
 nm = g["Rpt_Street_Name"].fillna("")
 g["road_part"] = part.fillna(0).astype(int)   # 2 = frontage road (the dashboard shows these with city streets)
+g["hwy_nbr"] = pd.to_numeric(g["Hwy_Nbr"], errors="coerce").fillna(0).astype(int)   # TxDOT highway number (10, 45, 610, ...), matches freeway sections
 on_fwy = (cls.isin([1, 6, 8, 9]) | part.isin([2, 3, 4, 5])
           | (cls.eq(2) & nm.str.contains(FWY_NAME)))
 n_fwy = int(on_fwy.sum())
@@ -241,7 +242,7 @@ total_yll = float(g["yll"].sum())
 out = g[["Crash_ID", "year", "month", "hour", "date", "kabco", "fatal",
          "serious", "severe", "yll", "any_injury", "mode", "involves_ped",
          "involves_bike", "Crash_Sev_ID", "speed_limit", "coord_source",
-         "light", "factors", "ksi_people", "road_part", "geometry"]].copy()
+         "light", "factors", "ksi_people", "road_part", "hwy_nbr", "geometry"]].copy()
 out["date"] = out["date"].dt.strftime("%Y-%m-%d")
 PROCESSED.mkdir(parents=True, exist_ok=True)
 dst = cfg.processed("crashes.gpkg")

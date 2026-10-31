@@ -116,6 +116,11 @@ def main():
         fw = json.loads(fp.read_text())
         n = dump(pack_crashes(fw), DOCS / "freeway_crashes.packed.json")
         print(f"Wrote {len(fw):,} freeway crashes -> freeway_crashes.packed.json ({n/1e6:.1f} MB)")
+    fsp = DOCS / "freeway_sections.geojson"   # freeway sections and ramps, loaded with the Freeways toggle
+    if fsp.exists():
+        fs = json.loads(fsp.read_text())
+        n = dump(pack_segments(fs), DOCS / "freeway_sections.packed.json")
+        print(f"Wrote {len(fs['features']):,} freeway sections -> freeway_sections.packed.json ({n/1e6:.1f} MB)")
     segs = json.loads((DOCS / "segments_vz.geojson").read_text())
     n = dump(pack_segments(segs), DOCS / "segments.packed.json")
     print(f"Wrote {len(segs['features']):,} segments -> segments.packed.json ({n/1e6:.1f} MB)")

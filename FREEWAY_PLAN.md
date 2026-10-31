@@ -1,6 +1,6 @@
 # Freeway Segments: Plan (not started)
 
-Status: planned 2026-10-29, not implemented. Color scale decided 2026-10-31 (see below); direction display still open.
+Status: **version 1 built 2026-10-31** (`src/build_freeway.py`, `export_webmap_data.py`, page). Main-lane sections split at ramp junctions, one per direction (OSM carriageways); ramps and connectors as their own pieces; crashes matched by road part and highway number within 250 ft (97.2% placed; 91% of those with a highway number on their own highway). Shared color scale. Direction display: each direction is its own line (overlapping at city zoom, separate when zoomed in). Not yet done: grouping interchanges into one feature, exit numbers in labels, DFO (milepost) matching, a separate freeway ranking.
 
 ## Problem
 

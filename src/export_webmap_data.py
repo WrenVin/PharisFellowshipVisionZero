@@ -376,8 +376,10 @@ def crash_rows(cr, freeway=False):
     # 200 ft (or whose street isn't in the published subset) get a null seg_id:
     # they still count in KPIs/points, they just don't attach to a street.
     # on_txdot is a LABEL (for the ownership view), not an exclusion.
-    if freeway:   # not part of the street network: no street, never on the HIN; TxDOT unless a toll road
-        cr["seg_id"] = None
+    if freeway:   # freeway sections (assigned below), never on the HIN; TxDOT unless a toll road
+        if "seg_id" not in cr.columns:
+            cr["seg_id"] = None
+        cr["seg_id"] = cr["seg_id"].where(cr["seg_id"].notna(), None)
         cr["on_hin"] = False
         cr["on_txdot"] = cr["road_type"].eq(1)
     elif "seg_id" in cr.columns:
@@ -474,7 +476,80 @@ _fpath = cfg.processed("freeway_crashes.gpkg")
 if _fpath.exists():
     _fw = gpd.read_file(_fpath, layer="crashes")
     if "road_part" in _fw.columns:   # frontage roads are in the default view now
-        _fw = _fw[~_fw["road_part"].eq(2)]
+        _fw = _fw[~_fw["road_part"].eq(2)].copy()
+    # Freeway sections (build_freeway.py; FREEWAY_PLAN.md): main-lane crashes go to main-lane
+    # sections, ramp and connector crashes (road part 3, 4, 5) to ramps. A section on the
+    # crash's own highway (CRIS Hwy_Nbr vs the section's route numbers) is preferred, so a
+    # crash at an interchange lands on its own freeway; otherwise the nearest of the right
+    # kind, then the nearest of any kind; all within 250 ft.
+    _fsec_path = cfg.processed("freeway_sections.gpkg")
+    if _fsec_path.exists():
+        sec = gpd.read_file(_fsec_path, layer="sections").to_crs(seg.crs)
+        fwc = _fw.to_crs(seg.crs)
+        fwc["_kind"] = fwc["road_part"].isin([3, 4, 5]).map({True: "ramp", False: "main"})
+        fwc["seg_id"] = None
+        sec["_nums"] = sec["hwy"].fillna("").str.split()
+
+        def _nearest(crashes, cands):
+            if crashes.empty or cands.empty:
+                return pd.Series(dtype=object)
+            j = gpd.sjoin_nearest(crashes[["geometry"]], cands[["seg_id", "geometry"]], how="left",
+                                  max_distance=250, distance_col="_d")
+            j = j[~j.index.duplicated(keep="first")]
+            return j["seg_id"].dropna()
+
+        nbr = fwc["hwy_nbr"] if "hwy_nbr" in fwc.columns else pd.Series(0, index=fwc.index)
+        for kind in ("main", "ramp"):
+            ck = fwc[fwc["_kind"].eq(kind)]
+            sk = sec[sec["kind"].eq(kind)]
+            for n in sorted(set(nbr[ck.index]) - {0}):            # 1. same highway, same kind
+                on_route = sk[sk["_nums"].apply(lambda xs, n=str(n): n in xs)]
+                hit = _nearest(ck[nbr[ck.index].eq(n)], on_route)
+                fwc.loc[hit.index, "seg_id"] = hit.values
+            left = ck[fwc.loc[ck.index, "seg_id"].isna()]          # 2. nearest of the same kind
+            hit = _nearest(left, sk)
+            fwc.loc[hit.index, "seg_id"] = hit.values
+        left = fwc[fwc["seg_id"].isna()]                           # 3. nearest of any kind
+        hit = _nearest(left, sec)
+        fwc.loc[hit.index, "seg_id"] = hit.values
+        _fw["seg_id"] = fwc["seg_id"].values
+        _secnums = dict(zip(sec["seg_id"], sec["_nums"]))
+        print(f"Freeway crashes assigned to a section or ramp: {int(_fw['seg_id'].notna().sum()):,} of {len(_fw):,} "
+              f"({100*_fw['seg_id'].notna().mean():.1f}%); on their own highway's section: "
+              f"{int(sum(1 for i, sid in _fw['seg_id'].items() if isinstance(sid, str) and str(nbr[i]) in _secnums[sid])):,}")
+
+        # section features for the page (loaded with the Freeways toggle), counts like the streets'
+        a = _fw[_fw["seg_id"].notna()]
+        grp = a.groupby("seg_id")
+        cnt = pd.DataFrame({
+            "n_crash": grp.size(), "n_injury": grp["any_injury"].sum(), "n_severe": grp["severe"].sum(),
+            "n_fatal": grp["fatal"].sum(), "n_ped": grp["involves_ped"].sum(), "n_bike": grp["involves_bike"].sum(),
+            "n_ped_severe": a[a["severe"]].groupby("seg_id")["involves_ped"].sum(),
+            "n_bike_severe": a[a["severe"]].groupby("seg_id")["involves_bike"].sum()})
+        sec = sec.join(cnt, on="seg_id")
+        for c_ in cnt.columns:
+            sec[c_] = sec[c_].fillna(0).astype(int)
+        sec["on_txdot"] = ~sec["toll"].astype(bool)
+        sec["on_hin"] = False
+        mids = gpd.GeoDataFrame(geometry=sec.geometry.representative_point(), crs=sec.crs).to_crs(4326)
+        sec["district"] = None
+        if districts_4326 is not None:
+            jj = gpd.sjoin_nearest(mids, districts_4326[["DISTRICT", "geometry"]].to_crs(4326), how="left")
+            sec["district"] = jj[~jj.index.duplicated()]["DISTRICT"].values
+        sec["sn"] = None
+        if sn_4326 is not None:
+            jj = gpd.sjoin(mids, sn_4326[["POLYID", "geometry"]], how="left", predicate="within")
+            sec["sn"] = pd.array(pd.to_numeric(jj[~jj.index.duplicated()]["POLYID"].values, errors="coerce"), dtype="Int64")
+        sec["length_ft"] = sec["length_ft"].round().astype(int)
+        for c_ in ("lanes_final", "roadway_width_ft", "posted_speed_mph", "sidewalk_presence", "adt"):
+            sec[c_] = None
+        sec["geometry"] = sec.geometry.simplify(25, preserve_topology=False)
+        fs = sec.to_crs(4326)[WEB_KEEP + ["geometry"]]
+        fsp = DOCS / "freeway_sections.geojson"
+        if fsp.exists():
+            fsp.unlink()
+        fs.to_file(fsp, driver="GeoJSON", COORDINATE_PRECISION=5)
+        print(f"Wrote {len(fs):,} freeway sections and ramps -> {fsp.name} ({fsp.stat().st_size/1e6:.1f} MB)")
     fpts = crash_rows(_fw, freeway=True)
     fcp = DOCS / "freeway_crash_points.json"
     fcp.write_text(json.dumps(fpts, separators=(",", ":")))

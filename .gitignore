@@ -32,3 +32,4 @@ data/processed/houston_crashes.gpkg
 docs/crash_points.json
 docs/freeway_crash_points.json
 docs/segments_vz.geojson
+docs/freeway_sections.geojson
