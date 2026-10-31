@@ -6,6 +6,7 @@ round attribute values, and carry only display/filter-relevant columns.
 """
 
 import glob
+from collections import defaultdict
 import json
 import math
 
@@ -114,6 +115,7 @@ COLS = {
     "n_ped": 0, "n_bike": 0, "n_ped_severe": 0, "n_bike_severe": 0,
     "n_signals": 0, "oneway": None, "merged_dual": None, "length_ft": 0,
     "mid_ft": 0,       # length outside intersection polygons (dashboard concentration measure)
+    "trim_a": 0, "trim_b": 0,   # thousandths of the line inside an intersection at its start / end (drawn trimmed when zoomed in)
     "on_hin": None,    # on the City's official High Injury Network?
     "on_txdot": None,  # TxDOT-owned (state) road vs city-owned?
 }
@@ -125,7 +127,7 @@ COLS = {
 WEB_KEEP = [
     "seg_id", "name", "road_class", "district", "sn", "on_txdot", "on_hin",
     "n_crash", "n_severe", "n_fatal", "n_ped", "n_ped_severe",
-    "n_bike", "n_bike_severe", "length_ft", "mid_ft",
+    "n_bike", "n_bike_severe", "length_ft", "mid_ft", "trim_a", "trim_b",
     "lanes_final", "roadway_width_ft", "posted_speed_mph",
     "sidewalk_presence", "adt",
 ]
@@ -384,6 +386,32 @@ if _ixpath.exists():
     covered = pairs.groupby(level=0)["_ft"].sum()
     seg["mid_ft"] = (seg["length_ft"] - covered.reindex(seg.index).fillna(0)).clip(lower=0)
     ixg["leg_ft"] = pairs.groupby("index_right")["_ft"].sum().reindex(ixg.index).fillna(0).round()
+    # how far each block runs into an intersection at either end, so the page can stop
+    # the line at the intersection's edge when the polygons are drawn
+    ivs = defaultdict(list)
+    for si, g, j in zip(pairs.index, pairs.geometry, pairs["index_right"]):
+        x = g.intersection(ixg.geometry.iat[j])
+        for part in getattr(x, "geoms", [x]):
+            if part.geom_type == "LineString" and not part.is_empty:
+                a_, b_ = sorted((g.project(Point(part.coords[0])), g.project(Point(part.coords[-1]))))
+                ivs[si].append((a_, b_))
+    ta, tb = {}, {}
+    for si, iv in ivs.items():
+        L_ = seg.geometry.at[si].length
+        a_ = 0.0
+        for lo, hi in sorted(iv):
+            if lo <= a_ + 3:
+                a_ = max(a_, hi)
+        b_ = L_
+        for lo, hi in sorted(iv, key=lambda t: -t[1]):
+            if hi >= b_ - 3:
+                b_ = min(b_, lo)
+        if L_ > 0:
+            ta[si], tb[si] = round(1000 * a_ / L_), round(1000 * (L_ - b_) / L_)
+    seg["trim_a"] = pd.Series(ta).reindex(seg.index).fillna(0).astype(int)
+    seg["trim_b"] = pd.Series(tb).reindex(seg.index).fillna(0).astype(int)
+    print(f"Blocks trimmed at an intersection: {(seg['trim_a'] > 0).sum() + (seg['trim_b'] > 0).sum():,} ends; "
+          f"wholly inside one: {((seg['trim_a'] + seg['trim_b']) >= 1000).sum():,}")
     ctr = gpd.GeoDataFrame(geometry=ixg.geometry.representative_point(), crs=seg.crs)
     if districts_4326 is not None:
         j = gpd.sjoin_nearest(ctr, districts_4326.to_crs(seg.crs)[["DISTRICT", "geometry"]], how="left")
@@ -708,7 +736,7 @@ if _fpath.exists():
         for c_ in ("lanes_final", "roadway_width_ft", "posted_speed_mph", "sidewalk_presence", "adt"):
             sec[c_] = None
         sec["geometry"] = sec.geometry.simplify(25, preserve_topology=False)
-        fs = sec.to_crs(4326)[[c for c in WEB_KEEP if c != "mid_ft"] + ["label", "geometry"]]   # whole sections, no intersections
+        fs = sec.to_crs(4326)[[c for c in WEB_KEEP if c not in ("mid_ft", "trim_a", "trim_b")] + ["label", "geometry"]]   # whole sections, no intersections
         fsp = DOCS / "freeway_sections.geojson"
         if fsp.exists():
             fsp.unlink()

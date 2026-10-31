@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Map readability with intersections
+
+Vincent found the map harder to read after intersections (the clear "which streets" picture was lost) and noticed block lines running into the intersection polygons.
+
+- Cause: in the default view 4,088 intersections had at least one person killed or seriously injured against 2,210 blocks, so about two of every three red marks were intersection dots, and a round dot reads heavier than a line.
+- Zoomed out (below 15): only the top fifth of intersections by count in the current view are drawn (3+ people citywide, 847 dots), slightly smaller than before; legend reads "Intersections with 3+ (zoom in for all)". The cutoff is a percentile so filtered views (walking only, one district) still show dots.
+- Zoomed in (15+): each block stops at the intersections' edges and is drawn as a band as wide as the intersection buffers (80 / 100 / 150 ft), so blocks and intersections tile the street. Real block polygons were not built: at true width they vanish when zoomed out and would add about 70,000 shapes. `export_webmap_data.py` writes `trim_a` / `trim_b` per block (117,371 trimmed ends; 4,354 blocks wholly inside an intersection, hidden when zoomed in). Whole-street (Streets level) view keeps full lines. Zoom steps restyle only blocks near the view.
+- Checked in the browser: dot cutoff 3, bands at Westheimer and Hillcroft, click selects a band, lines restore on zooming out, no console errors.
+
 ## 2026-10-31 — Streets only is the default
 
 Vincent's call after the intersection build: the dashboard opens on Streets only; frontage roads and freeways are added from Roads included.
