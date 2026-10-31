@@ -4,6 +4,14 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Roads included option; interchanges, exit labels, milepost placement, freeway ranking
+
+- **Roads included** (Roads section, dropdown) replaces the Freeways toggle: Streets only / Streets and frontage roads (default) / Streets, frontage roads and freeways. Every number, chart, the map, the concentration figure and the **Most dangerous streets table** follow it (freeway directions and interchanges rank there when freeways are included). Crash rows carry a road type in field 24 (0 street, 3 frontage, 1 freeway, 2 toll), so frontage crashes can be switched off without a second file. URL `roads=streets|freeways` (old `fwy=1` links still work); report form, Showing chip, Reset and badges updated. Checked: 1,822 / 2,111 / 2,947 people killed for the three settings; the table changes with each.
+- **Interchanges as units:** ramp pieces that meet anywhere except on a freeway's main lanes are chained; a chain touching two freeways is an interchange, chains for the same pair clustered by place ("I-10/US 90 at I-610 interchange (west)", "I-45 at I-69/US 59 interchange"): 25 interchanges. Express and managed lanes no longer count as a second freeway. Other ramps group by exit ("I-10/US 90 exit 758 ramps (Bunker Hill Road)") or nearest cross street: 551 groups. Selecting any ramp offers the whole interchange or exit; the KPIs then read "on this interchange".
+- **Exit numbers and places in labels:** each main-lane section is labeled by the streets crossing it and the OSM exit numbers at its ends (386 numbered exits): "I-45 North Freeway southbound, West Road to West Gulf Bank Road", "I-69/US 59 Eastex Freeway northbound, at East Crosstimbers Street, exits 136 to 137A".
+- **Milepost placement:** main-lane crashes with a TxDOT milepost (159,443) are placed at that DFO on their highway (TxDOT Roadways M values) and on the nearest direction: 146,540 placed by milepost; 694 moved section versus coordinates alone (TxDOT derives most freeway coordinates from the milepost); none disagreed by more than a quarter mile. Ramps again carry their routes' numbers: 151,916 crashes on their own highway's section.
+- **Most dangerous freeway sections** list (shown when freeways are included): top 10 units, main lanes one section at a time, ramps by interchange or exit; click selects. Citywide top: I-45 North Freeway southbound, West Road to West Gulf Bank Road (20 killed, 60 seriously injured, 2.1 mi).
+
 ## 2026-10-31 — Freeway sections (version 1)
 
 FREEWAY_PLAN.md, built.

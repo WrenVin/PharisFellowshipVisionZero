@@ -6,13 +6,13 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 - [ ] **Idea (pinned 2026-10-30): statewide version by Texas House district.** Separate project, possibly with Farm and City. Statewide CRIS is already on disk. Plan sketched in chat: one data file per district; TxDOT Roadway Inventory as the statewide road network; include all road systems (rural highways matter); confirm the statewide files may be republished at crash-point level. Possible deadline: the January 2027 legislative session. First step if picked up: one urban and one rural district end to end.
 - [ ] **Schools and parks (from form feedback, 2026-07-22).** Overlays plus a "near schools / parks" distance filter and a per-school/park report for Safe Routes applications. Plan in [SCHOOLS_PARKS_PLAN.md](SCHOOLS_PARKS_PLAN.md). Part 1 (overlays) done 2026-10-29; next: confirm the radius with the submitter (federal SRTS uses about 2 miles), then the per-school/park radius view and report.
-- [ ] **Freeway sections, next steps.** Version 1 is live (see Done). Possible follow-ups: interchanges as single features, exit numbers in labels, milepost (DFO) matching to sharpen placement, a separate "most dangerous freeway sections" list.
 - [ ] **Name the remaining management districts.** HCID #8, #10-A, #12, #16, #24 and Harris County PID #2 are inside the city but listed only by number in City data; add them once their names are confirmed.
 - [ ] **School districts.** None qualify under the within-the-city rule (Houston ISD is 91% inside). Revisit only if the dashboard expands beyond the city.
 - [ ] **Custom domain (optional).** Site lives on a personal github.io address. A custom domain can be added later without breaking existing links.
 
 ## Done
 
+- [x] 2026-10-31 Roads included (streets / + frontage / + freeways) everywhere incl. the street table; freeway interchanges as units; cross-street and exit labels; TxDOT milepost placement; Most dangerous freeway sections list.
 - [x] 2026-10-31 Freeway sections v1: 1,051 main-lane sections (one per direction, between ramps) and 1,416 ramps; 97.2% of freeway crashes placed; shaded and clickable with the Freeways toggle.
 - [x] 2026-10-31 City GIS scripts moved to the gisweb02 server (HIN layer 22); large regenerable files untracked (validator checks packed files in CI); date range in the page text comes from the data.
 - [x] 2026-10-31 Frontage roads added to the dashboard's street map (3,460 blocks, 364 mi; their crashes now in the default view); data files revalidate on load so caches never mix versions.

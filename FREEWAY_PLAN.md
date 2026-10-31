@@ -1,6 +1,6 @@
 # Freeway Segments: Plan (not started)
 
-Status: **version 1 built 2026-10-31** (`src/build_freeway.py`, `export_webmap_data.py`, page). Main-lane sections split at ramp junctions, one per direction (OSM carriageways); ramps and connectors as their own pieces; crashes matched by road part and highway number within 250 ft (97.2% placed; 91% of those with a highway number on their own highway). Shared color scale. Direction display: each direction is its own line (overlapping at city zoom, separate when zoomed in). Not yet done: grouping interchanges into one feature, exit numbers in labels, DFO (milepost) matching, a separate freeway ranking.
+Status: **version 1 built 2026-10-31** (`src/build_freeway.py`, `export_webmap_data.py`, page). Main-lane sections split at ramp junctions, one per direction (OSM carriageways); ramps and connectors as their own pieces; crashes matched by road part and highway number within 250 ft (97.2% placed; 91% of those with a highway number on their own highway). Shared color scale. Direction display: each direction is its own line (overlapping at city zoom, separate when zoomed in). **Follow-ups done 2026-10-31:** interchanges as single units (ramp chains touching two freeways; 25 interchanges, 551 exit-ramp groups), labels with cross streets and exit numbers, TxDOT milepost (DFO) placement, and a Most dangerous freeway sections list. Roads included (streets / + frontage / + freeways) replaces the Freeways toggle.
 
 ## Problem
 

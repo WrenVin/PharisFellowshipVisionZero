@@ -12,7 +12,7 @@ import math
 import geopandas as gpd
 import pandas as pd
 import requests
-from shapely.geometry import LineString
+from shapely.geometry import Point, LineString
 
 import config as cfg
 ROOT, PROCESSED, DOCS, EXTERNAL = cfg.ROOT, cfg.PROCESSED, cfg.DOCS, cfg.EXTERNAL
@@ -22,6 +22,48 @@ ROOT, PROCESSED, DOCS, EXTERNAL = cfg.ROOT, cfg.PROCESSED, cfg.DOCS, cfg.EXTERNA
 # what the City owns/operates (matches the crash filter Road_Cls_ID==5).
 TXDOT_URL = ("https://services.arcgis.com/KTcxiTD9dsQw4r7Z/arcgis/rest/services/"
              "TxDOT_Roadways/FeatureServer/0")
+
+# TxDOT main roadbeds with mileposts (DFO, miles along the route) stored as M values on
+# every vertex; used to place freeway crashes at the milepost on their crash report.
+TXDOT_DFO_WHERE = "RTE_PRFX IN ('IH','US','SH','SL') AND RDBD_TYPE IN ('Single Roadbed','Right Roadbed','Left Roadbed')"
+
+
+def fetch_txdot_dfo():
+    """{(prefix, number): [(xs, ys, ms), ...]} in EPSG:2278, Single/Right roadbeds first."""
+    cache = cfg.external("txdot_routes_dfo.json")
+    if not cache.exists():
+        bb = cfg.bbox_4326()
+        r = requests.get(TXDOT_URL + "/query", params={
+            "where": TXDOT_DFO_WHERE, "geometry": f"{bb[0]},{bb[1]},{bb[2]},{bb[3]}",
+            "geometryType": "esriGeometryEnvelope", "inSR": 4326, "outSR": 2278, "returnM": "true",
+            "outFields": "RTE_PRFX,RTE_NBR,RDBD_TYPE", "resultRecordCount": 2000, "f": "json"}, timeout=300)
+        cache.write_text(r.text)
+    feats = json.loads(cache.read_text()).get("features", [])
+    routes = {}
+    order = {"Single Roadbed": 0, "Right Roadbed": 1, "Left Roadbed": 2}
+    for f in sorted(feats, key=lambda f: order.get(f["attributes"]["RDBD_TYPE"], 3)):
+        a = f["attributes"]
+        key = (a["RTE_PRFX"], int(a["RTE_NBR"]) if str(a["RTE_NBR"]).isdigit() else a["RTE_NBR"])
+        for path in f["geometry"]["paths"]:
+            if len(path[0]) < 3:
+                continue
+            routes.setdefault(key, []).append(tuple(map(list, zip(*path))))
+    return routes
+
+
+def dfo_point(routes, key, dfo):
+    """The (x, y) at milepost dfo on route key, or None."""
+    for xs, ys, ms in routes.get(key, []):
+        lo, hi = min(ms[0], ms[-1]), max(ms[0], ms[-1])
+        if not (lo <= dfo <= hi):
+            continue
+        for i in range(len(ms) - 1):
+            m0, m1 = ms[i], ms[i + 1]
+            if (m0 <= dfo <= m1) or (m1 <= dfo <= m0):
+                t = 0 if m1 == m0 else (dfo - m0) / (m1 - m0)
+                return xs[i] + t * (xs[i + 1] - xs[i]), ys[i] + t * (ys[i + 1] - ys[i])
+    return None
+
 
 def fetch_txdot_onsys(crs):
     cache = cfg.external("txdot_onsys.gpkg")
@@ -348,7 +390,7 @@ print(f"Wrote boundary -> {bpath}")
 # lights, 5 dark with lighting not recorded), 22 contributing-factor bit flags,
 # 23 people killed or seriously injured as comma-joined codes or null (64*travel + 32*killed + 4*age group + sex; see build_crashes.py).
 def crash_rows(cr, freeway=False):
-    """Tag crash points and build dashboard rows (24 fields; freeway rows add road_type)."""
+    """Tag crash points and build dashboard rows (25 fields; field 24 is the road type)."""
     cr = cr.to_crs(seg.crs)
     cr = cr[cr.within(_bnd)].copy()   # clip crashes to the full-purpose boundary (drops limited-purpose slivers)
     # Per-crash person counts by injury severity live in the raw CRIS crash files (the processed
@@ -440,7 +482,7 @@ def crash_rows(cr, freeway=False):
     for g, sv, ft, pd_, bk, yr, dt, hr, yl, dist, it, oh, otx, sid, snv, nk, na, nb, nc, nn, rt, lt, fc, kp in zip(
             cr.geometry, cr.severe, cr.fatal, cr.involves_ped, cr.involves_bike,
             cr.year, cr.date, cr.hour, cr.yll, cr.district, cr.inc_tier, cr.on_hin, cr.on_txdot, cr.seg_id, cr.sn,
-            cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj, cr.road_type if freeway else [None] * len(cr),
+            cr.n_k, cr.n_a, cr.n_b, cr.n_c, cr.n_noinj, cr.road_type if freeway else (cr["road_part"].eq(2).map({True: 3, False: 0}) if "road_part" in cr.columns else [0] * len(cr)),
             cr.light, cr.factors, cr.ksi_people):
         if g is None or g.is_empty:
             continue
@@ -456,7 +498,7 @@ def crash_rows(cr, freeway=False):
                     sid if isinstance(sid, str) else None,
                     int(snv) if pd.notna(snv) else None,
                     int(nk), int(na), int(nb), int(nc), int(nn),
-                    int(lt), int(fc), kp if isinstance(kp, str) and kp else None] + ([int(rt)] if freeway else []))
+                    int(lt), int(fc), kp if isinstance(kp, str) and kp else None] + [int(rt)])   # 24 road type: 0 street, 3 frontage road, 1 freeway, 2 toll road
     return pts
 
 
@@ -512,6 +554,53 @@ if _fpath.exists():
         left = fwc[fwc["seg_id"].isna()]                           # 3. nearest of any kind
         hit = _nearest(left, sec)
         fwc.loc[hit.index, "seg_id"] = hit.values
+        # milepost placement: the point at the crash report's DFO on its highway (CRIS Hwy_Sys,
+        # Hwy_Nbr, Dfo), then of that highway's main-lane sections within 300 ft of that point,
+        # the one nearest the crash's own coordinates (the right direction). Kept only when the
+        # milepost point and the coordinates agree within a quarter mile; otherwise the
+        # coordinate-based assignment above stands.
+        try:
+            routes = fetch_txdot_dfo()
+            _rc = ["Crash_ID", "Hwy_Sys", "Hwy_Nbr", "Dfo"]
+            _rw = pd.concat([pd.read_csv(f, usecols=lambda c: c in _rc, dtype=str, low_memory=False)
+                             for f in glob.glob(str(cfg.CRIS / "Houston_Crash_*" / "*crash_*.csv"))],
+                            ignore_index=True).drop_duplicates("Crash_ID")
+            _rw["Crash_ID"] = pd.to_numeric(_rw["Crash_ID"], errors="coerce")
+            _rw = _rw.set_index("Crash_ID")
+            main_sec = sec[sec["kind"].eq("main")]
+            sidx = main_sec.sindex
+            n_try = n_dfo = n_far = n_moved = 0
+            for i in fwc.index[fwc["_kind"].eq("main")]:
+                cid = fwc.at[i, "Crash_ID"]
+                if cid not in _rw.index:
+                    continue
+                row = _rw.loc[cid]
+                try:
+                    sys_, nbr_, dfo_ = str(row["Hwy_Sys"]), int(row["Hwy_Nbr"]), float(row["Dfo"])
+                except (TypeError, ValueError):
+                    continue
+                n_try += 1
+                pt = dfo_point(routes, (sys_, nbr_), dfo_)
+                if pt is None:
+                    continue
+                P, C = Point(pt), fwc.at[i, "geometry"]
+                if P.distance(C) > 1320:
+                    n_far += 1
+                    continue
+                hits = main_sec.iloc[list(sidx.query(P.buffer(300)))]
+                hits = hits[hits["_nums"].apply(lambda xs: str(nbr_) in xs)]
+                if hits.empty:
+                    continue
+                best = hits.geometry.distance(C).idxmin()
+                sid = hits.at[best, "seg_id"]
+                n_dfo += 1
+                if fwc.at[i, "seg_id"] != sid:
+                    n_moved += 1
+                fwc.at[i, "seg_id"] = sid
+            print(f"Milepost placement: {n_try:,} main-lane crashes with a milepost; placed by milepost {n_dfo:,}; "
+                  f"milepost and coordinates over 1/4 mi apart (kept coordinates) {n_far:,}; section changed {n_moved:,}")
+        except Exception as ex:   # no network / no CRIS files: the coordinate-based placement stands
+            print(f"WARNING: milepost placement skipped ({type(ex).__name__}: {ex})")
         _fw["seg_id"] = fwc["seg_id"].values
         _secnums = dict(zip(sec["seg_id"], sec["_nums"]))
         print(f"Freeway crashes assigned to a section or ramp: {int(_fw['seg_id'].notna().sum()):,} of {len(_fw):,} "
@@ -544,7 +633,7 @@ if _fpath.exists():
         for c_ in ("lanes_final", "roadway_width_ft", "posted_speed_mph", "sidewalk_presence", "adt"):
             sec[c_] = None
         sec["geometry"] = sec.geometry.simplify(25, preserve_topology=False)
-        fs = sec.to_crs(4326)[WEB_KEEP + ["geometry"]]
+        fs = sec.to_crs(4326)[WEB_KEEP + ["label", "geometry"]]
         fsp = DOCS / "freeway_sections.geojson"
         if fsp.exists():
             fsp.unlink()

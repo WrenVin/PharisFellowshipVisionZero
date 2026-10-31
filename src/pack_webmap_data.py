@@ -71,7 +71,7 @@ def pack_crashes(rows):
     people = sorted({r[23] for r in rows if r[23] is not None})
     pi = {v: i for i, v in enumerate(people)}
     c["ppl"] = [-1 if r[23] is None else pi[r[23]] for r in rows]
-    if rows and len(rows[0]) > 24:          # freeway rows carry road_type as field 24
+    if rows and len(rows[0]) > 24:          # road type, field 24 (0 street, 3 frontage, 1 freeway, 2 toll)
         c["road"] = [r[24] for r in rows]
     return {"format": "vz-crashes", "version": 2, "day0": D0.isoformat(),
             "flagFields": list(FLAG_FIELDS), "districts": dists, "people": people,

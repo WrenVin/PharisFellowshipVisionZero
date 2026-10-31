@@ -585,16 +585,17 @@
           <label title="City-owned only"><input type="radio" name="owner" value="city"> City</label>
           <label title="TxDOT (state) only"><input type="radio" name="owner" value="txdot"> TxDOT</label>
         </span>
-        <div class="tip">Road ownership comes from TxDOT's roadway inventory. The City needs TxDOT's approval to change a state-owned road. Toll roads appear only under All, and only when Freeways is set to Included.</div>
+        <div class="tip">Road ownership comes from TxDOT's roadway inventory. The City needs TxDOT's approval to change a state-owned road. Toll roads appear only under All, and only when freeways are included.</div>
       </div>
       <div class="grp">
-        <h3>Freeways <button class="info" onclick="toggleTip(this)" aria-label="About including freeways">i</button></h3>
-        <span class="seg">
-          <label title="City streets only"><input type="radio" name="fwy" value="0" checked> Excluded</label>
-          <label title="Add crashes on freeway and toll-road main lanes and ramps"><input type="radio" name="fwy" value="1"> Included</label>
-        </span>
+        <h3><label for="roadsel">Roads included</label> <button class="info" onclick="toggleTip(this)" aria-label="About which roads are included">i</button></h3>
+        <select id="roadsel">
+          <option value="streets">Streets only</option>
+          <option value="frontage" selected>Streets and frontage roads</option>
+          <option value="freeways">Streets, frontage roads and freeways</option>
+        </select>
         <div class="note" id="fwy-note" aria-live="polite"></div>
-        <div class="tip">Adds crashes on freeway and toll-road main lanes and ramps, about 28% of traffic deaths in Houston. On the map they are shaded sections between ramps, one per direction, on the same scale as streets; click one for its numbers. They are not ranked with streets. Frontage roads are always included, with the other streets. The street rankings and the share of street miles figure still count city streets only.</div>
+        <div class="tip"><b>Streets only</b>: city streets, including state-owned arterials. <b>Frontage roads</b> (included by default) run alongside freeways and have driveways, bus stops and people walking. <b>Freeways</b> adds freeway and toll-road main lanes and ramps, about 28% of traffic deaths: on the map, freeways are shaded sections between ramps, one per direction, and each interchange's ramps count together. Every number, chart and table follows this choice.</div>
       </div>
       </details>
       <details class="secd" data-sec="map">
@@ -646,6 +647,12 @@
       <div class="tblwrap"><table class="wtbl" id="worst-tbl"></table></div>
       <div class="wfoot"><div class="pager"><button type="button" class="morebtn" id="worst-prev">Previous 5</button><span id="worst-range"></span><button type="button" class="morebtn" id="worst-next">Next 5</button></div><span id="roadfacts"></span></div>
       <div class="tip">Streets ranked by the number of people killed or seriously injured in the current view. Click a street to select it on the map. Per mile divides by the street's length in the current area. The High Injury Network column shows how much of the street is on the City's 2022 network.</div>
+    </div>
+    <div class="card wide" data-card="fwy" id="fwy-card" hidden>
+      <h3>Most dangerous freeway sections <button class="info" onclick="toggleTip(this)" aria-label="About the freeway ranking">i</button></h3>
+      <div class="sub" id="fwy-sub"></div>
+      <div class="tblwrap"><table class="wtbl" id="fwy-tbl"></table></div>
+      <div class="tip">Main lanes are ranked one section at a time (one direction, between ramps); ramps are ranked together by interchange or exit. Click a row to select it on the map. Per mile divides by the length of the section or ramps.</div>
     </div>
     <div class="card span2" data-card="trend">
       <h3><span id="trend-title">Killed or seriously injured, by year</span></h3>
@@ -743,8 +750,8 @@
       </section>
       <section>
         <h3>Which roads</h3>
-        <p>By default the dashboard <span class="lbl">leaves out freeway and tollway main lanes and ramps</span>. <span class="lbl">Frontage roads are included</span> as TxDOT-owned streets: they have driveways, bus stops and people walking, and crashes police record on a frontage road are counted there. It <span class="lbl">keeps major streets whoever owns them</span>, including state roads such as S Main (US-90A), SH 6 and Westheimer (FM 1093). Austin's Vision Zero dashboard and the City's High Injury Network do the same.</p>
-        <p>Set <span class="lbl">Freeways</span> to Included to add crashes on freeway and toll-road main lanes and ramps. They are added to every total and chart. On the map each freeway is split into sections between ramps, one per direction, and each ramp is its own piece; a crash is placed on the section of its own highway (from the crash report) within 250 ft, else the nearest one. Toll roads are run by the county toll authority, so they count only under Road owner: All. Crashes in parking lots and on private property are never included.</p>
+        <p><span class="lbl">Roads included</span> sets which roads every number covers: Streets (city streets, including state-owned arterials), +Frontage (adds freeway frontage roads; the default), or +Freeways (adds freeway and toll-road main lanes and ramps). Frontage roads are TxDOT-owned streets with driveways, bus stops and people walking; crashes police record on a frontage road are counted there. It <span class="lbl">keeps major streets whoever owns them</span>, including state roads such as S Main (US-90A), SH 6 and Westheimer (FM 1093). Austin's Vision Zero dashboard and the City's High Injury Network do the same.</p>
+        <p>With <span class="lbl">+Freeways</span>, crashes on freeway and toll-road main lanes and ramps are added. They are added to every total and chart. On the map each freeway is split into sections between ramps, one per direction, and each ramp is its own piece; a crash is placed at the milepost on its crash report (TxDOT DFO on its highway) and on the section going its direction; without a milepost, on the section of its own highway within 250 ft, else the nearest one. Ramps between two freeways count together as one interchange; other ramps count together by exit. Toll roads are run by the county toll authority, so they count only under Road owner: All. Crashes in parking lots and on private property are never included.</p>
       </section>
       <section>
         <h3>Road ownership</h3>
@@ -865,7 +872,7 @@
           <label class="rc-field"><span>Lighting</span><select id="rc-light"></select></label>
           <label class="rc-field"><span>Contributing factor</span><select id="rc-fac"></select></label>
           <label class="rc-field"><span>Road owner</span><select id="rc-owner"><option value="all">All roads</option><option value="city">City-owned</option><option value="txdot">TxDOT-owned</option></select></label>
-          <label class="rc-field"><span>Freeways</span><select id="rc-fwy"><option value="0">Not included</option><option value="1">Included</option></select></label>
+          <label class="rc-field"><span>Roads included</span><select id="rc-fwy"><option value="streets">Streets only</option><option value="frontage">Streets and frontage roads</option><option value="freeways">Streets, frontage roads and freeways</option></select></label>
         </div>
       </section>
 
@@ -1002,11 +1009,12 @@ const ownerOk=otx=>owner==='all' || (owner==='city' && !otx) || (owner==='txdot'
 const ownerOkP=p=> p[RT]===2 ? owner==='all' : ownerOk(p[13]);
 // is a street segment / freeway section in view? Freeway sections show only with the Freeways
 // toggle on; toll-road sections, like toll crashes, only under Road owner: All.
-const segOk=p=> inAreaProp(p) && (!p._fwy || fwyOn) && (p.road_class==='Toll road' ? owner==='all' : ownerOk(p.on_txdot));
-const segIdOk=sg=> inAreaSeg(sg) && (!seg2fwy[sg] || fwyOn) && (seg2toll[sg] ? owner==='all' : ownerOk(seg2tx[sg]));
-let seg2fwy={}, seg2toll={};
+const segOk=p=> inAreaProp(p) && (!p._fwy || fwyOn) && (frontOn || p.road_class!=='Frontage road') && (p.road_class==='Toll road' ? owner==='all' : ownerOk(p.on_txdot));
+const segIdOk=sg=> inAreaSeg(sg) && (!seg2fwy[sg] || fwyOn) && (frontOn || !seg2front[sg]) && (seg2toll[sg] ? owner==='all' : ownerOk(seg2tx[sg]));
+let seg2fwy={}, seg2toll={}, seg2front={};
 // freeway toggle: cityPts are the default crashes; fwyPts load on first use and are appended to pts
 let fwyOn=false, cityPts=[], fwyPts=null, wantFwy=false;
+let roads='frontage', frontOn=true, streetPts=null, wantRoads=null;   // roads: 'streets' | 'frontage' (default) | 'freeways'
 const SEG=14;   // crash-point field index: nearest segment id (for the click-to-filter)
 const LT=21, FAC=22, PPL=23, RT=24;   // lighting code, contributing-factor bits, people codes, freeway road_type
 
@@ -1210,7 +1218,7 @@ function tally(){   // people killed / seriously injured by travel mode (age and
 // hinKsi = share held by the worst 6% of street miles (the City's HIN size).
 function concentration(){
   const rows=[]; let totK=0, totM=0;
-  geo.eachLayer(l=>{const p=l.feature.properties; if(!segOk(p) || p._fwy) return;   // streets only
+  geo.eachLayer(l=>{const p=l.feature.properties; if(!segOk(p)) return;   // the roads in view
     const k=activeCounts[p.seg_id]||0, m=(p.length_ft||0)/5280; if(m>0){ rows.push([k,m]); totK+=k; totM+=m; }});
   if(totK<=0 || totM<=0) return {totK:0, pctForHalf:null, hinKsi:0};
   rows.sort((a,b)=> (b[0]/b[1]) - (a[0]/a[1]));   // most per mile first
@@ -1285,6 +1293,8 @@ function registerSegs(features, fwy){
   for(const f of features){ const p=f.properties; if(fwy) p._fwy=true;
     seg2mid[p.seg_id]=_lineMid(f.geometry); seg2dist[p.seg_id]=p.district; seg2tx[p.seg_id]=!!p.on_txdot; seg2sn[p.seg_id]=(p.sn==null?null:+p.sn);
     if(fwy){ seg2fwy[p.seg_id]=true; if(p.road_class==='Toll road') seg2toll[p.seg_id]=true; }
+    if(p.road_class==='Frontage road') seg2front[p.seg_id]=true;
+    if(seg2name && p.name && p.name.trim()) seg2name[p.seg_id]=p.name;
     // corridor key: a whole street, split where ownership changes (Westheimer city vs TxDOT).
     // unnamed segments are their own corridor (no name to group on).
     seg2corr[p.seg_id]=(p.name && p.name.trim()) ? p.name+'|'+(p.on_txdot?1:0) : '\u0000'+p.seg_id; }
@@ -1296,24 +1306,32 @@ function loadFwy(){
   if(!_fwyLoad) _fwyLoad=Promise.all([
       fetch('freeway_crashes.packed.json',{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }),
       fetch('freeway_sections.packed.json',{cache:'no-cache'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })])
-    .then(([pk,sk])=>{ const fc=unpackSegments(sk); registerSegs(fc.features, true); geo.addData(fc); fwyPts=unpackCrashes(pk); })
+    .then(([pk,sk])=>{ const fc=unpackSegments(sk); registerSegs(fc.features, true); geo.addData(fc); fwyPts=unpackCrashes(pk); buildStreetIndex(); })
     .catch(e=>{ _fwyLoad=null; throw e; });
   return _fwyLoad;
 }
-function setFwy(on){
-  const radios=[...document.querySelectorAll('input[name=fwy]')], note=document.getElementById('fwy-note');
-  const show=v=>radios.forEach(r=>{ r.checked=(r.value===(v?'1':'0')); });
-  if(on && !fwyPts){
-    radios.forEach(r=>r.disabled=true); show(true); note.textContent='Loading freeway crashes…';
-    loadFwy().then(()=>{ radios.forEach(r=>r.disabled=false); note.textContent=''; setFwy(true); })
-      .catch(()=>{ radios.forEach(r=>r.disabled=false); show(false); note.textContent='Could not load freeway crashes. Try again.'; });
+// which crashes are in play: streets only, + frontage roads, + freeways (freeway file)
+function applyRoads(v){
+  roads = ['streets','frontage','freeways'].includes(v) ? v : 'frontage';
+  if(roads==='freeways' && !fwyPts) roads='frontage';
+  frontOn = roads!=='streets'; fwyOn = roads==='freeways';
+  if(!streetPts) streetPts=cityPts.filter(p=>p[RT]!==3);
+  pts = (frontOn ? cityPts : streetPts);
+  if(fwyOn) pts = pts.concat(fwyPts);
+  const rs=document.getElementById('roadsel'); if(rs) rs.value=roads;
+  rebuildDow();
+}
+function setRoads(v){
+  const radios=[document.getElementById('roadsel')], note=document.getElementById('fwy-note');
+  if(v==='freeways' && !fwyPts){   // freeway crashes and sections load on first use
+    radios.forEach(r=>r.disabled=true); note.textContent='Loading freeways…';
+    loadFwy().then(()=>{ radios.forEach(r=>r.disabled=false); note.textContent=''; setRoads('freeways'); })
+      .catch(()=>{ radios.forEach(r=>r.disabled=false); applyRoads(roads); note.textContent='Could not load freeways. Try again.'; });
     return;
   }
-  fwyOn=!!on && !!fwyPts; show(fwyOn);
-  pts = fwyOn ? cityPts.concat(fwyPts) : cityPts;
-  rebuildDow();
-  render();
+  applyRoads(v); render();
 }
+function setFwy(on){ setRoads(on ? 'freeways' : 'frontage'); }   // older callers
 
 Promise.all([
   fetch('vz_summary.json',{cache:'no-cache'}).then(r=>r.json()),
@@ -1325,7 +1343,7 @@ Promise.all([
   fetch('superneighborhoods.geojson',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null)  // optional (city build only)
 ]).then(([summary,bnd,seg,hin,points,dists,sns])=>{
   vz=summary; cityPts=points; pts=points;
-  rebuildDow();
+  applyRoads('frontage');
   if(yrLo===null){ yrLo=vz.years[0]; yrHi=vz.years[vz.years.length-1]; }   // full span by default (overridden by applyURL)
   { const y=vz.years, lo=y[0], hi=y[y.length-2], last=y[y.length-1];  // "as of" line (set once)
     const span=lo+'–'+hi+(last>hi?' plus partial '+last:'');
@@ -1377,7 +1395,7 @@ Promise.all([
   render();
   // shared link with freeways on: load them after the first render, then any selection
   // (a freeway section only exists once its file has loaded)
-  if(wantFwy) loadFwy().then(()=>{ setFwy(true); if(deferredSel) deferredSel(); }).catch(()=>{ if(deferredSel) deferredSel(); });
+  if(wantFwy) loadFwy().then(()=>{ setRoads('freeways'); if(deferredSel) deferredSel(); }).catch(()=>{ if(deferredSel) deferredSel(); });
   else if(deferredSel) deferredSel();   // selectStreet/selectSeg need streetIndex + geo, and call render() themselves
   if(wantArea) selectPoly(wantArea[0], wantArea[1]);   // shared link to a polygon area (TIRZ, ZIP, tract, ...)
 }).catch(err=>{   // a data file failed to load: show a message instead of hanging on the spinner forever
@@ -1390,8 +1408,8 @@ Promise.all([
 
 // --- find a street ------------------------------------------------------------
 let streetIndex={};   // lowercased name -> array of layers
-function buildStreetIndex(){
-  const names=new Set();
+function buildStreetIndex(){   // rebuilt when freeway sections load, so it starts fresh
+  streetIndex={}; const names=new Set();
   geo.eachLayer(l=>{ const n=l.feature.properties.name; if(!n) return;
     names.add(n); (streetIndex[n.toLowerCase()]=streetIndex[n.toLowerCase()]||[]).push(l); });
   const dl=document.getElementById('streetnames');
@@ -1523,7 +1541,7 @@ function syncURL(){
   if(sn!=null) q.push('sn='+sn);   // mutually exclusive with district; only one is ever set
   if(poly) q.push('area='+poly.type+':'+encodeURIComponent(poly.id));
   if(owner!=='all') q.push('owner='+owner);
-  if(fwyOn) q.push('fwy=1');
+  if(roads!=='frontage') q.push('roads='+roads);
   if(view!=='streets') q.push('view='+view);
   if(selSeg!=null && selSeg.seg_id!=null) q.push('seg='+encodeURIComponent(selSeg.seg_id));
   else if(selStreet!=null){
@@ -1547,7 +1565,8 @@ function applyURL(){
   const setRadio=(name,val)=>{ const el=document.querySelector('input[name='+name+'][value="'+val+'"]'); if(el) el.checked=true; };
   const sv=p.get('sev'); if(sv==='all'||sv==='ksi'){ sev=sv; setRadio('sev',sv); }
   const vw=p.get('view'); if(['corridor','streets','points'].includes(vw)){ view=vw; setRadio('view',vw); }
-  wantFwy = p.get('fwy')==='1';
+  { const rd=p.get('roads'); wantFwy = rd==='freeways' || p.get('fwy')==='1';   // fwy=1: older links
+    if(rd==='streets') applyRoads('streets'); }
   { const ar=p.get('area'); if(ar && ar.includes(':')){ const i=ar.indexOf(':'), t=ar.slice(0,i); if(POLY_TYPES[t]) wantArea=[t, ar.slice(i+1)]; } }
   const ow=p.get('owner'); if(['all','city','txdot'].includes(ow)){ owner=ow; setRadio('owner',ow); }
   // facet selections: "y/mo/hr/dw" are dot-separated lists; legacy "yr"/"dow" ranges (a-b) still parse
@@ -1618,7 +1637,7 @@ function render(){
 // browser can paint (and the numbers can count up) between them instead of freezing
 // for the whole update. A newer render cancels a half-finished pass; flushPanels()
 // finishes any pending pass at once (the printed report needs every panel current).
-const PANELS=[drawWorstStreets, drawTrend, drawMode, drawWhen, drawFactors, drawPeople, drawLight, drawEquity];
+const PANELS=[drawFreeways, drawWorstStreets, drawTrend, drawMode, drawWhen, drawFactors, drawPeople, drawLight, drawEquity];
 let _panelGen=0, _panelsDirty=false;
 function schedulePanels(){
   const gen=++_panelGen; _panelsDirty=true; let i=0;
@@ -1643,7 +1662,7 @@ const _fbClear={
   dates:()=>{ selY.clear(); selM.clear(); ymLo=ymHi=null; render(); }, dow:()=>{ selD.clear(); render(); }, hour:()=>{ selH.clear(); render(); },
   mode:()=>setMode('all'), age:()=>pickAge(ageSel), sex:()=>pickSex(sexSel), light:()=>{ lightSel=0; render(); }, fac:()=>pickFac(facSel),
   owner:()=>{ owner='all'; const r=document.querySelector('input[name=owner][value=all]'); if(r) r.checked=true; render(); },
-  fwy:()=>setFwy(false), sev:()=>{ sev='ksi'; const r=document.querySelector('input[name=sev][value=ksi]'); if(r) r.checked=true; render(); }
+  roads:()=>setRoads('frontage'), sev:()=>{ sev='ksi'; const r=document.querySelector('input[name=sev][value=ksi]'); if(r) r.checked=true; render(); }
 };
 function drawFilterBar(){
   const el=document.getElementById('fb-chips'); if(!el) return;
@@ -1662,7 +1681,7 @@ function drawFilterBar(){
   if(lightSel) chip(lightName(lightSel),'light');
   if(facSel) chip(FACTORS.find(f=>f[0]===facSel)[1],'fac');
   if(owner!=='all') chip(owner==='city'?'City-owned roads':'TxDOT-owned roads','owner');
-  if(fwyOn) chip('Freeways included','fwy');
+  if(roads!=='frontage') chip(roads==='streets'?'Streets only, no frontage roads':'Freeways included','roads');
   const any=chips.some(c=>c.indexOf('chip on')>=0);
   el.innerHTML=chips.join('')+(any?'<button type="button" class="fb-clear" id="fb-clear">Reset all</button>':'');
 }
@@ -1811,7 +1830,7 @@ function resetAll(){
   setR('sev','ksi'); setR('view','streets'); setR('owner','all');
   const hin=document.getElementById('hin'); if(hin && hin.checked){ hin.checked=false; if(map.hasLayer(hinLayer)) map.removeLayer(hinLayer); }
   ['schools','parks'].forEach(k=>{ const b=document.getElementById(k), L_=k==='schools'?schoolsLayer:parksLayer; if(b) b.checked=false; if(L_ && map.hasLayer(L_)) map.removeLayer(L_); });
-  if(fwyOn){ fwyOn=false; setR('fwy','0'); pts=cityPts; rebuildDow(); }
+  applyRoads('frontage');
   const ds=document.getElementById('district'); if(ds) ds.value='';
   _clearSN(); _clearPoly();   // also clear any super-neighborhood / polygon area
   document.getElementById('search').value=''; document.getElementById('searchnote').textContent='';
@@ -1823,7 +1842,7 @@ function updateResetBtn(){
   const hinOn=!!(document.getElementById('hin')||{}).checked || !!(document.getElementById('schools')||{}).checked || !!(document.getElementById('parks')||{}).checked;
   const def = mode==='all' && sev==='ksi' && view==='streets' && owner==='all'
     && !yrNarrow() && month===null && !hrNarrow() && !dowNarrow() && !lightSel && !ageSel && !sexSel && !facSel
-    && district===null && sn===null && !poly && selIds.size===0 && !hinOn && !fwyOn;
+    && district===null && sn===null && !poly && selIds.size===0 && !hinOn && roads==='frontage';
   rb.style.display = def ? 'none' : '';
 }
 
@@ -1834,7 +1853,7 @@ function drawKPIs(t){
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
   else if(mode==='bike'){killed=t.bike_killed;ksi=t.bike_ksi;}
   else {killed=t.killed-t.ped_killed-t.bike_killed; ksi=t.ksi-t.ped_ksi-t.bike_ksi;}
-  const where = selIds.size>0 ? ('on this '+(selStreet!==null?'street':pieceWord(selSeg))) : (fwyOn ? 'on streets and freeways' : 'on Houston streets');
+  const where = selIds.size>0 ? ('on this '+(selStreet!==null?groupWord(selStreet,_selProps()):pieceWord(selSeg))) : (fwyOn ? 'on streets and freeways' : frontOn ? 'on Houston streets' : 'on streets, no frontage');
   const who=mode==='all'?where:mode==='ped'?'walking':mode==='bike'?'biking':'in vehicles';
   const span = timeSpan(true);
   const yll=Math.round(yllTotal()), serious=ksi-killed;
@@ -1842,7 +1861,7 @@ function drawKPIs(t){
   // 4th KPI: the share on the 10 worst streets (the table below), OR all crashes for a selected street/block
   let kpi4;
   if(selIds.size>0){
-    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?'street':pieceWord(selSeg))+(year===null?'':', '+span), true, null, 'extra', t.crashes);
+    kpi4=kpi(KICON.ksi,'All crashes', fmt(t.crashes), 'on this '+(selStreet!==null?groupWord(selStreet,_selProps()):pieceWord(selSeg))+(year===null?'':', '+span), true, null, 'extra', t.crashes);
   } else {
     const con=concentration(), metric = sev==='all'?'crashes':'deaths and serious injuries';
     const few = con.totK<20;   // a share of street miles means little with only a handful of crashes
@@ -2127,21 +2146,21 @@ function drawEquity(){
 // --- most dangerous streets (table) ---
 let _trendW=null, _worstPage=0, _worstSize=5, _worstSig='', _lenCache={key:null, v:null}, _rankCache={sig:null, rows:null};
 function streetLengths(){   // street name -> {ft, tx, hin} over segments in the current area and owner filter
-  const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner;
+  const key=(district||'')+'|'+(sn||'')+'|'+(poly?poly.key:'')+'|'+owner+'|'+roads;
   if(_lenCache.key===key) return _lenCache.v; const o={};
-  geo.eachLayer(l=>{ const p=l.feature.properties; if(p._fwy||!p.name||!p.name.trim()||!segOk(p)) return;
+  geo.eachLayer(l=>{ const p=l.feature.properties; if(!p.name||!p.name.trim()||!segOk(p)) return;
     const r=o[p.name]||(o[p.name]={ft:0,tx:0,hin:0}), ft=p.length_ft||0; r.ft+=ft; if(p.on_txdot) r.tx+=ft; if(p.on_hin) r.hin+=ft; });
   _lenCache={key, v:o}; return o;
 }
 let seg2name=null;
-const viewSig=()=>[mode,sev,owner,district,sn,poly?poly.key:'',[...selY],[...selM],[...selD],[...selH],ymLo,ymHi,lightSel,ageSel,sexSel,facSel,fwyOn].join('|');
+const viewSig=()=>[mode,sev,owner,district,sn,poly?poly.key:'',[...selY],[...selM],[...selD],[...selH],ymLo,ymHi,lightSel,ageSel,sexSel,facSel,roads].join('|');
 // streets ranked within the current filters (not the street selection); shared by the table and the popups
 function rankStreets(){
   const sig=viewSig(); if(_rankCache.sig===sig) return _rankCache.rows;
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties; if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
   const agg={};
   for(const p of pts){ const sg=p[SEG]; if(sg==null) continue; const nm=seg2name[sg]; if(!nm) continue;
-    if(seg2fwy[sg]||!segIdOk(sg)||!modeOkP(p)||!timeOk(p)) continue;   // streets only: freeways are not ranked with them
+    if(!segIdOk(sg)||!modeOkP(p)||!timeOk(p)) continue;   // follows Roads included (freeways too when on)
     const w=wts(p); if(!w[0]&&!w[1]) continue; const r=agg[nm]||(agg[nm]={f:0,s:0}); r.f+=w[0]; r.s+=w[1]; }
   const L=streetLengths();
   const rows=Object.keys(agg).map(nm=>({nm, f:agg[nm].f, s:agg[nm].s, t:agg[nm].f+agg[nm].s, L:L[nm]})).sort((a,b)=>b.t-a.t||b.f-a.f);
@@ -2153,6 +2172,28 @@ function streetRankNow(name){
   let rank=i+1; while(rank>1 && rows[rank-2].t===rows[i].t) rank--;   // ties share a rank
   return {rank, total:rows.length};
 }
+// freeway sections one at a time, ramps by interchange or exit; shown when freeways are included
+function drawFreeways(){
+  const card=document.getElementById('fwy-card'); if(!card) return;
+  card.hidden=!fwyOn; if(!fwyOn) return;
+  const units={}, props={};
+  geo.eachLayer(l=>{ const p=l.feature.properties; if(p._fwy) props[p.seg_id]=p; });
+  for(const p of pts){ const sg=p[SEG]; if(sg==null || !seg2fwy[sg] || !segIdOk(sg) || !modeOkP(p) || !timeOk(p)) continue;
+    const w=wts(p); if(!w[0]&&!w[1]) continue; const pr=props[sg]; if(!pr) continue;
+    const key = pr.road_class==='Ramp' ? 'g:'+pr.name : 's:'+sg;
+    const u=units[key]||(units[key]={f:0,s:0,pr}); u.f+=w[0]; u.s+=w[1]; }
+  const len={}; for(const sg in props){ const pr=props[sg]; if(!segOk(pr)) continue; const key=pr.road_class==='Ramp'?'g:'+pr.name:'s:'+sg; len[key]=(len[key]||0)+(pr.length_ft||0); }
+  const rows=Object.keys(units).map(k=>({k, ...units[k], t:units[k].f+units[k].s, ft:len[k]||0})).sort((a,b)=>b.t-a.t||b.f-a.f).slice(0,10);
+  const all=sev==='all';
+  document.getElementById('fwy-sub').textContent=(all?'Ranked by crashes':'Ranked by people killed or seriously injured')+' in '+(areaName()||'Houston')+', '+timeSpan(false)+'. Click one to select it.';
+  const head='<thead><tr><th>#</th><th>Freeway section or ramps</th><th>'+(all?'Killed or seriously injured':'Killed')+'</th><th>'+(all?'Other crashes':'Seriously injured')+'</th><th>Total</th><th>Miles</th><th>Per mile</th></tr></thead>';
+  const body=rows.map((r,i)=>{ const mi=r.ft/5280, isGrp=r.k.startsWith('g:'), lab=isGrp?r.pr.name:(r.pr.label||r.pr.name);
+    const click = isGrp ? 'selectStreet('+esc(JSON.stringify(r.pr.name))+',true)' : 'selectSegById('+esc(JSON.stringify(r.pr.seg_id))+')';
+    const on = isGrp ? selStreet===r.pr.name : (selSeg && selSeg.seg_id===r.pr.seg_id);
+    return '<tr'+(on?' class="on"':'')+' tabindex="0" role="button" onclick="'+click+'"><td>'+(i+1)+'</td><td><span class="sname">'+esc(lab)+'</span></td><td>'+fmt(r.f)+'</td><td>'+fmt(r.s)+'</td><td><b>'+fmt(r.t)+'</b></td><td>'+(mi?mi.toFixed(2):'–')+'</td><td>'+(mi>=0.05?(r.t/mi).toFixed(1):'–')+'</td></tr>'; }).join('');
+  document.getElementById('fwy-tbl').innerHTML = rows.length ? head+'<tbody>'+body+'</tbody>' : '<tbody><tr><td style="text-align:left;color:var(--muted)">No freeway crashes in this view.</td></tr></tbody>';
+}
+function selectSegById(id){ let props=null; geo.eachLayer(l=>{ if(l.feature.properties.seg_id===id) props=l.feature.properties; }); if(props){ selectSeg(props); try{ map.fitBounds(L.geoJSON({type:'Feature',geometry:geo.getLayers().find(l=>l.feature.properties.seg_id===id).feature.geometry}).getBounds().pad(0.6)); }catch(e){} } }
 function drawWorstStreets(){
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties; if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
   const rows=rankStreets();
@@ -2397,6 +2438,11 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
 
 // road makeup for ONE clicked block (crash data is cross-filtered into the panels).
 // includes a "View this whole street" action.
+function _selProps(){ const out=[]; if(selIds.size) geo.eachLayer(l=>{ if(selIds.has(l.feature.properties.seg_id)) out.push(l.feature.properties); }); return out.slice(0,1); }
+function groupWord(name, props){
+  const p=props&&props[0]; if(!p||!p._fwy) return 'street';
+  return p.road_class==='Ramp' ? (/interchange/.test(name)?'interchange':'ramps') : 'freeway direction';
+}
 const pieceWord=p=> !p ? 'block' : !p._fwy ? 'block' : (p.road_class==='Ramp' ? 'ramp' : 'section');
 function openInfoSeg(p){
   const I=document.getElementById('info');
@@ -2405,13 +2451,13 @@ function openInfoSeg(p){
   const hasName = !!(p.name && p.name.trim());
   // wired via JS below, not an inline onclick, so a name with quotes/apostrophes can't break it
   const whole = hasName
-    ? '<div class="g" style="padding-top:2px"><a href="#" id="view-whole-street" style="font-size:12.5px">View this whole '+(p._fwy?(p.road_class==='Ramp'?'set of ramps':'direction'):'street')+' →</a></div>'
+    ? '<div class="g" style="padding-top:2px"><a href="#" id="view-whole-street" style="font-size:12.5px">View '+(p._fwy?(p.road_class==='Ramp'?(/interchange/.test(p.name)?'the whole interchange':'all ramps at this exit'):'this whole direction'):'this whole street')+' →</a></div>'
     : '';
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
-    +'<div class="hd"><div class="n">'+(p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
+    +'<div class="hd"><div class="n">'+esc(p.label||p.name||'(unnamed street)')+'</div><div class="c">'+p.road_class
       +', '+(p.on_txdot?'TxDOT (state)':'City of Houston')+'</div></div>'
     +(p._fwy ? ('<div class="g"><h4>This '+pieceWord(p)+'</h4>'+row('Length',(p.length_ft/5280).toFixed(2)+' mi')
-        +row('Kind', p.road_class==='Ramp' ? 'Ramp or connector' : 'Main lanes, one direction, between ramps')+'</div>')
+        +row('Kind', p.road_class==='Ramp' ? (/interchange/.test(p.name) ? 'Connector, part of '+esc(p.name) : 'Ramp, part of '+esc(p.name)) : 'Main lanes, one direction, between ramps')+'</div>')
       : ('<div class="g"><h4>Road makeup of this block</h4>'
       +row('Lanes',(p.lanes_final!=null?p.lanes_final:'n/a'))
       +row('Roadway width',(p.roadway_width_ft!=null?p.roadway_width_ft+' ft':'n/a'))
@@ -2419,7 +2465,7 @@ function openInfoSeg(p){
       +row('Sidewalks',sw)
       +row('Traffic volume',(p.adt!=null?fmt(p.adt)+' veh/day':'n/a'))+'</div>'))
     +(()=>{ const b=p._fwy ? null : streetRankNow(p.name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' streets with '+(sev==='all'?'crashes':'people killed or seriously injured')+' in this view</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' '+(fwyOn?'roads':'streets')+' with '+(sev==='all'?'crashes':'people killed or seriously injured')+' in this view</div>'
       : ''; })()
     +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this '+pieceWord(p)+' is in the panels below.</div>'
     +whole;
@@ -2447,18 +2493,18 @@ function openInfoStreet(name, props){
   const row=(k,v)=>'<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
   const title=name.startsWith('__seg__')?'(unnamed street)':name;
   I.innerHTML='<button class="x" onclick="clearSel()">×</button>'
-    +'<div class="hd"><div class="n">'+title+'</div><div class="c">'+cls+', '+owner
-      +', '+nBlocks+' block'+(nBlocks>1?'s':'')+', '+miles.toFixed(2)+' mi</div></div>'
-    +'<div class="g"><h4>Road makeup</h4>'
+    +'<div class="hd"><div class="n">'+esc(title)+'</div><div class="c">'+cls+', '+owner
+      +', '+nBlocks+' '+(props[0]&&props[0]._fwy?(cls==='Ramp'?'ramp piece':'section'):'block')+(nBlocks>1?'s':'')+', '+miles.toFixed(2)+' mi</div></div>'
+    +(props[0]&&props[0]._fwy ? '' : ('<div class="g"><h4>Road makeup</h4>'
       +row('Lanes',range('lanes_final'))
       +row('Roadway width',range('roadway_width_ft',' ft'))
       +row('Posted speed',range('posted_speed_mph',' mph'))
       +row('Sidewalks',sw)
-      +row('Traffic volume',range('adt',' veh/day'))+'</div>'
+      +row('Traffic volume',range('adt',' veh/day'))+'</div>'))
     +(()=>{ const b=streetRankNow(name); return b
-      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' streets with '+(sev==='all'?'crashes':'people killed or seriously injured')+' in this view</div>'
+      ? '<div class="g" style="padding-top:0;font-size:12px"><b>#'+fmt(b.rank)+'</b> of '+fmt(b.total)+' '+(fwyOn?'roads':'streets')+' with '+(sev==='all'?'crashes':'people killed or seriously injured')+' in this view</div>'
       : ''; })()
-    +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this street is in the panels below.</div>';
+    +'<div class="g" style="padding-top:0;font-size:11.5px;color:var(--muted)">Crash data for this '+groupWord(name,props)+' is in the panels below.</div>';
   const wasHidden=I.style.display!=='block'; I.style.display='block'; if(wasHidden) reveal(I);
 }
 
@@ -2479,7 +2525,7 @@ document.getElementById('hin').onchange=e=>{
   if(e.target.checked){ refreshHinClip(); hinLayer.addTo(map); } else if(map.hasLayer(hinLayer)){ map.removeLayer(hinLayer); }
   drawLegend(); updateResetBtn();   // HIN is part of the view, so it counts toward "off-default"
 };
-document.querySelectorAll('input[name=fwy]').forEach(r=>r.onchange=()=>setFwy(document.querySelector('input[name=fwy]:checked').value==='1'));
+document.getElementById('roadsel').onchange=e=>setRoads(e.target.value);
 // ---- Schools / Parks overlays (loaded on first use) ---------------------------
 // Schools draw on the shared canvas renderer (so the printable report captures
 // them); parks fill in their own pane beneath the street shading.
@@ -2564,7 +2610,7 @@ function syncWhoWhenUI(){
   const hinOn=['hin','schools','parks'].some(k=>(document.getElementById(k)||{}).checked);
   const act={where:(district!==null||sn!==null||!!poly)+(selStreet!==null||selSeg!==null), who:(mode!=='all')+!!ageSel+!!sexSel,
     when:(selY.size>0||mrActive())+(selM.size>0)+(selD.size>0)+(selH.size>0), circumstances:!!lightSel+!!facSel,
-    roads:(owner!=='all')+fwyOn, map:(sev!=='ksi')+(view!=='streets')+hinOn};
+    roads:(owner!=='all')+(roads!=='frontage'), map:(sev!=='ksi')+(view!=='streets')+hinOn};
   for(const k in act){ const n=+act[k], el=document.getElementById('secn-'+k); if(!el) continue;
     el.textContent=n?n+' on':''; const d=el.closest('details'); if(n>(_secPrev[k]||0) && d && !d.open) d.open=true; _secPrev[k]=n; }
   const sx=document.querySelector('input[name=sexf][value="'+sexSel+'"]'); if(sx) sx.checked=true;
@@ -2637,7 +2683,7 @@ function viewDesc(){
   if(hrNarrow()){ const o=HOUR_BANDS.find(x=>_sameSet(selH,x[2])); extras.push(o?o[1]:facetLabel('hour')); }
   if(dowNarrow()){ const o=DOW_OPTS.find(x=>_sameSet(selD,x[2])); extras.push(o?o[1]:facetLabel('dow')); }
   if(owner!=='all') extras.push(owner==='city'?'City-owned roads':'TxDOT-owned roads');
-  if(fwyOn) extras.push('Freeways included');
+  if(roads==='streets') extras.push('Streets only'); if(fwyOn) extras.push('Freeways included');
   if(lightSel) extras.push(lightName(lightSel));
   if(facSel) extras.push(FACTORS.find(f=>f[0]===facSel)[1]);
   if(ageSel) extras.push('Age '+AGE_LAB[ageSel].toLowerCase());
@@ -2773,7 +2819,7 @@ function openReportModal(){
   _opts(_rcEl('rc-dow'), DOW_OPTS); _opts(_rcEl('rc-hr'), HOUR_BANDS);
   _syncSel(_rcEl('rc-dow'), DOW_OPTS, selD); _syncSel(_rcEl('rc-hr'), HOUR_BANDS, selH);
   _rcEl('rc-sev').value=sev; _rcEl('rc-mode').value=mode; _rcEl('rc-age').value=ageSel; _rcEl('rc-sex').value=sexSel;
-  _rcEl('rc-light').value=lightSel; _rcEl('rc-fac').value=facSel; _rcEl('rc-owner').value=owner; _rcEl('rc-fwy').value=fwyOn?1:0;
+  _rcEl('rc-light').value=lightSel; _rcEl('rc-fac').value=facSel; _rcEl('rc-owner').value=owner; _rcEl('rc-fwy').value=roads;
   { const nm = selStreet!==null ? (selStreet.startsWith('__seg__')?'the selected block':selStreet) : selSeg!==null ? (selSeg.name||'the selected block')+' (one block)' : null;
     _rcEl('rc-street-wrap').hidden=!nm; _rcEl('rc-street').checked=!!nm; if(nm) _rcEl('rc-street-lbl').textContent='Only '+nm+' (selected on the map)'; }
   _rcEl('rc-areatype').value = activeAreaType();
@@ -2816,9 +2862,9 @@ async function _rcGenerate(){
   { const o=DOW_OPTS.find(x=>x[0]===_rcEl('rc-dow').value); if(o){ selD.clear(); o[2].forEach(v=>selD.add(v)); } }   // Custom keeps the current days
   { const o=HOUR_BANDS.find(x=>x[0]===_rcEl('rc-hr').value); if(o){ selH.clear(); o[2].forEach(v=>selH.add(v)); } }
   if(!_rcEl('rc-street').checked){ selStreet=null; selSeg=null; selIds=new Set(); }
-  { const want=_rcEl('rc-fwy').value==='1';   // freeway crashes load on first use
-    if(want && !fwyPts){ try{ await loadFwy(); }catch(e){} }
-    fwyOn=want && !!fwyPts; radio('fwy',fwyOn?'1':'0'); pts=fwyOn?cityPts.concat(fwyPts):cityPts; rebuildDow(); }
+  { const want=_rcEl('rc-fwy').value;   // freeway crashes load on first use
+    if(want==='freeways' && !fwyPts){ try{ await loadFwy(); }catch(e){} }
+    applyRoads(want); }
   // dates at month granularity; whole years become the plain year filter, the full span clears it
   const fm=+_rcEl('rc-from-mo').value, fy=+_rcEl('rc-from-yr').value, tm=+_rcEl('rc-to-mo').value, ty=+_rcEl('rc-to-yr').value;
   if(!isNaN(fy) && !isNaN(ty)){
