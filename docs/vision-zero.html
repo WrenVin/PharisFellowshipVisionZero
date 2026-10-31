@@ -1291,8 +1291,9 @@ function concentration(){
   return {totK, pctForHalf, hinKsi: hinKsi===null?1:hinKsi};
 }
 const renderer=L.canvas({tolerance:8});
-// zoomSnap 0: continuous zoom (trackpad pinch and wheel stop anywhere); the +/- buttons still step one level
-const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false,zoomSnap:0,zoomDelta:1,wheelPxPerZoomLevel:90,wheelDebounceTime:20}).setView([29.74,-95.42],12);
+// whole zoom levels: Leaflet re-projects every street and intersection on each zoom change, so
+// continuous zoom (zoomSnap 0) made pinch zooming lag; see LOG 2026-10-31
+const map=L.map('map',{renderer,preferCanvas:true,zoomControl:false}).setView([29.74,-95.42],12);
 L.control.zoom({position:'bottomright'}).addTo(map);
 // citywide framing: fit the whole network, then zoom one level tighter so the city fills the map
 function fitCity(){ try{ map.invalidateSize(false); const b=geo.getBounds(); map.setView(b.getCenter(), map.getBoundsZoom(b)+1, {animate:false}); }catch(e){} }
@@ -1451,11 +1452,10 @@ Promise.all([
     }
     if(best && bd<=8) showCrash(best);
   });
-  let _zt=null;   // continuous zoom fires many zoomends; redraw once the zooming pauses
-  map.on('zoomend', ()=>{ clearTimeout(_zt); _zt=setTimeout(()=>{ if(view==='points') buildPoints();   // rescale dots to zoom
+  map.on('zoomend', ()=>{ if(view==='points') buildPoints();   // rescale dots to zoom
     const big=map.getZoom()>=15, all=map.getZoom()>=IX_ALL_ZOOM;
     if(big!==_ixBig || all!==_ixAll){ restyle(); drawLegend(); }   // intersections switch between dots and polygons, blocks between lines and bands
-    else if(_trimOn && view!=='points') restyleBands(); }, 120); });   // band widths follow the zoom
+    else if(_trimOn && view!=='points') restyleBands(); });   // band widths follow the zoom
   map.on('moveend', ()=>{ if(_trimOn && view!=='points') restyleBands(); });
   try{fitCity();}catch(e){}
   buildStreetIndex();

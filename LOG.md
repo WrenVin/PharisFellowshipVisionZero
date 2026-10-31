@@ -4,9 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
-## 2026-10-31 — Continuous zoom
+## 2026-10-31 — Continuous zoom (tried, reverted)
 
-- The map no longer snaps to whole zoom levels (Leaflet `zoomSnap: 0`): trackpad pinch and the mouse wheel stop anywhere, and the +/- buttons still step one level. Redraws after a zoom (band widths, intersection switches at 13 and 15, crash dots) wait until zooming pauses (120 ms). The citywide view now fits the city exactly instead of rounding to a whole level. Checked at 12.6, 13.4, 15.3, 16.7 and 14.2: switches, legend and band widths follow; the report's map snapshot still works.
+- Reverted the same day: Vincent found it extremely slow. Leaflet re-projects every street, block and intersection (about 100,000 shapes) on each zoom change, and a trackpad pinch with no snapping produces a long run of small zooms, each paying that cost. Back to whole zoom levels. Truly smooth zoom would need a GPU-drawn map (for example MapLibre GL) instead of Leaflet's canvas, a large rewrite.
+- What was tried: the map no longer snapped to whole zoom levels (Leaflet `zoomSnap: 0`): trackpad pinch and the mouse wheel stop anywhere, and the +/- buttons still step one level. Redraws after a zoom (band widths, intersection switches at 13 and 15, crash dots) wait until zooming pauses (120 ms). The citywide view now fits the city exactly instead of rounding to a whole level. Checked at 12.6, 13.4, 15.3, 16.7 and 14.2: switches, legend and band widths follow; the report's map snapshot still works.
 
 ## 2026-10-31 — Map readability with intersections
 
