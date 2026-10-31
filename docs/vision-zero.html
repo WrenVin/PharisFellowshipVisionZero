@@ -766,7 +766,7 @@
       </section>
       <section>
         <h3>How crashes map to streets</h3>
-        <p>A crash inside an <span class="lbl">intersection</span> counts for that intersection. Each intersection covers the area where its streets cross, reaching <span class="lbl">75 ft</span> down each local street or collector and <span class="lbl">125 ft</span> down each arterial or frontage road, stopping halfway when the next intersection is closer. This follows the method Vision Zero Austin uses. The distances come from Houston crash reports: police stop recording crashes as intersection crashes about 50 to 75 ft from the crossing, and arterial crossings are wider. On the map, only the top fifth of intersections by count in the current view are shaded until zoomed in close, so streets stay readable; zoomed out they are dots, and from zoom 15 each intersection is drawn as its area and each block as a band that stops at the intersections' edges.</p>
+        <p>A crash inside an <span class="lbl">intersection</span> counts for that intersection. Each intersection covers the area where its streets cross, reaching <span class="lbl">75 ft</span> down each local street or collector and <span class="lbl">125 ft</span> down each arterial or frontage road, stopping halfway when the next intersection is closer. This follows the method Vision Zero Austin uses. The distances come from Houston crash reports: police stop recording crashes as intersection crashes about 50 to 75 ft from the crossing, and arterial crossings are wider. On the map, at city-wide zoom only the top fifth of intersections by count in the current view are drawn, so streets stay readable; zoomed out they are dots, and from zoom 15 each intersection is drawn as its area and each block as a band that stops at the intersections' edges.</p>
         <p>Every other crash is assigned to its <span class="lbl">nearest block within 200 ft</span> (median 4 ft). The street table counts these crashes between intersections; a whole street, when selected, also includes the intersections along it.</p>
       </section>
       <section>
@@ -1023,7 +1023,7 @@ const segIdOk=sg=> inAreaSeg(sg) && (!seg2fwy[sg] || fwyOn) && (frontOn || !seg2
 let seg2fwy={}, seg2toll={}, seg2front={};
 // intersections (polygons, intersections.packed.json): crashes inside one belong to it, not to a block
 let seg2ix={}, ix2streets={}, ix2corr={}, ixProps={}, ixLayers=[], ixIndex={}, streetCase={}, _ixBig=null, _ixAll=null, _ixDotMin=1, _trimOn=false;
-const IX_ALL_ZOOM=17;   // below this, only the top fifth of intersections are shaded
+const IX_ALL_ZOOM=13;   // below this, only the top fifth of intersections are shaded
 // freeway toggle: cityPts are the default crashes; fwyPts load on first use and are appended to pts
 let fwyOn=false, cityPts=[], fwyPts=null, wantFwy=false;
 let roads='streets', frontOn=false, streetPts=null, wantRoads=null;   // roads: 'streets' (default) | 'frontage' | 'freeways'
@@ -1207,8 +1207,8 @@ function computeCorridorCounts(){
 }
 // Intersections: zoomed out, a thick outline in the shade color makes each one read as a
 // dot the size of a block's line; zoomed in (15+), the filled polygon shows. Below
-// IX_ALL_ZOOM only the top fifth (_ixDotMin) are shaded so the streets still read; the
-// rest are hidden (dots) or drawn as faint outlines (polygons).
+// IX_ALL_ZOOM (city-wide views) only the top fifth (_ixDotMin) are drawn so the streets
+// still read; closer in, every intersection with a count shows.
 function ixStyle(p){
   const big=map.getZoom()>=15;
   if(selIds.has(p.seg_id)) return {color:'#1d4ed8', weight:big?2:5, opacity:.95, fillColor:'#1d4ed8', fillOpacity:.45};
