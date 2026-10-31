@@ -4,6 +4,10 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Continuous zoom
+
+- The map no longer snaps to whole zoom levels (Leaflet `zoomSnap: 0`): trackpad pinch and the mouse wheel stop anywhere, and the +/- buttons still step one level. Redraws after a zoom (band widths, intersection switches at 13 and 15, crash dots) wait until zooming pauses (120 ms). The citywide view now fits the city exactly instead of rounding to a whole level. Checked at 12.6, 13.4, 15.3, 16.7 and 14.2: switches, legend and band widths follow; the report's map snapshot still works.
+
 ## 2026-10-31 — Map readability with intersections
 
 - Follow-up (Vincent): the smaller intersections now appear from zoom 13 (a first try at 17 went the wrong direction). Below 13 the legend says "Intersections with 3+ (zoom in for all)".
