@@ -4,6 +4,17 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — Quality pass: every number says what it covers
+
+Vincent asked for a check that every element still updates with every other, including the text, and that it is clear the numbers reflect the current selection. Audit with District C + walking + dark + 2022 to 2025 + freeways found every panel recomputing, but: panel subtitles named only the date range; the map's "Viewing" line left out travel mode and freeways; charts that keep their own filter's full split (travel mode, lighting, age and sex, factors, year, day and time) did not say so; the trend note said "KSI are up 22% vs 2016 to 2018"; the concentration KPI showed a share for a handful of crashes; the street popup's rank ("#3 of N streets") used all-time totals and ignored every filter.
+
+- **Showing bar** under the header, sticky while scrolling: the measure, the area or selected street, the date range, and one chip per active filter (day, time, mode, age, sex, lighting, factor, owner, freeways). Each chip's × clears just that filter; Reset all clears everything. One scrolling line on phones; hidden in print. Replaces the filter list that floated on the map.
+- **Every panel names its scope:** "Killed or seriously injured in District C, 2022 to 2025" (or "on Westheimer Road" for a selected street). Panels that show their own filter's full split add a line saying so, for example "All travel modes are shown so walking can be compared; the rest of the page shows walking only", or "years outside 2022 to 2025 are faded".
+- **Plain wording:** "The last 3 full years are up 22% compared with 2016 to 2018"; bar hover text and report subtitle no longer say KSI.
+- **Concentration KPI** shows "too few to measure" under 20 crashes in view.
+- **Street popup rank** now uses the same filtered ranking as the table ("#3 of 196 streets with people killed or seriously injured in this view"); verified it matches the table row.
+- Verified: removing each chip updates the numbers, sidebar and link; Reset all returns to 1,729 citywide; no console errors; phone layout keeps the bar to one 39 px line.
+
 ## 2026-10-31 — Smooth updates restored; report form holds every option; sidebar controls fit
 
 - **Animations.** A full redraw takes about 0.57 s with freeways on (695k crashes; the time is spread across the panels). The KPI count-up started its clock when the redraw began, so by the first painted frame its time had run out and the numbers jumped. Now the count-up clock starts at the first painted frame, and the eight panels below the map are drawn one per task after the map and KPIs, so the page paints between them and a newer filter change cancels a half-finished pass (`schedulePanels`, `flushPanels` for the report). Bars, donut slices and heatmap squares are updated in place, so their widths, arcs and colors transition instead of being replaced. Verified: Freeways off counts 2,793 down to 1,729 over about 25 frames.

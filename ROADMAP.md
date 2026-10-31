@@ -19,6 +19,7 @@ Running checklist of improvements to the public Vision Zero dashboard. Newest id
 
 ## Done
 
+- [x] 2026-10-31 Quality pass: sticky Showing bar with removable filter chips; every panel names its area and dates and says when it shows its own filter's full split; filtered street ranks in popups; plain trend wording.
 - [x] 2026-10-31 Smooth updates (count-up timing, panels drawn after the map, bars and charts transition); report form holds every option; sidebar controls fit beside the scrollbar; Segments renamed Blocks.
 - [x] 2026-10-30 Printed report redone: two pages (summary, map and top streets; then all charts), civic styling, map captured at report shape, not-official notice.
 - [x] 2026-10-30 First-visit welcome guide (per-browser flag) with a How to use link; report and share buttons in the header; Reset in the sidebar; title row removed.
