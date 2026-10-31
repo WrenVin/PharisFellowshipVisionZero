@@ -4,6 +4,11 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — "Top 10 streets" replaces "Harm is concentrated"; notice bar removed
+
+- Vincent found "2.3% of streets, half the harm" confusing for a general reader. Options compared with live numbers (citywide / District C): top 10 streets' share 13% / 26%; one death every 2.3 / 44 days; share on the City's HIN 50% / 38%; the same measure reworded. He chose **Top 10 streets**: the share of deaths and serious injuries in the view on the 10 streets at the top of the Most dangerous streets table (same ranking, so the two always agree), counting up like the other KPIs. The printed report's stat and summary sentence use it too. The concentration-curve code is removed.
+- The grey "Public data project, not an official City of Houston website" bar under the header is removed to cut clutter; the notice stays in the How to use guide, the page footer and the printed report.
+
 ## 2026-10-31 — Quality pass: every number says what it covers
 
 Vincent asked for a check that every element still updates with every other, including the text, and that it is clear the numbers reflect the current selection. Audit with District C + walking + dark + 2022 to 2025 + freeways found every panel recomputing, but: panel subtitles named only the date range; the map's "Viewing" line left out travel mode and freeways; charts that keep their own filter's full split (travel mode, lighting, age and sex, factors, year, day and time) did not say so; the trend note said "KSI are up 22% vs 2016 to 2018"; the concentration KPI showed a share for a handful of crashes; the street popup's rank ("#3 of N streets") used all-time totals and ignored every filter.
