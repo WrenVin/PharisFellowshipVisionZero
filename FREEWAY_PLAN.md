@@ -1,6 +1,6 @@
 # Freeway Segments: Plan (not started)
 
-Status: planned 2026-10-29, not implemented. Decisions marked **DECIDE** need Vincent's call before work starts.
+Status: planned 2026-10-29, not implemented. Color scale decided 2026-10-31 (see below); direction display still open.
 
 ## Problem
 
@@ -41,7 +41,8 @@ Toll roads (Sam Houston Tollway, Hardy, Westpark) get the same treatment and kee
   - (b) Shade freeways by crashes per mile, or
   - (c) Both: per-mile, own legend.
   Recommendation: (c). Per-mile makes short and long sections comparable; its own legend keeps it from competing with city streets.
-- **Direction display. DECIDE:** draw each direction as its own offset line (accurate, more cluttered at city zoom) or merge to one centerline per section (cleaner, loses direction). Recommendation: directional lines, shown merged below a zoom threshold.
+  **Decided 2026-10-31 (Vincent): use the shared scale.** It is fine if freeways look worse than city streets: they carry a large share of the harm and are off by default.
+- **Direction display. DECIDE (still open as of 2026-10-31):** draw each direction as its own offset line (accurate, more cluttered at city zoom) or merge to one centerline per section (cleaner, loses direction). Recommendation: directional lines, shown merged below a zoom threshold.
 - **Rankings:** keep freeways out of "Most dangerous streets" (length and volume make them incomparable). Optionally add a separate "Most dangerous freeway sections" list when the toggle is on.
 - Area filter, time filters, mode, owner and Reset already handle freeway rows; sections follow the same rules (area by midpoint).
 

@@ -4,6 +4,15 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ---
 
+## 2026-10-31 — People, not crashes; link preview; visit counter; frontage check
+
+- **The dashboard counted crashes where it said people.** "People killed" showed fatal crashes (1,729) and "Seriously injured" showed serious-injury crashes (8,482); the charts, table, map shading and year-to-date line did the same. Now, with "Killed or seriously injured", every count is of **people** from the person records: **1,822 killed** (matches the crash records' own death counts exactly) and **9,868 seriously injured**. Each person code now also carries how the person was traveling (`Prsn_Type_ID`: walking, biking, in or on a vehicle; code = 64*travel + 32*killed + 4*age + sex), so travel mode, age and sex pick people: walking = 616 people killed and 1,722 seriously injured (was crashes that involved a pedestrian). A crash is in the view when at least one of its people matches. "All crashes" still counts crashes. Checked: KPI killed + seriously injured = donut total = year chart total (11,690 citywide; 2,338 walking; 1,012 age 65+). Concentration moved from 2.3% to 2.1% of street miles. Years of life lost counts crashes where a matching person was killed.
+- **Fixed:** the printed report's trend sentence summed `tally(y)`, which ignores the year, so it always read "roughly flat"; it now uses the year chart's data.
+- **Link preview:** `src/make_og_image.py` draws `docs/og-image.png` (1200x630: site name, 1,822 killed and 9,868 seriously injured, the street map); Open Graph and Twitter tags on the dashboard and the root redirect page. Rerun after each data refresh.
+- **Visit counter:** GoatCounter (`wrenvin.goatcounter.com`), no cookies, no personal data, does not count localhost; noted in Data & methods.
+- **Frontage roads checked:** of 53,817 crashes on streets named as frontage roads, police coded 96.7% as the frontage road part (steady every year, 95 to 97%); with the street-name rule, 99.9% are classified as freeway or frontage; only 79 (1 KSI) fall into city streets. A frontage-road policy change would be a clean switch.
+- **Freeway sections plan:** Vincent decided the shared color scale is fine (freeways can look worse; they are off by default). Direction display still open.
+
 ## 2026-10-31 — Concentration KPI back, reworded
 
 After comparing alternatives (top 10 streets' share, this year vs last, rate per 100,000 residents, walking share, days between deaths), Vincent chose to keep the original concentration measure; the problem was the phrase "half the harm". The tile now reads **Concentrated: 2.3% of street miles had 50% of deaths and serious injuries** ("crashes" under All crashes), with a tip explaining the ranking and the comparison to the High Injury Network's 6% (the worst 6% of street miles hold 81% citywide). Decimal count-up; "too few to measure" under 20 in view. The report stat and summary sentence use the same wording. The Top 10 streets KPI code is removed (the street table and popups keep their ranking).

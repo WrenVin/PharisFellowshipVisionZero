@@ -14,10 +14,14 @@
 <meta property="og:title" content="Houston Street Safety Dashboard" />
 <meta property="og:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <meta property="og:url" content="https://wrenvin.github.io/PharisFellowshipVisionZero/vision-zero.html" />
-<!-- og:image: add a 1200x630 PNG at docs/og-vision-zero.png, then uncomment the next line and switch twitter:card to summary_large_image -->
-<!-- <meta property="og:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-vision-zero.png" /> -->
+<!-- preview image: docs/og-image.png, made by src/make_og_image.py (rerun after each data refresh) -->
+<meta property="og:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Houston Street Safety Dashboard: map of Houston streets shaded by people killed or seriously injured" />
 <!-- Twitter -->
-<meta name="twitter:card" content="summary" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://wrenvin.github.io/PharisFellowshipVisionZero/og-image.png" />
 <meta name="twitter:title" content="Houston Street Safety Dashboard" />
 <meta name="twitter:description" content="An interactive map and dashboard of where people are killed or seriously injured on Houston's city streets, 2016 to 2026. Filter by district, super neighborhood, travel mode and more." />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -752,7 +756,7 @@
       </section>
       <section>
         <h3>Definitions</h3>
-        <p><span class="lbl">Killed or seriously injured (KSI)</span> = the K + A levels on the KABCO injury scale.</p>
+        <p><span class="lbl">Killed or seriously injured</span> = the K and A levels on the KABCO injury scale. <span class="lbl">Counts are of people</span>: a crash that kills two people counts as two. Travel mode, age and sex describe each person, so "walking" means people who were walking. With <span class="lbl">All crashes</span> selected, counts are of crashes.</p>
         <p><span class="lbl">Years of life lost</span> = years before age 75, added up for everyone killed (the CDC method), using each person's age from the crash report.</p>
         <p><span class="lbl">Age and sex</span> = from the crash report for each person killed or seriously injured. As a filter, they keep crashes where at least one person in that group was killed or seriously injured.</p>
         <p><span class="lbl">Lighting</span> = the light condition the officer recorded. Dawn or dusk is twilight, just before sunrise or just after sunset. Dark, with street lights means it was dark and the road was lit by street lights. Dark, no street lights means it was dark and unlit. A few dark crashes have no lighting recorded; they count under Dark (all).</p>
@@ -783,6 +787,7 @@
         <p><span class="lbl">City boundary, council districts, super neighborhoods, TIRZs, management districts, HPD patrol divisions, ZIP codes</span>: City of Houston GIS. <a href="https://cohgis-mycity.opendata.arcgis.com/" target="_blank" rel="noopener">COH GIS Open Data</a></p>
         <p><span class="lbl">Schools</span>: Texas Education Agency school directory (public district and charter campuses), via City of Houston GIS. <span class="lbl">Parks</span>: City of Houston Parks and Recreation, via City of Houston GIS.</p>
         <p><span class="lbl">Census tracts</span>: U.S. Census Bureau TIGERweb (2020 tracts). <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">tigerweb.geo.census.gov</a></p>
+        <p><span class="lbl">Visits</span>: this site counts page visits with GoatCounter, which uses no cookies and collects no personal information.</p>
         <p>Layer names, dates and methods are listed in the project <a href="https://github.com/WrenVin/PharisFellowshipVisionZero/blob/main/CODEBOOK.md" target="_blank" rel="noopener">CODEBOOK on GitHub</a>.</p>
       </section>
     </div>
@@ -1107,6 +1112,25 @@ const KICON={
 function modeMatch(ped, bike){
   return mode==='all' || (mode==='ped'&&ped) || (mode==='bike'&&bike) || (mode==='veh'&&!ped&&!bike);
 }
+// --- counting people, not crashes ---------------------------------------------
+// With "Killed or seriously injured", every count is of PEOPLE, from each crash's person
+// records (p[PPL] codes: 64*travel + 32*killed + 4*age group + sex; travel 0 in or on a
+// vehicle, 1 walking, 2 biking). Travel mode, age and sex pick people, so "walking"
+// means people who were walking, and a crash that kills two people counts two. A crash
+// is included when at least one of its people matches. With "All crashes", counts are
+// of crashes (top series = crashes that killed or seriously injured someone).
+const TRAVEL={veh:0, ped:1, bike:2}, TRAVEL_KEY=['veh','ped','bike'];
+function ppl(p, skip){   // [killed, seriously injured] people in this crash matching the filters (skip one: 'mode'|'age'|'sex')
+  const pp=p[PPL]; if(!pp) return [0,0];
+  const tm=(mode==='all'||skip==='mode')?-1:TRAVEL[mode], ag=skip==='age'?0:ageSel, sx=skip==='sex'?0:sexSel;
+  let k=0, a=0;
+  for(const c of pp){ if(tm>=0 && (c>>6)!==tm) continue; if(ag && ((c>>2)&7)!==ag) continue; if(sx && (c&3)!==sx) continue;
+    if((c>>5)&1) k++; else a++; }
+  return [k,a];
+}
+function wts(p, skip){ if(sev==='all') return p[2]?[1,0]:[0,1]; return ppl(p, skip); }   // [top, bottom] this crash adds to a chart
+const modeOkP=p=> sev==='all' ? modeMatch(p[4],p[5]) : true;   // people mode: ppl() applies the travel mode
+function crashIn(p){ if(sev==='all') return modeMatch(p[4],p[5]); const w=ppl(p); return w[0]+w[1]>0; }   // is this crash part of the view
 // per-segment count for the all-years view (vehicle = total minus ped minus bike)
 function segCount(pr){
   if(mode==='veh'){
@@ -1120,13 +1144,13 @@ function segCount(pr){
 function computeCounts(){
   activeCounts={};
   // any narrowed temporal filter -> count straight from crash points (they carry seg_id + date + hour)
-  const narrowed = selY.size || selM.size || selD.size || selH.size || mrActive() || lightSel || ageSel || sexSel || facSel;
+  const narrowed = sev==='ksi' || selY.size || selM.size || selD.size || selH.size || mrActive() || lightSel || ageSel || sexSel || facSel;   // people are counted from crash points
   if(narrowed){
     for(const p of pts){ if(!timeOk(p)) continue;
       const seg=p[SEG]; if(seg==null || !inAreaSeg(seg) || !ownerOk(seg2tx[seg])) continue;
-      if(sev==='ksi' && p[2]!==1) continue; if(!modeMatch(p[4],p[5])) continue;
-      activeCounts[seg]=(activeCounts[seg]||0)+1; }
-  } else {   // full span, no temporal narrowing: use the fast geo n_severe path
+      let v=1; if(sev==='all'){ if(!modeMatch(p[4],p[5])) continue; } else { const w=ppl(p); v=w[0]+w[1]; if(!v) continue; }
+      activeCounts[seg]=(activeCounts[seg]||0)+v; }
+  } else {   // all crashes, no narrowing: use the fast per-segment crash counts
     geo.eachLayer(l=>{const p=l.feature.properties; if(inAreaProp(p) && ownerOk(p.on_txdot)) activeCounts[p.seg_id]=segCount(p);});
   }
   const r=buildRamp(activeCounts); _breaks=r.breaks; _segCap=r.cap; _segMax=r.max;
@@ -1166,14 +1190,15 @@ function styleFor(f){
 // the toll, computed from crash points so it filters by year AND district uniformly.
 // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,n_k,n_a,n_b,n_c,n_noinj]
 // fields 16-20 are per-crash person counts by injury severity (killed K, serious A, minor B, possible C, no-injury) for the cost metric
-function tally(y){
-  let killed=0,ksi=0,pk=0,bk=0,pksi=0,bksi=0;
-  let crashes=0,pa=0,ba=0;
+function tally(){   // people killed / seriously injured by travel mode (age and sex filters apply), plus crash counts
+  const K=[0,0,0], A=[0,0,0]; let crashes=0, pa=0, ba=0;
   for(const p of pts){ if(!inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
-    crashes++; const s=p[2],f=p[3],pe=p[4],bi=p[5];
-    if(pe)pa++; if(bi)ba++;                                // ped / bike crashes of any severity (all-crashes mode)
-    if(f)killed++; if(s)ksi++; if(f&&pe)pk++; if(f&&bi)bk++; if(s&&pe)pksi++; if(s&&bi)bksi++; }
-  return {killed,ksi,ped_killed:pk,bike_killed:bk,ped_ksi:pksi,bike_ksi:bksi,ped_all:pa,bike_all:ba,crashes};
+    crashes++; if(p[4]) pa++; if(p[5]) ba++;
+    const pp=p[PPL]; if(!pp) continue;
+    for(const c of pp){ if(ageSel && ((c>>2)&7)!==ageSel) continue; if(sexSel && (c&3)!==sexSel) continue;
+      if((c>>5)&1) K[c>>6]++; else A[c>>6]++; } }
+  const killed=K[0]+K[1]+K[2], ksi=killed+A[0]+A[1]+A[2];
+  return {killed, ksi, ped_killed:K[1], bike_killed:K[2], ped_ksi:K[1]+A[1], bike_ksi:K[2]+A[2], ped_all:pa, bike_all:ba, crashes};
 }
 // Concentration: street miles ranked by deaths and serious injuries per mile (in the
 // current filters); pctForHalf = share of street miles holding 50% of them,
@@ -1310,7 +1335,7 @@ Promise.all([
     if(view!=='points') return;
     const cp=e.containerPoint; let best=null, bd=Infinity;
     for(const p of pts){
-      if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
+      if(!crashIn(p) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
       if(sev==='ksi' && p[2]!==1) continue;
       const pt=map.latLngToContainerPoint([p[0],p[1]]);
       const d=Math.hypot(pt.x-cp.x, pt.y-cp.y); if(d<bd){bd=d; best=p;}
@@ -1412,7 +1437,7 @@ function buildPoints(fwyOnly){   // fwyOnly: just the freeway crashes, drawn ove
   const base=Math.max(1.3, Math.min(6, (z-9)*0.95));
   const rSev=base, rOth=Math.max(1, base*0.6);
   for(const p of pts){  // [lat,lon,sev,fatal,ped,bike,year,date,hour,yll,district,inc_tier,on_hin,on_txdot,seg_id,sn,n_k,n_a,n_b,n_c,n_noinj]
-    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
+    if(!crashIn(p) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
     if(fwyOnly && !p[RT]) continue;
     const isSev=p[2]===1; if(sev==='ksi' && !isSev) continue;
     L.circleMarker([p[0],p[1]],{renderer,interactive:false,radius:isSev?rSev:rOth,stroke:false,
@@ -1425,7 +1450,7 @@ function buildPoints(fwyOnly){   // fwyOnly: just the freeway crashes, drawn ove
 function filteredCrashes(cap){
   const hits=[];
   for(const p of pts){
-    if(!modeMatch(p[4], p[5]) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
+    if(!crashIn(p) || !inArea(p) || !ownerOkP(p) || !selOk(p) || !timeOk(p)) continue;
     if(sev==='ksi' && p[2]!==1) continue;
     hits.push(p); if(hits.length>cap) return null;
   }
@@ -1558,7 +1583,7 @@ function render(){
   if(view==='points') buildPoints();
   else if(fwyOn) buildPoints(true);   // street views: freeways have no street to shade, so their crashes show as dots
   else if(ptLayer && map.hasLayer(ptLayer)) map.removeLayer(ptLayer);
-  const _t=tally(year); drawKPIs(_t); drawLegend(); drawViewing(); drawFilterBar(); updateBlinkBtn(); syncWhoWhenUI(); schedulePanels();
+  const _t=tally(); drawKPIs(_t); drawLegend(); drawViewing(); drawFilterBar(); updateBlinkBtn(); syncWhoWhenUI(); schedulePanels();
   // map popup: road makeup for the active selection (crash data lives in the panels)
   if(selStreet!==null) openInfoStreet(selStreet, selProps);
   else if(selSeg!==null) openInfoSeg(selSeg);
@@ -1781,7 +1806,7 @@ function updateResetBtn(){
 }
 
 function drawKPIs(t){
-  if(!t) t=tally(year);
+  if(!t) t=tally();
   let killed,ksi;
   if(mode==='all'){killed=t.killed;ksi=t.ksi;}
   else if(mode==='ped'){killed=t.ped_killed;ksi=t.ped_ksi;}
@@ -1843,7 +1868,7 @@ function toggleTip(btn){
 document.addEventListener('click',e=>{ if(_tipBtn && !e.target.closest('#tipbox') && !e.target.closest('.info')) closeTip(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeTip(); });
 document.addEventListener('scroll',e=>{ if(_tipBtn && e.target!==document && e.target.contains && e.target.contains(_tipBtn)) closeTip(); }, true);   // the sidebar scrolled under the box
-function yllTotal(){ let s=0; for(const p of pts){ if(modeMatch(p[4],p[5])&&inArea(p)&&ownerOkP(p)&&selOk(p)&&timeOk(p)) s+=p[9]||0; } return s; }
+function yllTotal(){ let s=0; for(const p of pts){ if(p[9] && inArea(p)&&ownerOkP(p)&&selOk(p)&&timeOk(p) && (mode==='all' || ppl(p)[0]>0)) s+=p[9]; } return s; }   // crashes where a matching person was killed
 // FHWA-SA-25-021 (Oct 2025) per-PERSON KABCO costs, 2024 dollars: [economic, comprehensive].
 // Applied to each crash's person counts pts[16..20] = [killed K, serious A, minor B, possible C, no-injury].
 // Economic = societal economic loss (medical, lost productivity, property damage, emergency/legal services).
@@ -1941,8 +1966,11 @@ function pickFac(v){ facSel = facSel===v ? 0 : v; render(); }
 // --- travel mode: donut (skips the mode filter; the active mode is highlighted) ---
 function drawMode(){
   const n={veh:0,ped:0,bike:0}, k={veh:0,ped:0,bike:0};
-  for(const p of pts){ if(!inArea(p)||!ownerOkP(p)||!selOk(p)||!timeOk(p)||!chartInc(p)) continue;
-    const m=p[4]?'ped':p[5]?'bike':'veh'; n[m]++; if(p[3]) k[m]++; }
+  for(const p of pts){ if(!inArea(p)||!ownerOkP(p)||!selOk(p)||!timeOk(p)) continue;
+    if(sev==='all'){ const m=p[4]?'ped':p[5]?'bike':'veh'; n[m]++; if(p[3]) k[m]++; continue; }
+    const pp=p[PPL]; if(!pp) continue;   // people, by how each was traveling
+    for(const c of pp){ if(ageSel && ((c>>2)&7)!==ageSel) continue; if(sexSel && (c&3)!==sexSel) continue;
+      const m=TRAVEL_KEY[c>>6]; n[m]++; if((c>>5)&1) k[m]++; } }
   const tot=n.veh+n.ped+n.bike, keys=['veh','ped','bike'];
   document.getElementById('mode-sub').innerHTML=esc((sev==='all'?'All crashes':'Killed or seriously injured')+scopeIn())
     +(mode!=='all'?'<span class="skip">All travel modes are shown so '+MODE_LAB[mode].toLowerCase()+' can be compared; the rest of the page shows '+MODE_LAB[mode].toLowerCase()+' only.</span>':'');
@@ -1967,7 +1995,8 @@ function drawMode(){
     row.querySelector('.hb-v').textContent=Math.round(100*n[m]/tot)+'%'; });
   el.querySelector('.dn').textContent=fmt(shown); el.querySelector('.dl').textContent=mode==='all'?'total':MODE_LAB[mode].toLowerCase();
   const kt=k.veh+k.ped+k.bike;
-  document.getElementById('modedeaths').textContent=kt ? (fmt(kt)+' fatal crashes: '+fmt(k.ped)+' killed someone walking and '+fmt(k.bike)+' someone biking.') : '';
+  document.getElementById('modedeaths').textContent=kt ? (sev==='all' ? (fmt(kt)+' fatal crashes: '+fmt(k.ped)+' involved someone walking and '+fmt(k.bike)+' someone biking.')
+    : (fmt(kt)+' '+(kt===1?'person':'people')+' killed: '+fmt(k.ped)+' walking, '+fmt(k.bike)+' biking, and '+fmt(k.veh)+' in or on a vehicle.')) : '';
 }
 
 // --- day and time heatmap (display only; follows every filter except hour and day) ---
@@ -1975,7 +2004,7 @@ const HEAT=['#fbe6e0','#f5c4b6','#ec9d88','#df735c','#c24b3a','#a3302a','#74201b
 function drawWhen(){
   const g=new Array(168).fill(0);
   for(let i=0;i<pts.length;i++){ const p=pts[i]; if(p[8]==null||!p[7]) continue;
-    if(!timeOk(p,'hour,dow')||!inLens(p)||!chartInc(p)) continue; g[dowArr[i]*24+p[8]]++; }
+    if(!timeOk(p,'hour,dow')||!inLens(p)) continue; const w=wts(p), v=w[0]+w[1]; if(v) g[dowArr[i]*24+p[8]]+=v; }
   const max=Math.max(...g), hl=h=> h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p';
   const hm=document.getElementById('heat');
   if(!hm._cells){
@@ -2014,7 +2043,8 @@ function drawPeople(){
   const af=[0,0,0,0,0,0], as=[0,0,0,0,0,0], sf=[0,0,0], ss=[0,0,0];
   for(const p of pts){ const pp=p[PPL]; if(!pp||!inLens(p)) continue;
     const okA=timeOk(p,'age'), okS=timeOk(p,'sex'); if(!okA && !okS) continue;
-    for(const c of pp){ const killed=c>=32, ag=(c>>2)&7, sx=c&3;
+    for(const c of pp){ if(mode!=='all' && (c>>6)!==TRAVEL[mode]) continue;   // people traveling the selected way
+      const killed=(c>>5)&1, ag=(c>>2)&7, sx=c&3;
       if(okA && (!sexSel||sx===sexSel)) (killed?af:as)[ag]++;
       if(okS && (!ageSel||ag===ageSel)) (killed?sf:ss)[sx]++; } }
   const ageRows=[1,2,3,4,5].map(a=>({label:AGE_LAB[a], f:af[a], s:as[a], on:ageSel===a, click:'pickAge('+a+')'}));
@@ -2034,7 +2064,7 @@ const LIGHT_LAB=['Not recorded','Daylight','Dark, with street lights','Dawn or d
 const lightName=v=> v===9 ? 'Dark' : LIGHT_LAB[v];
 function drawLight(){
   const f=[0,0,0,0,0,0], s_=[0,0,0,0,0,0];
-  for(const p of pts){ if(!timeOk(p,'light')||!inLens(p)||!chartInc(p)) continue; (chartTop(p)?f:s_)[p[LT]]++; }
+  for(const p of pts){ if(!timeOk(p,'light')||!inLens(p)) continue; const w=wts(p); f[p[LT]]+=w[0]; s_[p[LT]]+=w[1]; }
   const rows=[1,3,2,4].map(v=>({label:LIGHT_LAB[v], f:f[v], s:s_[v], on:lightSel===v||(lightSel===9&&DARK.includes(v)), click:'pickLight('+v+')'}));
   if(f[5]+s_[5]) rows.push({label:LIGHT_LAB[5], f:f[5], s:s_[5], on:lightSel===9});
   hbars(document.getElementById('lightbars'), rows);
@@ -2062,7 +2092,7 @@ function drawEquity(){
   const pop=[0,0,0,0]; let popAll=0;
   for(const b of BG){ if(!inDist(b[4])||!snOk(b[5])||(poly&&!poly.test(b[1],b[0]))) continue; popAll+=b[2]; if(b[3]!=null) pop[b[3]]+=b[2]; }
   const cnt=[0,0,0,0]; let cAll=0;
-  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; const v=sev==='all'?1:(p[16]+p[17]); cAll+=v; if(p[11]!=null) cnt[p[11]]+=v; }
+  for(const p of pts){ if(!timeOk(p)||!inLens(p)) continue; const w=wts(p), v=w[0]+w[1]; if(!v) continue; cAll+=v; if(p[11]!=null) cnt[p[11]]+=v; }
   const yrs=monthsInView()/12;
   if(!yrs||!popAll){ el.innerHTML=''; note.textContent='No residents in this area.'; return; }
   const rate=(c,pp)=> pp>=2000 ? c/pp*1e5/yrs : null;
@@ -2089,8 +2119,8 @@ function rankStreets(){
   if(seg2name===null){ seg2name={}; geo.eachLayer(l=>{ const p=l.feature.properties; if(p.name && p.name.trim()) seg2name[p.seg_id]=p.name; }); }
   const agg={};
   for(const p of pts){ const sg=p[SEG]; if(sg==null) continue; const nm=seg2name[sg]; if(!nm) continue;
-    if(!inAreaSeg(sg)||!ownerOk(seg2tx[sg])||!modeMatch(p[4],p[5])||!timeOk(p)||!chartInc(p)) continue;
-    const r=agg[nm]||(agg[nm]={f:0,s:0}); if(chartTop(p)) r.f++; else r.s++; }
+    if(!inAreaSeg(sg)||!ownerOk(seg2tx[sg])||!modeOkP(p)||!timeOk(p)) continue;
+    const w=wts(p); if(!w[0]&&!w[1]) continue; const r=agg[nm]||(agg[nm]={f:0,s:0}); r.f+=w[0]; r.s+=w[1]; }
   const L=streetLengths();
   const rows=Object.keys(agg).map(nm=>({nm, f:agg[nm].f, s:agg[nm].s, t:agg[nm].f+agg[nm].s, L:L[nm]})).sort((a,b)=>b.t-a.t||b.f-a.f);
   _rankCache={sig, rows}; return rows;
@@ -2126,7 +2156,7 @@ function drawWorstStreets(){
   }
   // ownership and High Injury Network shares for the whole view
   let n=0, tx=0, toll=0, hin=0;
-  for(const p of pts){ if(!timeOk(p)||!inLens(p)||!chartInc(p)) continue; n++; if(p[RT]===2) toll++; else if(p[13]===1) tx++; if(p[12]===1) hin++; }
+  for(const p of pts){ if(!timeOk(p)||!inLens(p)) continue; const w=wts(p), v=w[0]+w[1]; if(!v) continue; n+=v; if(p[RT]===2) toll+=v; else if(p[13]===1) tx+=v; if(p[12]===1) hin+=v; }
   document.getElementById('roadfacts').textContent= n ? ('In this view, '+Math.round(100*tx/n)+'% were on TxDOT-owned roads'+(toll?', '+Math.round(100*toll/n)+'% on toll roads,':'')+' and '+Math.round(100*hin/n)+'% on the City’s High Injury Network.') : '';
 }
 // year-to-date comparison for the latest (partial) year
@@ -2136,28 +2166,21 @@ function drawYTD(){
   const ly=+DATA_END.slice(0,4), lm=+DATA_END.slice(5,7); if(lm>=12){ el.textContent=''; return; }
   let a=0, b=0;
   for(const p of pts){ if(!p[7]||(p[6]!==ly&&p[6]!==ly-1)) continue; if(+p[7].slice(5,7)>lm) continue;
-    if(!timeOk(p,'year')||!inLens(p)||!chartInc(p)) continue; if(p[6]===ly) a++; else b++; }
+    if(!timeOk(p,'year')||!inLens(p)) continue; const w=wts(p), v=w[0]+w[1]; if(!v) continue; if(p[6]===ly) a+=v; else b+=v; }
   const span='January to '+MONTHS[lm-1];
   if(!b){ el.textContent=''; return; }
   const ch=Math.round(100*(a-b)/b);
   el.innerHTML=span+' '+ly+': <b>'+fmt(a)+'</b>. Same months of '+(ly-1)+': '+fmt(b)+' ('+(ch>0?'up '+ch+'%':ch<0?'down '+(-ch)+'%':'no change')+').';
 }
 // --- stacked-bar charts (killed + seriously injured), all mode/year aware -----
-function inLens(p){ return modeMatch(p[4],p[5]) && inArea(p) && ownerOkP(p) && selOk(p); }   // lens + district + owner + selection (no severity filter)
+function inLens(p){ return modeOkP(p) && inArea(p) && ownerOkP(p) && selOk(p); }   // lens + district + owner + selection (no severity filter)
 // The by-year / time-of-day / day-of-week charts follow the SHOW toggle (sev).
 // KSI mode: count only KSI, split dark=killed / light=seriously injured.
 // All-crashes mode: count every crash, split dark=killed or seriously injured / light=other crashes.
 // In both, f is the dark (top) series and s is the light (bottom) series.
-function chartInc(p){ return sev==='all' ? true : p[2]===1; }     // is this crash counted in the active mode
-function chartTop(p){ return sev==='all' ? p[2]===1 : !!p[3]; }   // does it go in the dark (top) series
-function yearStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'year')||!inLens(p)||!chartInc(p))continue;
-  const t=chartTop(p)?f:s, y=p[6]; t[y]=(t[y]||0)+1; } return {f,s}; }
-function monthStacks(yr){ const f={},s={}; for(const p of pts){ if(p[6]!==yr||!timeOk(p,'year')||!inLens(p)||!chartInc(p))continue;
-  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
-function hourStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'hour')||!inLens(p)||!chartInc(p))continue;
-  const h=p[8]; if(h==null)continue; const t=chartTop(p)?f:s; t[h]=(t[h]||0)+1; } return {f,s}; }
-function dayStacks(){ const f={},s={}; for(let i=0;i<pts.length;i++){ const p=pts[i]; if(!timeOk(p,'dow')||!inLens(p)||!chartInc(p))continue;
-  if(!p[7])continue; const d=dowArr[i]; const t=chartTop(p)?f:s; t[d]=(t[d]||0)+1; } return {f,s}; }   // d: 0=Mon .. 6=Sun (precomputed)
+function chartInc(p){ if(sev==='all') return true; const w=ppl(p); return w[0]+w[1]>0; }   // is this crash part of the view
+function yearStacks(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'year')||!inLens(p))continue;
+  const w=wts(p); if(!w[0]&&!w[1]) continue; const y=p[6]; f[y]=(f[y]||0)+w[0]; s[y]=(s[y]||0)+w[1]; } return {f,s}; }
 
 function niceMax(m){ for(const s of [4,8,12,16,20,30,40,60,80,100,150,200]) if(m<=s) return s; return Math.ceil(m/100)*100; }
 // compact y-axis tick label so large all-crashes counts fit the narrow left margin (41500 -> "42k", 8400 -> "8.4k")
@@ -2252,8 +2275,6 @@ function drawBarChart(container, labels, fatal, serious, opt){
   }
 }
 // cyclical month distribution (Jan-Dec) across every year shown -- seasonality
-function monthStacksC(){ const f={},s={}; for(const p of pts){ if(!timeOk(p,'month')||!inLens(p)||!chartInc(p))continue;
-  const m=p[7]?+p[7].slice(5,7):0; if(!m)continue; const t=chartTop(p)?f:s; t[m]=(t[m]||0)+1; } return {f,s}; }
 // per-panel sub line: a hint when nothing is selected on this axis, else the selection + a clear link
 function facetSub(dim, hint){ const lab=facetLabel(dim); if(lab===null) return hint;
   return '<b>'+lab+'</b>&nbsp;&nbsp;<span style="color:var(--act);cursor:pointer;text-decoration:underline" onclick="clearDim(\''+dim+'\')">clear</span>'; }
@@ -2323,7 +2344,7 @@ function showCrash(p){  // p=[lat,lon,sev,fatal,ped,bike,year,date,hour,yll,dist
   if(p[3] && p[9]) rows.push(['Years of life lost', Math.round(p[9])]);
   if(p[LT]) rows.push(['Lighting', LIGHT_LAB[p[LT]]]);
   if(p[FAC]) rows.push(['Factors recorded', FACTORS.filter(([bit])=>p[FAC]&bit).map(f=>f[1]).join(', ')]);
-  if(p[PPL]) rows.push(['People hurt', p[PPL].map(c=>(c>=32?'Killed':'Seriously injured')+', '+(((c>>2)&7)?'age '+AGE_LAB[(c>>2)&7].toLowerCase():'age not recorded')+((c&3)?', '+SEX_LAB[c&3].toLowerCase():'')).join('; ')]);
+  if(p[PPL]) rows.push(['People hurt', p[PPL].map(c=>(((c>>5)&1)?'Killed':'Seriously injured')+', '+['in or on a vehicle','walking','biking'][c>>6]+', '+(((c>>2)&7)?'age '+AGE_LAB[(c>>2)&7].toLowerCase():'age not recorded')+((c&3)?', '+SEX_LAB[c&3].toLowerCase():'')).join('; ')]);
   // nearest street + its design, so a crash reads in context of the road it's on
   if(p[RT]) rows.push(['Road', p[RT]===2 ? 'Toll road' : 'Freeway, ramp or frontage road']);
   const sp=p[RT] ? null : nearestSegProps(p[0],p[1]);   // a freeway crash is not on the nearest city street
@@ -2608,7 +2629,7 @@ async function generateReport(cfg){
   cfg=cfg||{}; const S=Object.assign({},RSECT_DEFAULT,cfg.sections||{});
   const R=document.getElementById('report'); if(!R) return;
   const d=viewDesc();
-  const t=tally(year), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed), cost=costTotal();
+  const t=tally(), yll=Math.round(yllTotal()), serious=Math.max(0,t.ksi-t.killed), cost=costTotal();
   const con = selIds.size>0 ? null : concentration();
   const conPct = (con && con.totK>=20 && con.pctForHalf!=null) ? (con.pctForHalf*100<10?(con.pctForHalf*100).toFixed(1):Math.round(con.pctForHalf*100))+'%' : null;
   const metric = sev==='all' ? 'crashes' : 'people killed or seriously injured';
@@ -2621,7 +2642,7 @@ async function generateReport(cfg){
   if(S.summary){
     const trDir=(()=>{ const ys=vz.years.slice(0,-1); if(ys.length<4) return null;
       const base=ys.slice(0,3), recent=ys.slice(-3);
-      const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
+      const ys_=yearStacks(), sum=arr=>arr.reduce((a,y)=>a+(ys_.f[y]||0)+(ys_.s[y]||0),0);
       const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return null;
       const ch=(r-b)/b; return ch>0.05?'rising':ch<-0.05?'falling':'roughly flat'; })();
     const conPhrase = conPct ? ('50% of the '+metric+' in this view happened on '+conPct+' of its street miles') : (selIds.size ? 'This view covers a single street' : 'This view has too few crashes to measure how concentrated they are');
@@ -2653,7 +2674,7 @@ async function generateReport(cfg){
   // the trend versus the 2016-2018 baseline (the one takeaway not shown elsewhere)
   const trendNote=(()=>{ const ys=vz.years.slice(0,-1); if(ys.length<4) return '';
     const base=ys.slice(0,3), recent=ys.slice(-3);
-    const sum=arr=>arr.reduce((a,y)=>a+(tally(y).ksi||0),0);
+    const ys_=yearStacks(), sum=arr=>arr.reduce((a,y)=>a+(ys_.f[y]||0)+(ys_.s[y]||0),0);
     const b=sum(base)/base.length, r=sum(recent)/recent.length; if(!b) return '';
     const ch=(r-b)/b, dir=ch>0.05?'above':ch<-0.05?'below':'about even with';
     return '<div class="r-note">Recent years run '+dir+' the 2016 to 2018 baseline. '+_ih('ytd-note')+'</div>'; })();
@@ -2857,5 +2878,7 @@ document.getElementById('worst-next').onclick=()=>{ _worstPage++; drawWorstStree
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
 })();
 </script>
+<!-- visit counter: GoatCounter (no cookies, no personal data; does not count localhost) -->
+<script data-goatcounter="https://wrenvin.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

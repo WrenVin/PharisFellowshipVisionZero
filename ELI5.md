@@ -222,8 +222,8 @@ them** — like Highway 6, S Main / US-90A, and Westheimer (which out west is
 officially the state's FM 1093). That's deliberate: this is how Austin's Vision
 Zero dashboard and Houston's own High Injury Network do it, because a huge share
 of the deaths happen on exactly those state-owned arterials, and ignoring them
-would hide the problem. The decade's toll on city streets: **1,729 people killed
-and 10,211 killed or seriously injured** (about **70,900 years of life lost**).
+would hide the problem. The decade's toll on city streets: **1,822 people killed
+and 9,868 seriously injured** (about **59,500 years of life lost**).
 
 What we *do* do is **label** every street and crash as city-owned or
 state-owned (TxDOT), so the dashboard can say plainly that about **1 in 9 of the
@@ -270,9 +270,10 @@ actually sees and can do:
 - **The toll, up top.** Headline numbers: how many people have been killed or
   seriously hurt, and **how many years of life that lost** (a powerful way to
   show that a young person's death counts for more than the bare number "1").
-  Citywide that's **1,729 killed, 8,482 seriously injured (10,211 "killed or
-  seriously injured"), and about 70,900 years of life lost** over 2016–2025
-  (plus 2026 through October).
+  Citywide that's **1,822 people killed and 9,868 seriously injured, and about
+  59,500 years of life lost** over 2016–2025 (plus 2026 through September).
+  (Earlier versions counted crashes, 1,729 deadly ones; a crash that kills two
+  people now counts as two, because people die, not crashes.)
 - **A big map of Houston** you can shade three ways: whole **streets**,
   individual **blocks** (segments), or every **crash as a dot**.
 - **Filters down the left:** search for a street by name, pick a council

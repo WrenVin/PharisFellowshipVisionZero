@@ -69,7 +69,8 @@ FACTOR_BITS = {
     16: {15, 16},                      # ran a red light or stop sign
 }
 # People killed or seriously injured, one small code each:
-# code = 32*killed + 4*age_group + sex
+# code = 64*travel + 32*killed + 4*age_group + sex
+# travel (Prsn_Type_ID) 0 in or on a vehicle / other, 1 walking (4 pedestrian), 2 biking (3 pedalcyclist)
 # age_group 0 unknown, 1 under 15, 2 15-24, 3 25-44, 4 45-64, 5 65+;
 # sex (GNDR_LKP) 0 unknown, 1 male, 2 female
 AGE_EDGES = (15, 25, 45, 65)
@@ -195,7 +196,7 @@ g["speed_limit"] = pd.to_numeric(g["Crash_Speed_Limit"], errors="coerce")
 # all people (fixed 2026-10-30).
 # Fatal crashes with no killed person row (or no recorded age) get the mean
 # years-lost-per-fatality, so the YLL total stays anchored to the fatal-crash count.
-pcols = ("Crash_ID", "Unit_Nbr", "Prsn_Nbr", "Prsn_Injry_Sev_ID", "Prsn_Age", "Prsn_Gndr_ID")
+pcols = ("Crash_ID", "Unit_Nbr", "Prsn_Nbr", "Prsn_Injry_Sev_ID", "Prsn_Age", "Prsn_Gndr_ID", "Prsn_Type_ID")
 def _load_persons(kind):
     fs = [f for f in glob.glob(str(CRIS / "Houston_Crash_*" / f"*{kind}_*.csv"))
           if (kind == "primaryperson") or ("primaryperson" not in f)]
@@ -211,7 +212,9 @@ for _i, _lo in enumerate((0,) + AGE_EDGES):
     ksi_p.loc[_age >= _lo, "ageg"] = _i + 1
 _sex = pd.to_numeric(ksi_p["Prsn_Gndr_ID"], errors="coerce")
 ksi_p["sex"] = _sex.where(_sex.isin([1, 2]), 0).astype(int)
-ksi_p["code"] = 32 * ksi_p["Prsn_Injry_Sev_ID"].eq(4).astype(int) + 4 * ksi_p["ageg"] + ksi_p["sex"]
+_typ = pd.to_numeric(ksi_p["Prsn_Type_ID"], errors="coerce")
+ksi_p["travel"] = _typ.map({4: 1, 3: 2}).fillna(0).astype(int)
+ksi_p["code"] = 64 * ksi_p["travel"] + 32 * ksi_p["Prsn_Injry_Sev_ID"].eq(4).astype(int) + 4 * ksi_p["ageg"] + ksi_p["sex"]
 g["ksi_people"] = g["Crash_ID"].map(ksi_p.sort_values("code").groupby("Crash_ID")["code"]
                                      .agg(lambda v: ",".join(str(int(c)) for c in v)))
 killed = persons

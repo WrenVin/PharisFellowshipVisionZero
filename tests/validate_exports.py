@@ -32,9 +32,9 @@ LON_MIN, LON_MAX = -96.2, -94.6
 # 0 lat, 1 lon, 2 sev(KSI flag), 3 fatal, 4 ped, 5 bike, 6 year, 7 date, 8 hour,
 # 9 yll, 10 district, 11 inc_tier, 12 on_hin, 13 on_txdot, 14 seg_id, 15 sn,
 # 16 n_k, 17 n_a, 18 n_b, 19 n_c, 20 n_noinj, 21 light (0-5), 22 factor bits (0-31),
-# 23 people killed/seriously injured (comma-joined codes 0-63, or null)
+# 23 people killed/seriously injured (comma-joined codes 0-191, or null)
 CRASH_ROW_LEN = 24
-PEOPLE_RE = re.compile(r"^\d{1,2}(,\d{1,2})*$")
+PEOPLE_RE = re.compile(r"^\d{1,3}(,\d{1,3})*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # Properties the dashboard logic depends on for every segment feature.
@@ -113,7 +113,7 @@ def check_crashes(pts):
             bad_flag += 1
         if r[21] not in (0, 1, 2, 3, 4, 5) or not (isinstance(r[22], int) and 0 <= r[22] < 32):
             bad_flag += 1
-        if r[23] is not None and (not PEOPLE_RE.match(r[23]) or any(int(x) > 63 for x in r[23].split(","))):
+        if r[23] is not None and (not PEOPLE_RE.match(r[23]) or any(int(x) > 191 for x in r[23].split(","))):
             bad_flag += 1
         if sev == 1:
             ksi += 1

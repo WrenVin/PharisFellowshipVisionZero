@@ -312,7 +312,7 @@ print(f"Wrote boundary -> {bpath}")
 # minor B, possible C, no-injury), so the dashboard can apply the FHWA per-PERSON cost table.
 # 21 light (0 unknown, 1 daylight, 2 dark with street lights, 3 dawn/dusk, 4 dark without street
 # lights, 5 dark with lighting not recorded), 22 contributing-factor bit flags,
-# 23 people killed or seriously injured as comma-joined codes or null (see build_crashes.py).
+# 23 people killed or seriously injured as comma-joined codes or null (64*travel + 32*killed + 4*age group + sex; see build_crashes.py).
 def crash_rows(cr, freeway=False):
     """Tag crash points and build dashboard rows (24 fields; freeway rows add road_type)."""
     cr = cr.to_crs(seg.crs)
