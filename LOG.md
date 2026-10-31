@@ -6,6 +6,8 @@ Dated record of what was done, what was decided, and why. Newest entries at the 
 
 ## 2026-10-31 — Map readability with intersections
 
+- Follow-up (Vincent): the smaller intersections now appear from zoom 17 instead of 15. At 15 and 16 they are faint outlines so the block bands still meet something; the legend says "Intersections with 3+ (zoom in for all)" until 17.
+
 Vincent found the map harder to read after intersections (the clear "which streets" picture was lost) and noticed block lines running into the intersection polygons.
 
 - Cause: in the default view 4,088 intersections had at least one person killed or seriously injured against 2,210 blocks, so about two of every three red marks were intersection dots, and a round dot reads heavier than a line.

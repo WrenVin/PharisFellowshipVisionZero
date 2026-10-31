@@ -766,7 +766,7 @@
       </section>
       <section>
         <h3>How crashes map to streets</h3>
-        <p>A crash inside an <span class="lbl">intersection</span> counts for that intersection. Each intersection covers the area where its streets cross, reaching <span class="lbl">75 ft</span> down each local street or collector and <span class="lbl">125 ft</span> down each arterial or frontage road, stopping halfway when the next intersection is closer. This follows the method Vision Zero Austin uses. The distances come from Houston crash reports: police stop recording crashes as intersection crashes about 50 to 75 ft from the crossing, and arterial crossings are wider. On the map, zoomed out, only the top fifth of intersections by count in the current view are drawn (as dots), so streets stay readable; from zoom 15 every intersection is drawn as its area and each block as a band that stops at the intersections' edges.</p>
+        <p>A crash inside an <span class="lbl">intersection</span> counts for that intersection. Each intersection covers the area where its streets cross, reaching <span class="lbl">75 ft</span> down each local street or collector and <span class="lbl">125 ft</span> down each arterial or frontage road, stopping halfway when the next intersection is closer. This follows the method Vision Zero Austin uses. The distances come from Houston crash reports: police stop recording crashes as intersection crashes about 50 to 75 ft from the crossing, and arterial crossings are wider. On the map, only the top fifth of intersections by count in the current view are shaded until zoomed in close, so streets stay readable; zoomed out they are dots, and from zoom 15 each intersection is drawn as its area and each block as a band that stops at the intersections' edges.</p>
         <p>Every other crash is assigned to its <span class="lbl">nearest block within 200 ft</span> (median 4 ft). The street table counts these crashes between intersections; a whole street, when selected, also includes the intersections along it.</p>
       </section>
       <section>
@@ -1022,7 +1022,8 @@ const segOk=p=> inAreaProp(p) && (!p._fwy || fwyOn) && (frontOn || p.road_class!
 const segIdOk=sg=> inAreaSeg(sg) && (!seg2fwy[sg] || fwyOn) && (frontOn || !seg2front[sg]) && (seg2toll[sg] ? owner==='all' : ownerOk(seg2tx[sg]));
 let seg2fwy={}, seg2toll={}, seg2front={};
 // intersections (polygons, intersections.packed.json): crashes inside one belong to it, not to a block
-let seg2ix={}, ix2streets={}, ix2corr={}, ixProps={}, ixLayers=[], ixIndex={}, streetCase={}, _ixBig=null, _ixDotMin=1, _trimOn=false;
+let seg2ix={}, ix2streets={}, ix2corr={}, ixProps={}, ixLayers=[], ixIndex={}, streetCase={}, _ixBig=null, _ixAll=null, _ixDotMin=1, _trimOn=false;
+const IX_ALL_ZOOM=17;   // below this, only the top fifth of intersections are shaded
 // freeway toggle: cityPts are the default crashes; fwyPts load on first use and are appended to pts
 let fwyOn=false, cityPts=[], fwyPts=null, wantFwy=false;
 let roads='streets', frontOn=false, streetPts=null, wantRoads=null;   // roads: 'streets' (default) | 'frontage' | 'freeways'
@@ -1205,15 +1206,16 @@ function computeCorridorCounts(){
   const r=buildRamp(corrTotal); _cbreaks=r.breaks; _corrCap=r.cap; _corrMax=r.max;
 }
 // Intersections: zoomed out, a thick outline in the shade color makes each one read as a
-// dot the size of a block's line, drawn only for the top fifth (_ixDotMin) so the streets
-// still read; zoomed in (15+), every filled polygon shows.
+// dot the size of a block's line; zoomed in (15+), the filled polygon shows. Below
+// IX_ALL_ZOOM only the top fifth (_ixDotMin) are shaded so the streets still read; the
+// rest are hidden (dots) or drawn as faint outlines (polygons).
 function ixStyle(p){
   const big=map.getZoom()>=15;
   if(selIds.has(p.seg_id)) return {color:'#1d4ed8', weight:big?2:5, opacity:.95, fillColor:'#1d4ed8', fillOpacity:.45};
   if(view==='corridor') return {opacity:0, fillOpacity:0, weight:0};   // counted in the whole-street totals
   const v=activeCounts[p.seg_id]||0;
   if(!(v>0)) return {color:ZERO, weight:big?.6:0, opacity:big?.35:0, fillColor:ZERO, fillOpacity:big?.12:0};
-  if(!big && v<_ixDotMin) return {opacity:0, fillOpacity:0, weight:0};
+  if(v<_ixDotMin && map.getZoom()<IX_ALL_ZOOM) return big ? {color:ZERO, weight:.6, opacity:.35, fillColor:ZERO, fillOpacity:.12} : {opacity:0, fillOpacity:0, weight:0};
   let i=0; while(i<_breaks.length && v>_breaks[i]) i++;
   return {color:REDS[i], weight:big?1:2+i*0.7, opacity:.9, fillColor:REDS[i], fillOpacity:.8};
 }
@@ -1449,8 +1451,8 @@ Promise.all([
     if(best && bd<=8) showCrash(best);
   });
   map.on('zoomend', ()=>{ if(view==='points') buildPoints();   // rescale dots to zoom
-    const big=map.getZoom()>=15;
-    if(big!==_ixBig){ restyle(); drawLegend(); }   // intersections switch between dots and polygons, blocks between lines and bands
+    const big=map.getZoom()>=15, all=map.getZoom()>=IX_ALL_ZOOM;
+    if(big!==_ixBig || all!==_ixAll){ restyle(); drawLegend(); }   // intersections switch between dots and polygons, blocks between lines and bands
     else if(_trimOn && view!=='points') restyleBands(); });   // band widths follow the zoom
   map.on('moveend', ()=>{ if(_trimOn && view!=='points') restyleBands(); });
   try{fitCity();}catch(e){}
@@ -1554,7 +1556,7 @@ function faintStyle(f){ if(!segOk(f.properties)) return {opacity:0, fillOpacity:
     : {color:ZERO, weight:big?.6:0, opacity:big?.3:0, fillColor:ZERO, fillOpacity:big?.1:0}; }
   if(selIds.has(f.properties.seg_id)) return {color:'#1d4ed8', weight:5, opacity:.9};
   return {color:ZERO, weight:1, opacity:.35}; }
-function restyle(){ _ixBig=map.getZoom()>=15; _bandGen++; syncTrim(); geo.setStyle(view==='points' ? faintStyle : styleFor); }
+function restyle(){ _ixBig=map.getZoom()>=15; _ixAll=map.getZoom()>=IX_ALL_ZOOM; _bandGen++; syncTrim(); geo.setStyle(view==='points' ? faintStyle : styleFor); }
 function buildPoints(fwyOnly){   // fwyOnly: just the freeway crashes, drawn over the street shading
   if(ptLayer) map.removeLayer(ptLayer);
   const g=L.layerGroup();
@@ -2030,9 +2032,9 @@ function drawLegend(){
     h+='<div style="color:var(--muted);font-size:11px;margin-bottom:4px">'+capt+'</div>'
       +'<div class="grad" style="background:linear-gradient(90deg,'+ZERO+' 0 12%,'+REDS.join(',')+')"></div>'
       +'<div class="ends"><span>0</span><span>'+right+'</span></div>';
-    if(!corr && ixLayers.length) h+= map.getZoom()>=15
-      ? '<div class="key" style="color:var(--muted)"><span class="dot" style="background:'+REDS[3]+';width:9px;height:9px"></span>Intersection</div>'
-      : '<div class="key" style="color:var(--muted)"><span class="dot" style="background:'+REDS[3]+';border-radius:50%;width:8px;height:8px"></span>'+(_ixDotMin>1?'Intersections with '+_ixDotMin+'+ (zoom in for all)':'Intersection (zoom in for its area)')+'</div>';
+    if(!corr && ixLayers.length){ const z=map.getZoom(), big=z>=15, few=_ixDotMin>1 && z<IX_ALL_ZOOM;
+      const sw='<span class="dot" style="background:'+REDS[3]+';'+(big?'width:9px;height:9px':'border-radius:50%;width:8px;height:8px')+'"></span>';
+      h+='<div class="key" style="color:var(--muted)">'+sw+(few?'Intersections with '+_ixDotMin+'+ (zoom in for all)':big?'Intersection':'Intersection (zoom in for its area)')+'</div>'; }
     if(fwyOn) h+='<div class="key" style="color:var(--muted)">Freeways: sections between ramps, one per direction</div>';
   }
   if(map.hasLayer(hinLayer)) h+='<div class="key"><span class="dot" style="background:'+HINCOLOR+';width:18px;height:4px"></span>City’s High Injury Network</div>';
